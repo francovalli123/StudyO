@@ -39,6 +39,12 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'apps.user',
     'apps.subject',
+    'apps.routine',
+    'apps.habits',
+    'apps.habitRecord',
+    'apps.notification',
+    'apps.pomodoroSession',
+    'apps.routineBlock',
 ]
 
 MIDDLEWARE = [
