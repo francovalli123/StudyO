@@ -27,4 +27,4 @@ class Subject (models.Model):
     updated_at = models.DateTimeField(auto_now=True)      # Se actualiza cada vez que se guarda
 
     def __str__(self):
-        return f"{self.name} ({self.get_priority_display() if self.priority else 'Sin prioridad'})" 
+        return f"{self.name} ({self.get_frequency_display()})"
