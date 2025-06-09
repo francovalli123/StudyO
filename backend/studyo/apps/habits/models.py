@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+from datetime import timedelta, date
 
 class Habit(models.Model):
     # Defino las constantes para la frecuencia
@@ -23,3 +24,25 @@ class Habit(models.Model):
     
     def __str__(self):
         return f"{self.name} ({self.get_frequency_display()})" # Esto sirve para debuggear
+
+    # Función para calcular la racha
+    def calculate_streak(self):
+        records = self.records.filter(completed=True).order_by('-date') # Busca todos los registros completados de ese habito, ordenado del mas reciente al mas viejo
+        if not records:
+            return 0    # Si no hay registros completados, devuelve 0
+
+        streak = 0 
+        today = date.today()    # Esto define el día actual
+
+        for i, record in enumerate(records):    # Se recorre uno por uno los registros
+            if self.frequency == Habit.DAILY:
+                expected_date = today - timedelta(days=i) # Si el hábito es diario, se espera que todos los registros estén en dias consecutivos
+            elif self.frequency == Habit.WEEKLY:
+                expected_date = today - timedelta(weeks=i) # Si el hábito es semanal, espera que estén en semanas consecutivas, por ejemplo, todos los lunes
+
+            if record.date == expected_date: # Compara la fecha del registro con la fecha esperada
+                streak += 1 # Sigue la racha
+            else:
+                break   # Se corta la racha
+
+        return streak # Cuando termina de contar, devuelve el valor final de la racha
