@@ -1,7 +1,8 @@
 from django.db import models
 from django.conf import settings
 
-# Create your models here.
+# La rutina pertenece a un usuario, contiene múltiples bloques rutinarios 
+# Este modelo representa una rutina semanal de estudio, con bloques de tiempo asignados a materias
 class Routine(models.Model):
     # Atributos 
     user = models.ForeignKey(
