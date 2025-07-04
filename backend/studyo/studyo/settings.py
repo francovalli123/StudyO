@@ -44,6 +44,9 @@ INSTALLED_APPS = [
     'apps.notification',
     'apps.pomodoroSession',
     'apps.routineBlock',
+    'apps.user',
+    'apps.base',
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
@@ -54,6 +57,12 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
+]
+
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",  # o donde esté corriendo tu front
 ]
 
 ROOT_URLCONF = 'studyo.urls'
@@ -127,3 +136,4 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+AUTH_USER_MODEL = 'user.User'
