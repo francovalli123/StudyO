@@ -1,7 +1,10 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
+from django.contrib.auth import get_user_model
 
 # Crea un serializer basado en modelo (User) para convertir datos JSON <-> objetos Python, y aplicar validaciones automáticas
+
+User = get_user_model()
 
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)   # El campo password es obligatorio pero solo se escribe (no se devuelve en respuesta)

@@ -1,0 +1,8 @@
+En el caso del Logout, basicamente lo que hace el frontend es borrar el token que se creó al iniciar sesión.
+El endpoint es api/logout/
+
+Entonces el frontend hace:
+POST /api/logout/
+Authorization: Token <token_del_usuario>
+
+Y el token se "destruye", o sea, el usuario ya no puede hacer requests hasta que haga login otra vez.

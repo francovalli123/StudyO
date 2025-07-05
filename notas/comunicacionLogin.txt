@@ -1,0 +1,20 @@
+Para el caso del login, no definí una lógica como en el registro, sino que uso Token Authentication (de Django Rest Framework)
+Lo único que hice fue activar el sistema de token en el proyecto y luego agregar el endpoint de login en backend/studyo/studyo/urls.py
+
+El endpoint es api/login/
+
+COMO USAR EL ENDPOINT EN EL FRONTEND
+Haces un POST a /api/login/ con este body (ejemplo):
+{
+    "username": "franco123",
+    "password": "contraseñaAShei"
+}
+
+Si los datos son correctos, devuelve algo como esto:
+{
+    "token": "bc65ae99dd1cfde973e6d08d0b1e5c216b1d6b91"
+}
+Este token lo tenés que guardar en el frontend (por ejemplo, localStorage) y enviarlo en cada request:
+Authorization: Token bc65ae99dd1cfde973e6d08d0b1e5c216b1d6b91 <- Es http
+
+Yo usé TokenAuth, que es básico pero fácil de usar. Hay otra opción que es JWT pero teniendo en cuenta de que es nuestro primer proyecto, prefiero ir a algo mas sencillo de usar (pero efectivo)

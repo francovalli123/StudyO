@@ -1,0 +1,11 @@
+Por último, el usuario puede eliminar su propia cuenta. 
+El endpoint es api/delete-account/
+Este endpoint requiere autenticacion y el usuario solo puede eliminar su propia cuenta (no la de otros)
+
+COMO USAR EN EL FRONTEND
+Para usarlo, usas:
+DELETE /api/delete-account/
+con el header:
+Authorization: Token <token_del_usuario>
+
+NOTA: El superuser (admin) puede eliminar otras cuentas.
