@@ -1,20 +1,14 @@
 from django.shortcuts import render
-from django.contrib.auth.forms import UserCreationForm
-from django.contrib.auth.views import LoginView, LogoutView
-from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.urls import reverse_lazy
-from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
+from .serializers import *
+from .models import *
+from rest_framework.generics import CreateAPIView
+from rest_framework.permissions import AllowAny
+from .serializers import RegisterSerializer
+from django.contrib.auth.models import User
 
-# Vista para el usuario
-
-class SignUp(CreateView):
-    form_class = UserCreationForm
-    template_name = 'registration/signup.html'
-    success_url = reverse_lazy('home') # Home sería la pagina de inicio
-
-class Login(LoginView):
-    next_page = reverse_lazy("home")
-
-class Logout(LogoutView):
-    template_name = 'registration/logout.html'
+# Registro de usuarios.
+class RegisterView(CreateAPIView):
+    queryset = User.objects.all()   # El framework necesita esto para ciertas operaciones internas
+    serializer_class = RegisterSerializer   # Le decimos a la vista que serializer usar para convertir los datos de entrada JSON en un objeto Python, y validar esos datos
+    permission_classes = [AllowAny]     # Permite que usuarios no autenticados puedan acceder al endpoint (nadie está autenticado antes de registrarse)
 

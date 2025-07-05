@@ -23,7 +23,5 @@ from apps.base.views import *
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', index, name="home"),
-    path('signup/', SignUp.as_view(), name="signup"),
-    path('login/', Login.as_view(), name="login"),
-    path('logout/', Logout.as_view(), name="logout"),
+    path('api/signup/', RegisterView.as_view(), name="api_signup"),
 ]

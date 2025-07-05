@@ -1,5 +1,5 @@
 from django.shortcuts import render
 
-# Create your views here.
+# Index. Actúa como Home
 def index(request):
     return render(request, "base/index.html")

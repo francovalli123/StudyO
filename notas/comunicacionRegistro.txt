@@ -1,0 +1,46 @@
+El serializer del registro de usuario es el primer paso para que la API permita crear usuarios desde el frontend
+Si bien el codigo está comentado para poder entenderlo y que sea mas legible, voy a explicar como se podría usar en el frontend
+
+Dentro de backend/studyo/user/serializer.py se encuentra una función:
+    def create(self, validated_data):
+        user = User.objects.create_user(
+            username=validated_data["username"],
+            email=validated_data.get("email", ""),
+            password=validated_data["password"]
+        )
+        return user
+
+Esta función sobreescribe la función de Django Rest Framework (DRF) para crear usuarios, pues el método create() por defecto no encripta la contraseña
+En cambio, User.objects.create_user() si la encripta correctamente usando el sistema Django
+
+Por otro lado, tenemos la vista del registro de usuarios.
+Esta clase hereda de CreateAPIView, una vista genérica de DRF que ya trae implementado el comportamiento para manejar solicitudes POST para crear objetos nuevos.
+Es decir, cuando alguien hace un POST a esta vista, DRF:
+    - Crea una instancia del serializer con los datos que llegan.
+    - Valida esos datos.
+    - Llama a serializer.save()
+    - Devuelve una respuesta con el objeto creado (o un error si algo está mal).
+
+
+Como se podría usar en el frontend?
+El frontend podría hacer un POST a api/signup/ con:
+    {
+    "username": "franco",
+    "email": "franco@email.com",
+    "password": "1234segura"
+    }
+Y django crea automáticamente un usuario con la contraseña correctamente hasheada.  
+
+La clase RegisterView, al recibir la petición devuelve:
+    {
+    "id": 1,
+    "username": "franco123",
+    "email": "franco@email.com"
+    }
+
+O si hubo un error (por ejemplo, ya existe el usuario):
+{
+  "username": ["A user with that username already exists."]
+}
+
+NOTA: Si o si debe recibir datos JSON, osea, tenemos que usar paquetes JSON para la comunicación entre backend y frontend.
