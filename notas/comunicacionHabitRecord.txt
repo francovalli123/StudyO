@@ -1,0 +1,32 @@
+Cada vez que un usuario marca un hábito como completado, se cera una instancia de HabitRecord.
+Para usarlo en el frontend:
+
+- Marcar un hábito completado como hoy
+POST /api/habits<id>/complete/
+
+Nota: no es necesario enviar body. El backend completa automaticamente el registro con la fecha de hoy y completed=True
+
+La respuesta esperada es:
+{
+  "detail": "Hábito marcado como completado.",
+  "record": {
+    "id": 12,
+    "habit": 3,
+    "date": "2025-07-05",
+    "completed": true,
+    "notes": ""
+  },
+  "streak": 3
+}
+
+Y si el habito ya estaba marcado:
+{
+  "detail": "Ya marcaste este hábito como completado hoy."
+}
+
+Notas:
+-La racha se actualiza automáticamente en el backend al completar el hábito.
+-Se valida que no se pueda completar dos veces el mismo hábito en el mismo día.
+
+Para desmarcar un habito como compleado, se usa:
+DELETE /habits/<int:habit_id>/complete/

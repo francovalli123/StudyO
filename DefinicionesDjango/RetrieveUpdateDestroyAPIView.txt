@@ -1,0 +1,3 @@
+RetrieveUpdateDestroyAPIView es una forma concreta de recuperar, actualizar o borrar una instancia de un modelo.
+En el caso del habitView, uso esta genericView utilizando solo el serializer_class y permission_classes. 
+Además del get_queryset(), que devuelve el queryset los objetos del user al que le pertenecen los habitos.

@@ -1,0 +1,33 @@
+El modelo Habit representa un hábito que el usuario desea seguir. Cada hábito representa a un usuario autenticado y puede tener una frecuencia diaria o semanal.
+El archivo "serializer.py" permite convertir los objetos Habit a JSON y viceversa. Sirve como base para crear, listar, editar y ver detalles de hábitos.
+
+Para crear un hábito podes hacer un POST a /api/habits/ con el body (ejemplo):
+{
+    "name" = "Estudiar 30 minutos",
+    "frequency": 1
+}
+
+La respuesta esperada por Habit es:
+{
+  "id": 3,
+  "name": "Estudiar 30 minutos",
+  "frequency": 1,
+  "streak": 0
+}
+
+Si hay datos faltantes o inválidos, se recibe un error como este:
+{
+    "name": ["Este campo es obligatorio"]
+}
+
+Acordate que la comunicacion tiene que hacerse si o si con JSON (tanto salida y entrada)
+
+Adicionalmente, para borrar un habito:
+DELETE /api/habits/<id>/
+Authorization: Token <el_token>
+
+Lo mismo es para el resto, entonces:, como resumen:
+- Crear hábito:	POST	/api/habits/	Token <token>
+- Editar hábito:	PUT	/api/habits/<id>/	Token <token>
+- Eliminar hábito:	DELETE	/api/habits/<id>/	Token <token>
+- Completar hábito hoy: POST	/api/habits/<id>/complete/	Token <token>

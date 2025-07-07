@@ -6,3 +6,4 @@ class HabitRecordSerializer(serializers.ModelSerializer):
     class Meta:
         model = HabitRecord
         fields = ['id', 'habit', 'date', 'completed', 'notes']
+        read_only_fields = ['date', 'completed'] # El usuario no lo elige, hoy y True

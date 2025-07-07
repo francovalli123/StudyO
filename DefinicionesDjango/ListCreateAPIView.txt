@@ -1,0 +1,23 @@
+ListCreateAPIView es una clase que ofrece una vista concreta para listar un queryset o crear una instancia de un modelo.
+Un queryset es una lista de objetos de un modelo determinado.
+get_queryset() es un método de Django que se utiliza para obtener un queryset y de esta manera definir que objetos se deben incluir en la respuesta a una vista.
+
+Por ejemplo, en la view de Habit, tenemos:
+    
+    def get_queryset(self):
+        # Devuelve solo los hábitos del usuario autenticado
+        return Habit.objects.filter(user=self.request.user)
+
+Como observamos, get_queryset() devuelve solamente los habitos que tenga el usuario.
+
+Por otro lado, tambien tenemos perform_create():
+    def perform_create(self, serializer):
+        # Asigna el usuario automáticamente
+        serializer.save(user=self.request.user)
+El método perform_create() es usado para customizar la creación de un objeto al usar vistas genericas. 
+En nuestro caso, el método setea en el habito el usuario que está autenticado actualmente (por ejemplo, el que lo creó).
+
+Algo muy importante en las vistas genericas es el serializer_class, el cual es un atributo usado en vistas genericas para especificar la clase de serializer que se deberia usar para validar y deserializar entradas, y serializar salidas (en JSON).
+Por último, permission_classes es una manera de especificar que clases de permisos deberian ser usados para determinar si una peticion debe ser procesada por una vista.
+Estas clases son las responsables de chequear si el usuario realizando la petición tiene los permisos necesarios para acceder al recurso.
+En nuestro caso, para realizar cualquier operación relacionada con los habitos, el usuario debe estar AUTENTICADO obligatoriamente.
