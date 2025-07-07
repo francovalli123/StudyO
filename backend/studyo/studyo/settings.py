@@ -45,7 +45,6 @@ INSTALLED_APPS = [
     'apps.pomodoroSession',
     'apps.routineBlock',
     'apps.user',
-    'apps.base',
     'corsheaders',
     'rest_framework.authtoken',
     'rest_framework',
