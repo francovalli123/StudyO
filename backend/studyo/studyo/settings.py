@@ -41,13 +41,13 @@ INSTALLED_APPS = [
     'apps.subject',
     'apps.routine',
     'apps.habits',
-    'apps.habitRecord',
     'apps.notification',
     'apps.pomodoroSession',
     'apps.routineBlock',
     'corsheaders',
     'rest_framework.authtoken',
     'rest_framework',
+    'apps.habitRecord.apps.HabitrecordConfig',
 ]
 
 MIDDLEWARE = [

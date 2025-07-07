@@ -9,7 +9,7 @@ class SubjectSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Subject
-        fields = ['id', 'name', 'description', 'priority', 'color', 'created_at', 'updated_at', 'user', 'next_exam_date', 'progress']
+        fields = ['id', 'name', 'professor_name', 'priority', 'color', 'created_at', 'updated_at', 'user', 'next_exam_date', 'progress']
 
     def get_progress(self, obj):
         habits = obj.habits.all()

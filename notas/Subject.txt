@@ -1,0 +1,95 @@
+Los endpoints esperados para las materias son:
+api/subjects/ ("subject_list_create")
+api/subjects/<int:pk>/' ("subject_detail")
+
+REQUESTS DESDE EL FRONTEND
+
+1- Listar materias del usuario (GET)
+URL: /subjects/
+Método: GET
+Headers:
+
+Authorization: Token <token> 
+
+Respuesta esperada:
+[
+  {
+    "id": 1,
+    "name": "Matemáticas",
+    "description": null,
+    "priority": 1,
+    "color": "#FF0000",
+    "created_at": "2025-07-07T12:00:00Z",
+    "updated_at": "2025-07-07T12:00:00Z",
+    "user": 5,
+    "next_exam_date": "2025-08-01",
+    "progress": 75
+  },
+  {
+    "id": 2,
+    "name": "Historia",
+    "description": null,
+    "priority": 3,
+    "color": "#0000FF",
+    "created_at": "2025-07-01T12:00:00Z",
+    "updated_at": "2025-07-06T12:00:00Z",
+    "user": 5,
+    "next_exam_date": null,
+    "progress": 40
+  }
+]
+
+NOTA: description y next_exam_date son opcionales, por lo que pueden omitirse colocando "null"
+
+2- Crear nueva materia (POST)
+URL: /subjects/
+Método: POST
+Headers:
+
+Authorization: Token <token>
+
+Content-Type: application/json
+
+Body JSON ejemplo:
+{
+  "name": "Física",
+  "description": "Materia de física 2",
+  "priority": 2,
+  "color": "#00FF00",
+  "next_exam_date": "2025-09-15"
+}
+Respuesta: Objeto JSON de la materia creada, con id y demás campos.
+
+3- Ver detalle de materia (GET)
+URL: /subjects/1/ (1 es el id de la materia, podria ser cualquiera dentro de las que haya)
+Método: GET
+Headers:
+
+Authorization: Token <token>
+Respuesta: JSON con todos los datos de la materia con id=1.
+
+4- Actualizar materia (PUT o PATCH)
+URL: /subjects/1/
+Método: PUT (actualiza todo) o PATCH (actualiza parcial)
+Headers:
+
+Authorization: Token <token>
+
+Content-Type: application/json
+
+Body ejemplo para PATCH:
+{
+  "priority": 1,
+  "color": "#FFFF00"
+}
+
+5- Eliminar materia (DELETE)
+URL: /subjects/1/
+Método: DELETE
+Headers:
+
+Authorization: Token <token>
+
+
+NOTAS IMPORTANTES
+"progress" es el progreso que se calcula, entonces solo se recibe, no se envia al crear/editar
