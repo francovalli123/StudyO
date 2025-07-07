@@ -6,4 +6,4 @@ class User(AbstractUser):
     notification_preferences = models.JSONField(default=dict, blank=True)
 
     def __str__(self):
-        return f"{self.name} ({self.get_frequency_display()})" # Esto sirve para debuggear
+        return self.username
