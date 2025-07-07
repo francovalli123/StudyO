@@ -21,6 +21,7 @@ from apps.user.views import *
 from rest_framework.authtoken.views import obtain_auth_token
 from apps.habits.views import *
 from apps.habitRecord.views import *
+from apps.subject.views import *
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -31,4 +32,6 @@ urlpatterns = [
     path('api/habits/', HabitListCreateView.as_view(), name='habit_list_create'),
     path('api/habits/<int:pk>/', HabitDetailView.as_view(), name='habit_detail'),
     path('api/habits/<int:habit_id>/complete/', CompleteHabitView.as_view(), name='complete_habit'),
+    path('api/subjects/',SubjectListCreateView.as_view(), name='subject_list_create'),
+    path('api/subjects/<int:pk>/', SubjectDetailView.as_view(), name='subject_detail'),
 ]

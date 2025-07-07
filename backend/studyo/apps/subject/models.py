@@ -20,11 +20,13 @@ class Subject (models.Model):
         related_name='subjects' # Acesso inverso: user.subjects.all()
     )
     name = models.CharField(max_length=100) # Nombre obligatorio. Máxima cantidad de carácteres: 100.
-    description = models.TextField(blank=True, null=True) # Descripción opcional de la materia
+    professor_name = models.TextField(blank=True, null=True) # Nombre del profesor de la materia
     priority = models.IntegerField(choices=PRIORITY_CHOICES, blank=True, null=True) # Prioridad opcional pero las opciones definidas
     color = models.CharField(max_length=20, blank=True, null=True) # Color opcional de la materia para el frontend
     created_at = models.DateTimeField(auto_now_add=True)  # Se setea al crear
     updated_at = models.DateTimeField(auto_now=True)      # Se actualiza cada vez que se guarda
+    next_exam_date = models.DateField(blank=True, null=True)    # Próxima fecha de examen
+    progress = models.PositiveIntegerField(default=0)  # Progreso de la materia, de 0 a 100
 
     def __str__(self):
-        return f"{self.name} ({self.get_frequency_display()})"
+        return self.name

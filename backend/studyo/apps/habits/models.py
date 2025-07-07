@@ -1,6 +1,7 @@
 from django.db import models
 from django.conf import settings
 from datetime import timedelta, date
+from apps.subject.models import *
 
 class Habit(models.Model):
     # Defino las constantes para la frecuencia
@@ -21,6 +22,15 @@ class Habit(models.Model):
     created_at = models.DateTimeField(auto_now_add=True) # Se setea al crear el habito
     updated_at = models.DateTimeField(auto_now=True) # Se setea al actualizar el habito
     streak = models.PositiveIntegerField(default=0) #Racha, se setea en 0 por defecto
+    
+    
+    subject = models.ForeignKey(    # Materia asociada al hábito (opcional)
+        Subject,
+        on_delete=models.CASCADE,
+        related_name='habits',
+        null=True,  # No es obligatorio
+        blank=True  
+    )
     
     def __str__(self):
         return f"{self.name} ({self.get_frequency_display()})" # Esto sirve para debuggear
