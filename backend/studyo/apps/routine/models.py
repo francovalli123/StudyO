@@ -17,4 +17,4 @@ class Routine(models.Model):
     updated_at = models.DateTimeField(auto_now=True)    # Fecha de actualización de la instancia de la rutina (no se muestra en el front)
 
     def __str__(self):
-        return f"{self.name} ({self.get_frequency_display()})" # Esto sirve para debuggear
+        return f"{self.name}"

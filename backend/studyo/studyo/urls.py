@@ -15,13 +15,14 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
 from django.conf.urls.static import static
 from apps.user.views import *
 from rest_framework.authtoken.views import obtain_auth_token
 from apps.habits.views import *
 from apps.habitRecord.views import *
 from apps.subject.views import *
+from apps.routine.views import *
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -34,4 +35,6 @@ urlpatterns = [
     path('api/habits/<int:habit_id>/complete/', CompleteHabitView.as_view(), name='complete_habit'),
     path('api/subjects/',SubjectListCreateView.as_view(), name='subject_list_create'),
     path('api/subjects/<int:pk>/', SubjectDetailView.as_view(), name='subject_detail'),
+    path('api/routines/', RoutineListCreateView.as_view(), name='routine_list_create'),
+    path('api/routines/generate/', generate_routine, name='routine_generate'),
 ]

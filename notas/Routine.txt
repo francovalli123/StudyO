@@ -1,0 +1,127 @@
+existen dos formas de crear rutinas de estudio:
+1- Manualmente ("/api/routines/")
+2- Automáticamente ("/api/routines/generate/")
+
+Al crear una rutina automáticamente, se crean bloques de estudio ordenados por la prioridad de las materias que el usuario haya registrado.
+
+COMO USARLA:
+
+Listar rutinas (GET /api/routines/):
+
+Solicitud:
+GET /api/routines/
+
+Authorization: Token <token>
+
+Respuesta (ejemplo):
+
+[
+    {
+        "id": 1,
+        "user_email": "user@example.com",
+        "name": "Rutina Semestre 1",
+        "start_date": "2025-07-14",
+        "end_date": "2025-07-20",
+        "blocks": [
+            {
+                "id": 1,
+                "subject_id": 1,
+                "subject_name": "Matemáticas",
+                "day_of_week": 1,
+                "start_time": "09:00",
+                "end_time": "10:00",
+                "description": "Estudiar Matemáticas"
+            }
+        ],
+        "created_at": "2025-07-08T16:15:00Z",
+        "updated_at": "2025-07-08T16:15:00Z"
+    }
+]
+Crear una rutina (POST /api/routines/):
+
+Solicitud:
+{
+    "name": "Mi Rutina",
+    "start_date": "2025-07-14",
+    "end_date": "2025-07-20",
+    "blocks": [
+        {
+            "subject_id": 1,
+            "subject_name": "Matemáticas",
+            "day_of_week": 1,
+            "start_time": "09:00",
+            "end_time": "10:00",
+            "description": "Estudiar Matemáticas"
+        }
+    ]
+}
+
+Respuesta:
+{
+    "id": 2,
+    "user_email": "user@example.com",
+    "name": "Mi Rutina",
+    "start_date": "2025-07-14",
+    "end_date": "2025-07-20",
+    "blocks": [
+        {
+            "id": 2,
+            "subject_id": 1,
+            "subject_name": "Matemáticas",
+            "day_of_week": 1,
+            "start_time": "09:00",
+            "end_time": "10:00",
+            "description": "Estudiar Matemáticas"
+        }
+    ],
+    "created_at": "2025-07-08T16:15:00Z",
+    "updated_at": "2025-07-08T16:15:00Z"
+}
+
+Generar rutina automática (POST /api/routines/generate/):
+
+Solicitud:
+{
+    "name": "Rutina Automática",
+    "start_date": "2025-07-14",
+    "end_date": "2025-07-20",
+    "available_hours_per_day": {
+        "0": 4,  # Domingo: 4 horas
+        "1": 6,  # Lunes: 6 horas
+        "2": 5   # Martes: 5 horas
+    }
+}
+
+Respuesta (suponiendo dos materias con prioridades 1 y 2):
+{
+    "id": 3,
+    "user_email": "user@example.com",
+    "name": "Rutina Automática",
+    "start_date": "2025-07-14",
+    "end_date": "2025-07-20",
+    "blocks": [
+        {
+            "id": 3,
+            "subject_id": 1,
+            "subject_name": "Matemáticas",
+            "day_of_week": 0,
+            "start_time": "09:00",
+            "end_time": "10:00",
+            "description": "Estudiar Matemáticas"
+        },
+        {
+            "id": 4,
+            "subject_id": 2,
+            "subject_name": "Física",
+            "day_of_week": 0,
+            "start_time": "10:00",
+            "end_time": "11:00",
+            "description": "Estudiar Física"
+        },
+        ...
+    ],
+    "created_at": "2025-07-08T16:15:00Z",
+    "updated_at": "2025-07-08T16:15:00Z"
+}
+
+NOTA IMPORTANTE: las rutinas soportan las mismas peticiones que el resto de cosas que cree (GET, POST, UPDATE, DELETE). Así que agregalo
