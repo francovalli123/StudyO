@@ -17,4 +17,4 @@ class PomodoroSession(models.Model):
     notes = models.TextField(blank=True) # Notas, opcional
 
     def __str__(self):
-        return f"{self.name} ({self.get_frequency_display()})" # Esto sirve para debuggear
+        return f"Pomodoro de {self.user.username} desde {self.start_time} hasta {self.end_time}" # Para debuggear

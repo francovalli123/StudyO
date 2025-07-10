@@ -23,6 +23,7 @@ from apps.habits.views import *
 from apps.habitRecord.views import *
 from apps.subject.views import *
 from apps.routine.views import *
+from apps.pomodoroSession.views import *
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -37,4 +38,6 @@ urlpatterns = [
     path('api/subjects/<int:pk>/', SubjectDetailView.as_view(), name='subject_detail'),
     path('api/routines/', RoutineListCreateView.as_view(), name='routine_list_create'),
     path('api/routines/generate/', generate_routine, name='routine_generate'),
+    path('api/pomodoro/', PomodoroSessionCreateView.as_view(), name='pomodoro_list_create'),
+    path('api/pomodoro/<int:pk>/', PomodoroSessionDetailView.as_view(), name='pomodoro_detail'),
 ]

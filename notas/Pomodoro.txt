@@ -1,0 +1,90 @@
+La lógica del pomodoroSession es bastante simple. Solo defini las vistas para crear, listar, editar, ver detalles y eliminar una sesión de pomodoro.
+Te dejo algunos ejemplos de comunicación para el caso de los pomodoros.
+Nota: Hacemos algunas suposiciones: el usuario está autenticado (se envía en el header un token) y ya registró algunas materias.
+
+1- Crear sesión pomodoro POST /api/pomodoro/
+{
+  "subject": 3,
+  "start_time": "2025-07-10T14:00:00Z",
+  "end_time": "2025-07-10T14:25:00Z",
+  "duration": 25,
+  "notes": "Repaso de límites indeterminados."
+}
+
+Respuesta esperada
+{
+  "id": 12,
+  "subject": 3,
+  "subject_name": "Análisis Matemático 2",
+  "start_time": "2025-07-10T14:00:00Z",
+  "end_time": "2025-07-10T14:25:00Z",
+  "duration": 25,
+  "notes": "Repaso de límites indeterminados."
+}
+
+2- Obtener todas las sesiones GET /api/pomodoro/
+
+Respuesta esperada:
+[
+  {
+    "id": 10,
+    "subject": 2,
+    "subject_name": "Física 2",
+    "start_time": "2025-07-10T10:00:00Z",
+    "end_time": "2025-07-10T10:25:00Z",
+    "duration": 25,
+    "notes": "Campo eléctrico"
+  },
+  {
+    "id": 11,
+    "subject": null,
+    "subject_name": null,
+    "start_time": "2025-07-10T12:00:00Z",
+    "end_time": "2025-07-10T12:50:00Z",
+    "duration": 50,
+    "notes": "Pomodoro libre"
+  }
+]
+
+Nota: subject puede ser null, al igual que subject_name pues son opcionales
+
+3- Ver detalle de una sesión GET /api/pomodoro/10
+
+Respuesta esperada:
+{
+  "id": 10,
+  "subject": 2,
+  "subject_name": "Física 2",
+  "start_time": "2025-07-10T10:00:00Z",
+  "end_time": "2025-07-10T10:25:00Z",
+  "duration": 25,
+  "notes": "Campo eléctrico"
+}
+
+4- Editar una sesión PATCH /api/pomodoro/10
+
+{
+  "notes": "Repaso de electromagnetismo"
+}
+
+Respuesta esperada:
+{
+  "id": 10,
+  "subject": 2,
+  "subject_name": "Física 2",
+  "start_time": "2025-07-10T10:00:00Z",
+  "end_time": "2025-07-10T10:25:00Z",
+  "duration": 25,
+  "notes": "Repaso de electromagnetismo"
+}
+
+5- Eliminar una sesión DELETE /api/pomodoro/10
+
+Respuesta esperada:
+Código: 204 No Content
+Sin cuerpo en la Respuesta
+
+Un tip util que capaz que te sirva es que cuando cargues las sesiones en el historial del pomodoro, podes hacer:
+`${subject_name || "Sin materia asociada"} — ${duration} minutos`
+
+Esto es en JavaScript, no se bien como será en Typescript
