@@ -11,7 +11,7 @@ class RoutineSerializer(serializers.ModelSerializer):
     class Meta:
         model = Routine
         fields = ['id', 'user_email', 'name', 'blocks', 'start_date', 'end_date', 'created_at', 'updated_at'] # Solo se muestran estos campos.
-        read_only_fields = ['created_at', 'updated_at']
+        read_only_fields = ['created_at', 'updated_at', 'user']
 
     def validate(self, data):
             """Validar que end_date sea posterior a start_date si se proporciona."""
@@ -27,6 +27,10 @@ class RoutineSerializer(serializers.ModelSerializer):
         """Crear una rutina con bloques anidados."""
         blocks_data = validated_data.pop('blocks', [])
         user = self.context['request'].user
+
+        # Hay que asegurarse que user no esté en validated data
+        validated_data.pop('user', None)
+
         routine = Routine.objects.create(user=user, **validated_data)
 
         for block_data in blocks_data:

@@ -27,6 +27,10 @@ class CompleteHabitView(APIView):
             completed=True
         )
 
+        # Actualizar la racha
+        habit.streak = habit.calculate_streak()
+        habit.save()
+
         serializer = HabitRecordSerializer(record)
 
         return Response({

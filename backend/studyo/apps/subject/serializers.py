@@ -6,6 +6,7 @@ from datetime import date
 # El serializer define cómo se convierte la materia en JSON (y viceversa), y qué campos mostrar
 class SubjectSerializer(serializers.ModelSerializer):
     progress = serializers.SerializerMethodField()
+    user = serializers.PrimaryKeyRelatedField(read_only=True)
 
     class Meta:
         model = Subject

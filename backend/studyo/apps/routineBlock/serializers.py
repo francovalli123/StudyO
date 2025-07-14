@@ -12,7 +12,7 @@ class RoutineBlockSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = RoutineBlock
-        fields = ['id', 'subject_id', 'day_of_week', 'start_time', 'end_time', 'description']
+        fields = ['id', 'subject_id', 'subject_name', 'day_of_week', 'start_time', 'end_time', 'description']
         extra_kwargs = {
             'start_time': {'format': '%H:%M'},
             'end_time': {'format': '%H:%M'},

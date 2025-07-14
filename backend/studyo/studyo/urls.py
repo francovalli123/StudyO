@@ -37,6 +37,7 @@ urlpatterns = [
     path('api/subjects/',SubjectListCreateView.as_view(), name='subject_list_create'),
     path('api/subjects/<int:pk>/', SubjectDetailView.as_view(), name='subject_detail'),
     path('api/routines/', RoutineListCreateView.as_view(), name='routine_list_create'),
+    path('api/routine/<int:pk>/', RoutineDetailView.as_view(), name="routine_detail"),
     path('api/routines/generate/', generate_routine, name='routine_generate'),
     path('api/pomodoro/', PomodoroSessionCreateView.as_view(), name='pomodoro_list_create'),
     path('api/pomodoro/<int:pk>/', PomodoroSessionDetailView.as_view(), name='pomodoro_detail'),
