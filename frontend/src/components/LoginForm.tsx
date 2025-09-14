@@ -1,67 +1,79 @@
-// Indica que este componente se ejecuta en el navegador del usuario (cliente).
-"use client"
+"use client"; // Esto indica que es Client Component
 
-// Importa 'useState' de React para manejar el estado del componente.
-import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 
-// Define y exporta el componente del formulario de inicio de sesión.
 export default function LoginForm() {
-  // Crea estados para guardar el valor del email y la contraseña.
-  const [email, setEmail] = useState("") // Guarda el email del usuario
-  const [password, setPassword] = useState("") // Guarda la contraseña
-  const router = useRouter() // Hook para manejar la navegación.
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
-  // Esta función se ejecuta cuando el usuario envía el formulario.
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault() // No recarga la página
-    // TODO: Aquí conectar con backend para validar login
-    router.push("/dashboard") // Redirige al dashboard
-  }
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
 
-  // Devuelve el HTML (JSX) que se mostrará en la página.
+    try {
+      const response = await fetch("http://localhost:8000/api/login/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.non_field_errors?.[0] || "Usuario o contraseña incorrectos");
+      } else {
+        // ⚠ Solo usar localStorage en funciones que se ejecutan en el cliente
+        if (typeof window !== "undefined") {
+          localStorage.setItem("token", data.token);
+        }
+        router.push("/dashboard");
+      }
+    } catch (err) {
+      console.error(err);
+      setError("Error de conexión con el servidor");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    // Cuando se envía este formulario, llama a la función 'handleSubmit'.
     <form onSubmit={handleSubmit} className="form-container">
       <h2 className="form-title">Login</h2>
-      
-      {/* Campo para el correo electrónico */}
+
+      {error && <p className="text-red-500 mb-2">{error}</p>}
+
       <div className="form-field">
-        <label htmlFor="email" className="form-label">
-          Email
-        </label>
+        <label htmlFor="username" className="form-label">Usuario</label>
         <input
-          type="email"
-          id="email"
-          value={email} // El valor del input está conectado al estado 'email'.
-          onChange={(e) => setEmail(e.target.value)} // Actualiza el estado cuando el usuario escribe.
+          type="text"
+          id="username"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
           className="form-input"
-          required // Hace que este campo sea obligatorio.
+          required
         />
       </div>
 
-      {/* Campo para la contraseña */}
       <div className="form-field">
-        <label htmlFor="password" className="form-label">
-          Contraseña
-        </label>
+        <label htmlFor="password" className="form-label">Contraseña</label>
         <input
           type="password"
           id="password"
-          value={password} // El valor del input está conectado al estado 'password'.
-          onChange={(e) => setPassword(e.target.value)} // Actualiza el estado cuando el usuario escribe.
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
           className="form-input"
-          required // Hace que este campo sea obligatorio.
+          required
         />
       </div>
 
-      {/* Botón para enviar el formulario */}
-      <button
-        type="submit"
-        className="btn-primary mt-2"
-      >
-        Login
+      <button type="submit" className="btn-primary mt-2" disabled={loading}>
+        {loading ? "Iniciando..." : "Login"}
       </button>
     </form>
-  )
-} 
+  );
+}
