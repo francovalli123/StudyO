@@ -1,68 +1,45 @@
 "use client";
-
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { register } from "../services/auth";
 
-// Componente para el formulario de registro.
 export default function RegisterForm() {
-  const [name, setName] = useState(""); // Nombre del usuario
-  const [email, setEmail] = useState(""); // Email del usuario
-  const [password, setPassword] = useState(""); // Contraseña del usuario
-  const router = useRouter();
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
-  // Se ejecuta al enviar el formulario.
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault(); // No recarga la página
-    // TODO: Aquí conectar con backend para registrar usuario
-    console.log("Datos:", { name, email, password }); // Muestra los datos en consola
-    router.push("/login"); // Después del registro va al login
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await register(username, email, password);
+      alert("Registro exitoso!");
+      window.location.href = "/login";
+    } catch {
+      alert("Error en el registro");
+    }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="form-container">
-      <h2 className="form-title">Registro</h2>
-      <div className="form-field">
-        <label htmlFor="name" className="form-label">
-          Nombre
-        </label>
-        <input
-          type="text"
-          id="name"
-          value={name}
-          onChange={(e) => setName(e.target.value)} // Actualiza el estado
-          className="form-input"
-          required
-        />
-      </div>
-      <div className="form-field">
-        <label htmlFor="email" className="form-label">
-          Email
-        </label>
-        <input
-          type="email"
-          id="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)} // Actualiza el estado
-          className="form-input"
-          required
-        />
-      </div>
-      <div className="form-field">
-        <label htmlFor="password" className="form-label">
-          Contraseña
-        </label>
-        <input
-          type="password"
-          id="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)} // Actualiza el estado
-          className="form-input"
-          required
-        />
-      </div>
-      <button type="submit" className="btn-primary mt-2">
-        Registrarse
-      </button>
+    <form onSubmit={handleSubmit}>
+      <h1>Registro</h1>
+      <input
+        type="text"
+        placeholder="Usuario"
+        value={username}
+        onChange={(e) => setUsername(e.target.value)}
+      />
+      <input
+        type="email"
+        placeholder="Correo"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+      />
+      <input
+        type="password"
+        placeholder="Contraseña"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+      />
+      <button type="submit">Registrarse</button>
     </form>
   );
-} 
+}

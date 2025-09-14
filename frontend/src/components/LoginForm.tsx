@@ -1,67 +1,37 @@
-// Indica que este componente se ejecuta en el navegador del usuario (cliente).
-"use client"
+"use client";
+import { useState } from "react";
+import { login } from "../services/auth";
 
-// Importa 'useState' de React para manejar el estado del componente.
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-
-// Define y exporta el componente del formulario de inicio de sesión.
 export default function LoginForm() {
-  // Crea estados para guardar el valor del email y la contraseña.
-  const [email, setEmail] = useState("") // Guarda el email del usuario
-  const [password, setPassword] = useState("") // Guarda la contraseña
-  const router = useRouter() // Hook para manejar la navegación.
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
 
-  // Esta función se ejecuta cuando el usuario envía el formulario.
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault() // No recarga la página
-    // TODO: Aquí conectar con backend para validar login
-    router.push("/dashboard") // Redirige al dashboard
-  }
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await login(username, password);
+      window.location.href = "/dashboard";
+    } catch {
+      alert("Error en las credenciales");
+    }
+  };
 
-  // Devuelve el HTML (JSX) que se mostrará en la página.
   return (
-    // Cuando se envía este formulario, llama a la función 'handleSubmit'.
-    <form onSubmit={handleSubmit} className="form-container">
-      <h2 className="form-title">Login</h2>
-      
-      {/* Campo para el correo electrónico */}
-      <div className="form-field">
-        <label htmlFor="email" className="form-label">
-          Email
-        </label>
-        <input
-          type="email"
-          id="email"
-          value={email} // El valor del input está conectado al estado 'email'.
-          onChange={(e) => setEmail(e.target.value)} // Actualiza el estado cuando el usuario escribe.
-          className="form-input"
-          required // Hace que este campo sea obligatorio.
-        />
-      </div>
-
-      {/* Campo para la contraseña */}
-      <div className="form-field">
-        <label htmlFor="password" className="form-label">
-          Contraseña
-        </label>
-        <input
-          type="password"
-          id="password"
-          value={password} // El valor del input está conectado al estado 'password'.
-          onChange={(e) => setPassword(e.target.value)} // Actualiza el estado cuando el usuario escribe.
-          className="form-input"
-          required // Hace que este campo sea obligatorio.
-        />
-      </div>
-
-      {/* Botón para enviar el formulario */}
-      <button
-        type="submit"
-        className="btn-primary mt-2"
-      >
-        Login
-      </button>
+    <form onSubmit={handleSubmit}>
+      <h1>Login</h1>
+      <input
+        type="text"
+        placeholder="Usuario"
+        value={username}
+        onChange={(e) => setUsername(e.target.value)}
+      />
+      <input
+        type="password"
+        placeholder="Contraseña"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+      />
+      <button type="submit">Iniciar sesión</button>
     </form>
-  )
-} 
+  );
+}
