@@ -1,0 +1,158 @@
+/* RESET */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background: #0B0B0D;
+    color: white;
+    overflow-x: hidden;
+}
+
+/* NAVBAR */
+nav {
+    width: 100%;
+    padding: 25px 8%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+nav .logo {
+    font-size: 22px;
+    font-weight: 600;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+nav .menu {
+    display: flex;
+    gap: 30px;
+}
+
+nav .menu a {
+    text-decoration: none;
+    color: #aaa;
+    font-size: 15px;
+    transition: 0.2s;
+}
+
+nav .menu a:hover {
+    color: white;
+}
+
+.btn-nav {
+    padding: 10px 22px;
+    border-radius: 8px;
+    background: linear-gradient(90deg, #A770EF, #CF8BF3, #FDB99B);
+    color: black;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+}
+
+/* HERO */
+.hero {
+    width: 100%;
+    text-align: center;
+    margin-top: 70px;
+    padding: 0 10vw;
+}
+
+.hero h1 {
+    font-size: 70px;
+    font-weight: 800;
+    line-height: 1.1;
+}
+
+.hero .purple {
+    color: #B67AFF;
+}
+
+.hero p {
+    margin-top: 25px;
+    color: #bbb;
+    font-size: 18px;
+}
+
+.hero-buttons {
+    margin-top: 35px;
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+}
+
+.btn-primary {
+    padding: 14px 30px;
+    border-radius: 10px;
+    background: #A370FF;
+    border: none;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 17px;
+}
+
+.btn-secondary {
+    padding: 14px 30px;
+    border-radius: 10px;
+    background: transparent;
+    border: 1px solid #444;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 17px;
+}
+
+/* PROGRESS CARD */
+.progress-card {
+    width: 60%;
+    margin: 120px auto;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 40px;
+    border-radius: 20px;
+    backdrop-filter: blur(6px);
+    box-shadow: 0 0 25px rgba(155, 89, 182, 0.25);
+}
+
+.progress-card h2 {
+    text-align: center;
+    margin-bottom: 25px;
+    font-size: 25px;
+    font-weight: 600;
+}
+
+.progress-row {
+    margin: 30px 0;
+}
+
+.progress-title {
+    font-size: 14px;
+    margin-bottom: 8px;
+}
+
+.progress-bar {
+    height: 8px;
+    width: 100%;
+    background: #333;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #A770EF, #CF8BF3);
+    box-shadow: 0 0 12px #b374ff;
+}
+
+.streak {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 16px;
+    color: #f3c623;
+    font-weight: 500;
+}
