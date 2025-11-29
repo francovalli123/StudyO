@@ -53,6 +53,12 @@ nav .menu a:hover {
     font-weight: 600;
     cursor: pointer;
     border: none;
+    transition: transform 0.3s ease;
+}
+a.btn-nav:hover,
+a.btn-nav:focus {
+    transform: scale(1.08);
+    cursor: pointer;
 }
 
 /* HERO */
@@ -84,20 +90,25 @@ nav .menu a:hover {
     display: flex;
     justify-content: center;
     gap: 20px;
+    
 }
 
 .btn-primary {
-    padding: 14px 30px;
-    border-radius: 10px;
-    background: #A370FF;
+    padding: 14px 32px;
+    border-radius: 20px;
+    background: #BF6AFB;
     border: none;
     color: white;
     font-weight: 600;
     cursor: pointer;
     font-size: 17px;
 
+    width: 158px;
+    height: 44px;
+    margin: 16px 0px 0px;
     text-decoration: none;
     display: inline-block;
+    transition: transform 0.3s ease;
 }
 
 /* Forzar que los enlaces con clase btn-primary no se subrayen */
@@ -105,25 +116,34 @@ a.btn-primary,
 a.btn-primary:link,
 a.btn-primary:visited {
     text-decoration: none !important;
-    color: inherit;
+    color: #0F0F15;
 }
 
 a.btn-primary:hover,
 a.btn-primary:focus {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 18px rgba(163, 110, 255, 0.18);
-    outline: none;
+    transform: scale(1.08);
+    cursor: pointer;
 }
 
 .btn-secondary {
-    padding: 14px 30px;
+    padding: 14px 32px;
     border-radius: 10px;
     background: transparent;
     border: 1px solid #444;
-    color: white;
-    font-weight: 600;
+    color: #A370FF;
+    font-weight: 500;
     cursor: pointer;
     font-size: 17px;
+    width: 250px;
+    height: 44px;
+    margin: 16px 0px 0px;
+    transition: transform 0.3s ease;
+}
+
+button.btn-secondary:hover,
+button.btn-secondary:focus {
+    transform: scale(1.08);
+    cursor: pointer;
 }
 
 /* PROGRESS CARD */
@@ -330,3 +350,99 @@ a.btn-primary:focus {
     font-weight: bold;
     text-decoration: none;
 }
+
+/* Glow Effects */
+.btn-glow {
+  position: relative;
+  background: #a855f7;        /* violeta */
+  color: white;
+  padding: 14px 28px;
+  border-radius: 12px;
+  font-size: 1.1rem;
+  border: none;
+  cursor: pointer;
+  z-index: 1;
+}
+
+.btn-glow::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: scale(1.);       /* agranda el glow */
+  background: #a855f7;         /* mismo violeta */
+  filter: blur(30px);          /* blur fuerte */
+  opacity: 0.7;                /* ajustá brillo */
+  z-index: -1;
+  border-radius: inherit;
+}
+
+/* Purple Shadow */
+.shadow-purple {
+  filter: drop-shadow(0px 10px 15px rgba(168, 85, 247, 0.45));
+}
+
+/* Lower Purple Shadow */
+.shadow-purple-low {
+    filter: drop-shadow(0px 5px 10px rgba(168,85,247,0.45))
+}
+
+/* 1. Definimos la animación de entrada (de abajo hacia arriba) */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px); /* Empieza 30px abajo */
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0); /* Termina en su lugar original */
+    }
+}
+
+/* 2. Estado inicial: Todos los elementos invisibles */
+/* Seleccionamos los elementos clave de tu HTML */
+nav .logo,
+nav .menu a,
+nav .btn-nav,
+.hero h1,
+.hero p,
+.hero-buttons,
+.progress-card {
+    opacity: 0; /* Ocultos al inicio */
+    animation: fadeInUp 0.8s ease-out forwards; /* 'forwards' mantiene el elemento visible al final */
+}
+
+/* 3. La Cascada: Asignamos los retrasos (delays) manualmente */
+
+/* --- NAVBAR (0s a 0.5s) --- */
+nav .logo {
+    animation-delay: 0s;
+}
+
+/* Usamos nth-child para los enlaces del menú sin ponerles clases */
+nav .menu a:nth-child(1) { animation-delay: 0.1s; }
+nav .menu a:nth-child(2) { animation-delay: 0.2s; }
+nav .menu a:nth-child(3) { animation-delay: 0.3s; }
+nav .menu a:nth-child(4) { animation-delay: 0.4s; }
+
+nav .btn-nav {
+    animation-delay: 0.5s;
+}
+
+/* --- HERO SECTION (0.6s a 1.0s) --- */
+.hero h1 {
+    animation-delay: 0.6s;
+}
+
+.hero p {
+    animation-delay: 0.8s;
+}
+
+.hero-buttons {
+    animation-delay: 1.0s;
+}
+
+/* --- CARD (1.2s) --- */
+.progress-card {
+    animation-delay: 1.2s;
+}
+
