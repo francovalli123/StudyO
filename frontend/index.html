@@ -18,8 +18,8 @@
         <div class="menu">
             <a href="#beneficios">Beneficios</a>
             <a href="#philosophy-section">Por qué StudyO</a>
-            <a href="#">Testimonios</a>
-            <a href="#">FAQ</a>
+            <a href="#testimonios">Testimonios</a>
+            <a href="#faq">FAQ</a>
         </div>
 
         <a href="login.html" style="text-decoration: none;" class="btn-nav shadow-purple">Empezar Gratis</a>
@@ -42,26 +42,63 @@
     </section>
 
     <div class="progress-card">
-        <h2>Tu Progreso General</h2>
 
-        <div class="progress-row">
-            <div class="progress-title">Ing. de Software</div>
-            <div class="progress-bar">
-                <div class="progress-fill" style="width: 75%;"></div>
+        <h2 id="cardTitle">Tu Progreso General</h2>
+
+        <div class="carousel-container">
+
+            <div class="slide active">
+
+                <div class="progress-row">
+                    <div class="progress-title">Avance del Semestre</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 70%;"></div>
+                    </div>
+                </div>
+
+                <div class="progress-row">
+                    <div class="progress-title">Objetivos Semanales</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 85%;"></div>
+                    </div>
+                </div>
+
+                <div class="streak">¡Tu constancia está dando frutos! 🔥</div>
             </div>
-        </div>
 
-        <div class="progress-row">
-            <div class="progress-title">Algoritmos Avanzados</div>
-            <div class="progress-bar">
-                <div class="progress-fill" style="width: 60%;"></div>
+            <div class="slide slide-center">
+                <div class="icon-box icon-purple icon-large">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                        <path d="M9 16l2 2 4-4" />
+                    </svg>
+                </div>
+                <h3>Planificá sin estrés</h3>
+                <p>Visualizá tu semestre y dominá cada fecha clave con claridad total.</p>
             </div>
-        </div>
 
-        <div class="streak">¡Racha de 15 días de estudio!</div>
+            <div class="slide slide-center">
+                <div class="icon-box icon-pink icon-large">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M17 1l4 4-4 4"></path>
+                        <path d="M3 11V9a4 4 0 0 1 4-4h14"></path>
+                        <path d="M7 23l-4-4 4-4"></path>
+                        <path d="M21 13v2a4 4 0 0 1-4 4H3"></path>
+                    </svg>
+                </div>
+                <h3>Creá hábitos constantes</h3>
+                <p>Transformá intenciones en acciones diarias con seguimiento inteligente.</p>
+            </div>
+
+        </div>
     </div>
-
-    <section id="beneficios">
+    </div>
+    <section id="beneficios" class="bg-surface">
         <div style="text-align: center; margin-bottom: 40px;" class="benefits">
             <h2>Tu Ventaja Competitiva Integrada</h2>
             <div class="benefits-subtitle">StudyO no es solo otra app. Es un sistema diseñado para potenciar cada
@@ -159,6 +196,221 @@
         </p>
 
     </section>
+
+    <section id="testimonios" class="testimonials-section">
+        <div class="testimonials-container">
+
+            <div class="section-header">
+                <h2>De Estudiantes Reales, Resultados Reales</h2>
+                <p>No son solo opiniones. Son historias de éxito académico.</p>
+            </div>
+
+            <div class="testimonials-grid">
+
+                <article class="testimonial-card">
+                    <div class="quote-icon">“</div>
+                    <p class="testimonial-text">
+                        Estaba recursando Análisis Matemático II por segunda vez. StudyO me ayudó a visualizar mis
+                        huecos de conocimiento.
+                        <span class="highlight">Promocioné la materia con 9.</span>
+                    </p>
+                    <div class="user-info">
+                        <div class="avatar-circle purple">JM</div>
+                        <div class="user-details">
+                            <h4>Julián M.</h4>
+                            <span>Ingeniería Industrial</span>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="testimonial-card">
+                    <div class="quote-icon">“</div>
+                    <p class="testimonial-text">
+                        La función de 'Rachas' parece una tontería, pero fue lo único que me mantuvo estudiando durante
+                        los fines de semana.
+                        <span class="highlight">Mi productividad subió un 200%.</span>
+                    </p>
+                    <div class="user-info">
+                        <div class="avatar-circle pink">SC</div>
+                        <div class="user-details">
+                            <h4>Sofía C.</h4>
+                            <span>Medicina</span>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="testimonial-card">
+                    <div class="quote-icon">“</div>
+                    <p class="testimonial-text">
+                        Necesitaba un sistema, no otra agenda. Acá encontré la estructura mental que me faltaba para
+                        organizar mis finales.
+                        <span class="highlight">Metí 4 finales en un mes.</span>
+                    </p>
+                    <div class="user-info">
+                        <div class="avatar-circle blue">TF</div>
+                        <div class="user-details">
+                            <h4>Tomás F.</h4>
+                            <span>Derecho</span>
+                        </div>
+                    </div>
+                </article>
+
+            </div>
+        </div>
+    </section>
+
+    <section class="faq-section" id="faq">
+        <div class="faq-container">
+
+            <div class="section-header">
+                <h2>Preguntas Frecuentes</h2>
+                <p>Todo lo que necesitás saber para empezar a optimizar tu estudio.</p>
+            </div>
+
+            <div class="faq-list">
+
+                <details class="faq-item">
+                    <summary>
+                        <span class="faq-question">¿StudyO es gratuito?</span>
+                        <span class="faq-icon">+</span>
+                    </summary>
+                    <div class="faq-answer">
+                        <p>Sí, StudyO es completamente gratis. En el futuro se implementarán funcionalidades Premium de
+                            IA.</p>
+                    </div>
+                </details>
+
+                <details class="faq-item">
+                    <summary>
+                        <span class="faq-question">¿Cómo funciona el sistema de rachas?</span>
+                        <span class="faq-icon">+</span>
+                    </summary>
+                    <div class="faq-answer">
+                        <p>El usuario puede crear hábitos de estudio, los cuales podrá ir completando con la frecuencia que el usuario haya configurado. Cada vez que se complete un hábito, la racha aumentará. Está diseñado para crear el hábito de la constancia, no para quemarte estudiando 10 horas seguidas.</p>
+                    </div>
+                </details>
+
+                <details class="faq-item">
+                    <summary>
+                        <span class="faq-question">¿Sirve para cualquier carrera universitaria?</span>
+                        <span class="faq-icon">+</span>
+                    </summary>
+                    <div class="faq-answer">
+                        <p>Absolutamente. StudyO es agnóstico a la materia. Ya sea que estudies Ingeniería, Medicina,
+                            Derecho o Artes, la estructura de organización y los principios de estudio activo funcionan
+                            para cualquier disciplina.</p>
+                    </div>
+                </details>
+
+                <details class="faq-item">
+                    <summary>
+                        <span class="faq-question">¿Puedo usarlo en mi celular?</span>
+                        <span class="faq-icon">+</span>
+                    </summary>
+                    <div class="faq-answer">
+                        <p>Sí. StudyO es una aplicación web totalmente responsiva. Podés acceder desde tu navegador en
+                            el celular, tablet o computadora y tu progreso se sincroniza automáticamente en tiempo real.
+                        </p>
+                    </div>
+                </details>
+
+            </div>
+        </div>
+    </section>
+
+    <footer class="site-footer">
+    <div class="footer-container">
+        
+        <div class="footer-top">
+            <div class="footer-brand">
+                <div class="logo">StudyO</div>
+                <p>
+    Estudiar no tiene que ser difícil. 
+    <span class="text-purple-gradient">Tiene que ser tuyo.</span>
+</p>
+<div class="social-links">
+    
+    <a href="https://x.com/FrankoValli" target="_blank" rel="noopener noreferrer" class="social-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4l11.733 16h4.267l-11.733 -16z" /><path d="M4 20l6.768 -6.768m2.46 -2.46l6.772 -6.772" /></svg>
+    </a>
+
+    <a href="https://instagram.com/frankovalli" target="_blank" rel="noopener noreferrer" class="social-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+    </a>
+
+    <a href="https://linkedin.com/in/franco-valli-621274272" target="_blank" rel="noopener noreferrer" class="social-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg>
+    </a>
+
+</div>
+            </div>
+
+            <div class="footer-links">
+                <h4>Producto</h4>
+                <ul>
+                    <li><a href="#">Características</a></li>
+                    <li><a href="#">Método StudyO</a></li>
+                    <li><a href="#">Precios</a></li>
+                    <li><a href="#">Novedades</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-links">
+                <h4>Recursos</h4>
+                <ul>
+                    <li><a href="#">Blog de Estudio</a></li>
+                    <li><a href="#">Comunidad</a></li>
+                    <li><a href="#">Centro de Ayuda</a></li>
+                    <li><a href="#">Guías en PDF</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-links">
+                <h4>Legal</h4>
+                <ul>
+                    <li><a href="#">Privacidad</a></li>
+                    <li><a href="#">Términos</a></li>
+                    <li><a href="#">Cookies</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <p>&copy; 2026 StudyO Inc. Todos los derechos reservados.</p>
+        </div>
+    </div>
+</footer>
+
+    <script>
+        // Configuración del Carrusel
+        const slides = document.querySelectorAll('.slide');
+        const titleElement = document.getElementById('cardTitle');
+
+        // Títulos correspondientes a las 3 slides exactas
+        const titles = [
+            "Tu Progreso General",      // Slide 1
+            "Planificación Inteligente", // Slide 2
+            "Construcción de Hábitos"   // Slide 3
+        ];
+
+        let currentIndex = 0;
+
+        function nextSlide() {
+            slides[currentIndex].classList.remove('active');
+
+            currentIndex = (currentIndex + 1) % slides.length;
+
+            slides[currentIndex].classList.add('active');
+
+            titleElement.style.opacity = 0;
+            setTimeout(() => {
+                titleElement.innerText = titles[currentIndex];
+                titleElement.style.opacity = 1;
+            }, 300);
+        }
+
+        setInterval(nextSlide, 3000);
+    </script>
 </body>
 
 </html>

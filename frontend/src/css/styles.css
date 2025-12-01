@@ -147,9 +147,8 @@ nav .menu a:hover {
 /* Sombras */
 .shadow-purple { filter: drop-shadow(0px 10px 15px rgba(168, 85, 247, 0.45)); }
 .shadow-purple-low { filter: drop-shadow(0px 5px 10px rgba(168,85,247,0.45)); }
-
 /* =========================================
-   4. PROGRESS CARD
+   4. PROGRESS CARD (CAROUSEL)
    ========================================= */
 .progress-card {
     width: 60%;
@@ -159,63 +158,141 @@ nav .menu a:hover {
     border-radius: 20px;
     backdrop-filter: blur(6px);
     box-shadow: 0 0 25px rgba(155, 89, 182, 0.25);
+    
+    /* Altura fija necesaria para el carrusel */
+    height: 350px; 
+    position: relative;
+    overflow: hidden;
+
+    opacity: 0;
+    animation: fadeInUp 0.8s ease-out forwards;
+    animation-delay: 1.2s;
 }
 
 .progress-card h2 {
     text-align: center;
     margin-bottom: 25px;
-    font-size: 25px;
-    font-weight: 600;
+    font-size: 24px;
+    font-weight: 700;
+    color: white;
+    transition: opacity 0.3s ease; /* Suavizar cambio de texto */
 }
 
-.progress-row { margin: 30px 0; }
-.progress-title { font-size: 14px; margin-bottom: 8px; }
-
-.progress-bar {
-    height: 8px;
+/* --- ESTRUCTURA DEL CARRUSEL --- */
+.carousel-container {
+    position: relative;
     width: 100%;
-    background: #333;
-    border-radius: 10px;
-    overflow: hidden;
-}
-
-.progress-fill {
     height: 100%;
-    background: linear-gradient(90deg, #A770EF, #CF8BF3);
-    box-shadow: 0 0 12px #b374ff;
 }
 
-.streak {
+.slide {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    transform: translateX(30px); /* Desplazamiento inicial */
+    transition: all 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+    pointer-events: none;
+}
+
+.slide.active {
+    opacity: 1;
+    transform: translateX(0);
+    pointer-events: all;
+}
+
+/* --- ESTILOS SLIDE 1 (Progreso) --- */
+.progress-row { margin: 25px 0; }
+.progress-title { font-size: 14px; margin-bottom: 8px; color: #d4d4d8; }
+.progress-bar { height: 8px; width: 100%; background: #27272a; border-radius: 10px; overflow: hidden; }
+.progress-fill { height: 100%; background: linear-gradient(90deg, #A770EF, #CF8BF3); border-radius: 10px; }
+.streak { text-align: center; margin-top: 25px; font-size: 15px; color: #f3c623; font-weight: 600; }
+
+/* --- ESTILOS SLIDES 2 y 3 (Centrados) --- */
+.slide-center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     text-align: center;
-    margin-top: 20px;
-    font-size: 16px;
-    color: #f3c623;
-    font-weight: 500;
+    padding-bottom: 40px; /* Compensa el título de arriba */
 }
 
+/* Reutilizamos clases de iconos pero los hacemos más grandes aquí */
+.icon-large {
+    width: 80px;
+    height: 80px;
+    margin-bottom: 20px;
+}
+.icon-large svg {
+    width: 40px;
+    height: 40px;
+}
+
+.slide h3 {
+    font-size: 1.4rem;
+    color: white;
+    margin-bottom: 15px;
+    font-weight: 700;
+}
+
+.slide p {
+    color: #a1a1aa;
+    font-size: 1rem;
+    line-height: 1.6;
+    max-width: 80%;
+}
+
+/* Colores de iconos (Asegúrate de tener esto si no lo copiaste de Benefits) */
+.icon-purple { background: rgba(168, 85, 247, 0.15); color: #a855f7; }
+.icon-pink { background: rgba(236, 72, 153, 0.15); color: #ec4899; }
 /* =========================================
    5. BENEFITS SECTION
    ========================================= */
+
+/* 1. Contenedor*/
+#beneficios, .benefits-section {
+    padding: 120px 0; 
+    width: 100%;
+}
+
+/* 2. Bloque de Título */
 .benefits {
     text-align: center;
-    margin-bottom: 40px;
+    margin-bottom: 50px; 
+    padding: 0 20px;
+}
+
+.benefits h2 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 16px;
+    color: white;
 }
 
 .benefits-subtitle {
-    font-size: 14px;
-    margin-bottom: 8px;
-    color:#9c9c9c;
+    font-size: 1.1rem;
+    color: #a1a1aa;
+    max-width: 600px;
+    margin: 0 auto;
+    line-height: 1.6;
 }
 
+/* 3. Cards: Volvemos a un tamaño mínimo de 250px para que se estiren mejor 
+      y ocupen el ancho completo como en la Imagen 2 */
 .benefits-cards {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 24px;
+    /* Usamos 250px en vez de 280px para asegurar que quepan 4 en línea en más pantallas */
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
+    gap: 24px; /* Un espacio un poco más cerrado y cohesivo */
     max-width: 1200px;
     margin: 0 auto;
     padding: 0 20px;
 }
 
+/* El resto de estilos de la tarjeta se mantienen igual */
 .card {
     background-color: #18181b;
     border: 1px solid rgba(255, 255, 255, 0.08);
@@ -227,7 +304,6 @@ nav .menu a:hover {
     text-align: left;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
     
-    /* Animación inicial */
     opacity: 0;
     animation: fadeInUp 0.8s ease-out forwards;
 }
@@ -253,7 +329,7 @@ nav .menu a:hover {
     line-height: 1.6;
 }
 
-/* Iconos Cards */
+/* Iconos */
 .icon-box {
     width: 56px;
     height: 56px;
@@ -277,7 +353,7 @@ nav .menu a:hover {
 .benefits-cards .card:nth-child(4) { animation-delay: 2.0s; }
 
 /* =========================================
-   6. PHILOSOPHY SECTION (Corrección)
+   6. PHILOSOPHY SECTION
    ========================================= */
 .philosophy-section {
     width: 100%;
@@ -428,7 +504,466 @@ nav .logo, nav .menu a, nav .btn-nav,
 }
 
 /* =========================================
-   9. MEDIA QUERIES
+   ANIMACIONES TESTIMONIALS SECTION
+   ========================================= */
+
+.testimonials-section {
+    opacity: 0;
+    animation: fadeInUp 0.8s ease-out forwards;
+    animation-delay: 2.8s;
+}
+
+.section-header h2 {
+    opacity: 0;
+    animation: fadeInUp 0.8s ease-out forwards;
+    animation-delay: 2.9s;
+}
+
+.section-header p {
+    opacity: 0;
+    animation: fadeInUp 0.8s ease-out forwards;
+    animation-delay: 3.0s;
+}
+
+.testimonial-card {
+    opacity: 0;
+    animation: fadeInUp 0.8s ease-out forwards;
+}
+
+/* Cascada de delays para cada tarjeta */
+.testimonials-grid .testimonial-card:nth-child(1) {
+    animation-delay: 3.1s;
+}
+
+.testimonials-grid .testimonial-card:nth-child(2) {
+    animation-delay: 3.3s;
+}
+
+.testimonials-grid .testimonial-card:nth-child(3) {
+    animation-delay: 3.5s;
+}
+
+.testimonials-grid .testimonial-card:nth-child(4) {
+    animation-delay: 3.7s;
+}
+
+.testimonials-grid .testimonial-card:nth-child(5) {
+    animation-delay: 3.9s;
+}
+
+.testimonials-grid .testimonial-card:nth-child(6) {
+    animation-delay: 4.1s;
+}
+
+/* ========================================
+    9. BACKGROUND COLORS
+   ========================================
+*/
+/* Fondo Base (El que ya tienes en el body) */
+.bg-base {
+    background-color: #0B0B0D; 
+}
+
+/* Fondo "Zinc" (El mismo de tus tarjetas, bueno para resaltar una sección entera) */
+.bg-surface {
+    background-color: #121214; 
+}
+
+/* Fondo con tinte Púrpura muy oscuro (Para secciones especiales) */
+.bg-purple-dark {
+    background-color: #0f0b14; /* Casi negro, pero con un toque violeta */
+}
+
+/* =========================================
+   10. SECCIÓN TESTIMONIOS
+   ========================================= */
+
+.testimonials-section {
+    padding: 100px 20px;
+    width: 100%;
+    background-color: #121214; /* Fondo base */
+}
+
+.testimonials-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Encabezado centrado */
+.section-header {
+    text-align: center;
+    margin-bottom: 60px;
+}
+
+.section-header h2 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: white;
+    margin-bottom: 10px;
+}
+
+.section-header p {
+    color: #a1a1aa;
+    font-size: 1.1rem;
+}
+
+/* Grid de Tarjetas */
+.testimonials-grid {
+    display: grid;
+    /* Responsive: columnas de mínimo 320px */
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 32px;
+}
+
+/* Tarjeta Individual */
+.testimonial-card {
+    background: #18181b; /* Zinc-900 */
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 24px;
+    padding: 40px 32px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; /* Empuja el footer hacia abajo */
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.testimonial-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(168, 85, 247, 0.3);
+    border-color: rgba(168, 85, 247, 0.2);
+}
+
+/* Icono de Comillas Decorativo */
+.quote-icon {
+    font-size: 4rem;
+    color: rgba(255, 255, 255, 0.05); /* Muy sutil en el fondo */
+    font-family: serif;
+    line-height: 1;
+    position: absolute;
+    top: 20px;
+    right: 30px;
+    pointer-events: none;
+}
+
+/* Texto del testimonio */
+.testimonial-text {
+    color: #d4d4d8; /* Gris claro */
+    font-size: 1.05rem;
+    line-height: 1.6;
+    margin-bottom: 30px;
+    position: relative;
+    z-index: 1;
+}
+
+/* Resaltar parte del texto (El resultado) */
+.highlight {
+    color: white;
+    font-weight: 600;
+    display: block;
+    margin-top: 10px;
+    background: linear-gradient(90deg, #a855f7, #ec4899);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* Info del Usuario (Footer de la card) */
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    padding-top: 20px;
+}
+
+/* Círculo con iniciales (Avatar) */
+.avatar-circle {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: 700;
+    color: white;
+    font-size: 18px;
+}
+
+/* Colores para los avatares */
+.avatar-circle.purple { background: linear-gradient(135deg, #a855f7, #7c3aed); }
+.avatar-circle.pink { background: linear-gradient(135deg, #ec4899, #db2777); }
+.avatar-circle.blue { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+
+.user-details h4 {
+    color: white;
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 2px;
+}
+
+.user-details span {
+    color: #71717a; /* Zinc-500 */
+    font-size: 0.85rem;
+}
+
+/* Ajustes Responsive */
+@media (max-width: 768px) {
+    .section-header h2 { font-size: 2rem; }
+    .testimonial-card { padding: 30px 24px; }
+}
+
+/* =========================================
+   11. SECCIÓN FAQ
+   ========================================= */
+
+.faq-section {
+    padding: 100px 20px;
+    width: 100%;
+    /* Un fondo sutilmente distinto para separar visualmente */
+    background: linear-gradient(180deg, #0B0B0D 0%, #101012 100%);
+}
+
+.faq-container {
+    max-width: 800px; /* Un poco más angosto para facilitar la lectura */
+    margin: 0 auto;
+}
+
+/* Estilo del Item (Caja cerrada) */
+.faq-item {
+    background: #18181b;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    margin-bottom: 16px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    opacity: 0;
+    animation: fadeInUp 0.8s ease-out forwards;
+    animation-delay: 3.00s; /* base, se sobreescribe por nth-child */
+}
+
+/* Efecto al abrir o pasar el mouse */
+.faq-item:hover,
+.faq-item[open] {
+    border-color: rgba(168, 85, 247, 0.4); /* Borde violeta */
+}
+
+.faq-item[open] {
+    background: #1c1c20; /* Fondo un pelín más claro al abrir */
+}
+
+/* El encabezado de la pregunta (Summary) */
+summary {
+    list-style: none; /* Quita el triángulo por defecto */
+    padding: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+}
+
+/* Hack para quitar el triángulo en Chrome/Safari */
+summary::-webkit-details-marker {
+    display: none;
+}
+
+.faq-question {
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: white;
+}
+
+/* El icono + */
+.faq-icon {
+    font-size: 1.5rem;
+    color: #a855f7; /* Violeta */
+    transition: transform 0.3s ease;
+    line-height: 1;
+}
+
+/* Rotación del icono al abrir */
+details[open] .faq-icon {
+    transform: rotate(45deg); /* Se convierte en una X */
+    color: #ec4899; /* Cambia a rosa */
+}
+
+/* La respuesta (contenido oculto) */
+.faq-answer {
+    padding: 0 24px 24px 24px;
+    color: #a1a1aa; /* Gris claro */
+    line-height: 1.6;
+    font-size: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.02); /* Línea separadora sutil */
+    margin-top: -10px; /* Ajuste visual */
+    padding-top: 20px;
+    animation: fadeIn 0.4s ease;
+}
+
+/* Animación simple de aparición */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Ajuste móvil */
+@media (max-width: 768px) {
+    .faq-question { font-size: 1rem; }
+    .faq-item { margin-bottom: 12px; }
+}
+
+/* Añadir la misma animación fadeInUp a las tarjetas FAQ (staggered) */
+.faq-item {
+    opacity: 0;
+    animation: fadeInUp 0.8s ease-out forwards;
+    animation-delay: 3.00s; /* base, se sobreescribe por nth-child */
+}
+
+/* Staggered delays para que las tarjetas aparezcan en cascada */
+.faq-container .faq-item:nth-child(1) { animation-delay: 3.00s; }
+.faq-container .faq-item:nth-child(2) { animation-delay: 3.15s; }
+.faq-container .faq-item:nth-child(3) { animation-delay: 3.30s; }
+.faq-container .faq-item:nth-child(4) { animation-delay: 3.45s; }
+.faq-container .faq-item:nth-child(5) { animation-delay: 3.60s; }
+.faq-container .faq-item:nth-child(6) { animation-delay: 3.75s; }
+
+/* Asegurar que el estado open no haga desaparecer la animación */
+.faq-item[open] {
+    animation-fill-mode: both;
+}
+
+/* Micro-animación para el encabezado (summary) dentro de cada faq-item */
+.faq-item summary {
+    opacity: 0;
+    animation: fadeInUp 0.6s ease-out forwards;
+    animation-delay: 0.05s; /* pequeño offset para que siga a la card */
+}
+
+/* Stagger summary slightly after card */
+.faq-container .faq-item:nth-child(1) summary { animation-delay: 3.05s; }
+.faq-container .faq-item:nth-child(2) summary { animation-delay: 3.20s; }
+.faq-container .faq-item:nth-child(3) summary { animation-delay: 3.35s; }
+.faq-container .faq-item:nth-child(4) summary { animation-delay: 3.50s; }
+.faq-container .faq-item:nth-child(5) summary { animation-delay: 3.65s; }
+.faq-container .faq-item:nth-child(6) summary { animation-delay: 3.80s; }
+
+
+/* =========================================
+   12. FOOTER
+   ========================================= */
+
+.site-footer {
+    width: 100%;
+    background-color: #050507; /* Un negro casi puro, más oscuro que el body */
+    border-top: 1px solid rgba(255, 255, 255, 0.05); /* Línea divisoria sutil */
+    padding: 80px 20px 40px;
+    font-size: 0.95rem;
+}
+
+.footer-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Parte Superior (Grid) */
+.footer-top {
+    display: grid;
+    /* Layout: Logo ancho + 3 columnas de links */
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    gap: 40px;
+    margin-bottom: 60px;
+}
+
+/* Marca y Redes */
+.footer-brand .logo {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: white;
+    margin-bottom: 16px;
+    display: inline-block;
+}
+
+.footer-brand p {
+    color: #a1a1aa;
+    line-height: 1.6;
+    margin-bottom: 24px;
+    max-width: 300px;
+}
+
+.social-links {
+    display: flex;
+    gap: 16px;
+}
+
+.social-icon {
+    color: #a1a1aa;
+    transition: color 0.3s ease, transform 0.3s ease;
+}
+
+.social-icon:hover {
+    color: #a855f7; /* Violeta al pasar el mouse */
+    transform: translateY(-2px);
+}
+
+.social-icon svg {
+    width: 20px;
+    height: 20px;
+}
+
+/* Columnas de Links */
+.footer-links h4 {
+    color: white;
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 20px;
+}
+
+.footer-links ul {
+    list-style: none;
+    padding: 0;
+}
+
+.footer-links li {
+    margin-bottom: 12px;
+}
+
+.footer-links a {
+    color: #71717a; /* Gris más oscuro (Zinc-500) */
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.footer-links a:hover {
+    color: white; /* Blanco al pasar el mouse */
+}
+
+/* Parte Inferior (Copyright) */
+.footer-bottom {
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    padding-top: 30px;
+    text-align: center;
+    color: #52525b; /* Gris muy oscuro para info secundaria */
+    font-size: 0.85rem;
+}
+
+/* Ajustes Responsive */
+@media (max-width: 768px) {
+    .footer-top {
+        grid-template-columns: 1fr; /* Todo en una columna */
+        gap: 40px;
+        text-align: center;
+    }
+
+    .footer-brand p {
+        margin: 0 auto 24px; /* Centrar texto */
+    }
+
+    .social-links {
+        justify-content: center;
+    }
+}
+
+/* =========================================
+   13. MEDIA QUERIES
    ========================================= */
 @media (max-width: 768px) {
     .philosophy-section h2 { font-size: 1.8rem; }
