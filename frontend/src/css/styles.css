@@ -1,8 +1,14 @@
-/* RESET */
+/* =========================================
+   1. RESET & GLOBALES
+   ========================================= */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
 }
 
 body {
@@ -10,14 +16,13 @@ body {
     background: #0B0B0D;
     color: white;
     overflow-x: hidden;
+    /* Aseguramos que el body ocupe todo para centrar bien */
+    min-height: 100vh; 
 }
 
-/* Smooth scroll behavior */
-html {
-    scroll-behavior: smooth;
-}
-
-/* NAVBAR */
+/* =========================================
+   2. NAVBAR
+   ========================================= */
 nav {
     width: 100%;
     padding: 25px 8%;
@@ -58,16 +63,17 @@ nav .menu a:hover {
     font-weight: 600;
     cursor: pointer;
     border: none;
+    text-decoration: none;
     transition: transform 0.3s ease;
 }
 
-a.btn-nav:hover,
-a.btn-nav:focus {
+.btn-nav:hover {
     transform: scale(1.08);
-    cursor: pointer;
 }
 
-/* HERO */
+/* =========================================
+   3. HERO SECTION
+   ========================================= */
 .hero {
     width: 100%;
     text-align: center;
@@ -96,9 +102,9 @@ a.btn-nav:focus {
     display: flex;
     justify-content: center;
     gap: 20px;
-    
 }
 
+/* Botones Generales */
 .btn-primary {
     padding: 14px 32px;
     border-radius: 20px;
@@ -108,27 +114,13 @@ a.btn-nav:focus {
     font-weight: 600;
     cursor: pointer;
     font-size: 17px;
-
-    width: 158px;
-    height: 44px;
-    margin: 16px 0px 0px;
-    text-decoration: none;
-    display: inline-block;
-    transition: transform 0.3s ease;
-}
-
-/* Forzar que los enlaces con clase btn-primary no se subrayen */
-a.btn-primary,
-a.btn-primary:link,
-a.btn-primary:visited {
+    min-width: 158px;
+    display: inline-flex; /* Mejor que inline-block para centrar texto */
+    justify-content: center;
+    align-items: center;
     text-decoration: none !important;
-    color: #0F0F15;
-}
-
-a.btn-primary:hover,
-a.btn-primary:focus {
-    transform: scale(1.08);
-    cursor: pointer;
+    color: #0F0F15 !important;
+    transition: transform 0.3s ease;
 }
 
 .btn-secondary {
@@ -140,19 +132,25 @@ a.btn-primary:focus {
     font-weight: 500;
     cursor: pointer;
     font-size: 17px;
-    width: 250px;
-    height: 44px;
-    margin: 16px 0px 0px;
+    min-width: 158px;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    text-decoration: none;
     transition: transform 0.3s ease;
 }
 
-button.btn-secondary:hover,
-button.btn-secondary:focus {
-    transform: scale(1.08);
-    cursor: pointer;
+.btn-primary:hover, .btn-secondary:hover {
+    transform: scale(1.05);
 }
 
-/* PROGRESS CARD */
+/* Sombras */
+.shadow-purple { filter: drop-shadow(0px 10px 15px rgba(168, 85, 247, 0.45)); }
+.shadow-purple-low { filter: drop-shadow(0px 5px 10px rgba(168,85,247,0.45)); }
+
+/* =========================================
+   4. PROGRESS CARD
+   ========================================= */
 .progress-card {
     width: 60%;
     margin: 120px auto;
@@ -170,14 +168,8 @@ button.btn-secondary:focus {
     font-weight: 600;
 }
 
-.progress-row {
-    margin: 30px 0;
-}
-
-.progress-title {
-    font-size: 14px;
-    margin-bottom: 8px;
-}
+.progress-row { margin: 30px 0; }
+.progress-title { font-size: 14px; margin-bottom: 8px; }
 
 .progress-bar {
     height: 8px;
@@ -201,29 +193,31 @@ button.btn-secondary:focus {
     font-weight: 500;
 }
 
-/* BENEFITS */
+/* =========================================
+   5. BENEFITS SECTION
+   ========================================= */
+.benefits {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
 .benefits-subtitle {
     font-size: 14px;
     margin-bottom: 8px;
-    color:#9c9c9c
+    color:#9c9c9c;
 }
 
-/* --- ESTILOS BENEFITS CARDS --- */
-
-/* Contenedor Grid Responsivo */
 .benefits-cards {
     display: grid;
-    /* Ajuste automático: columnas mínimas de 250px, máximas de 1 fracción */
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
     gap: 24px;
     max-width: 1200px;
-    margin: 0 auto; /* Centrar el contenedor */
-    padding: 0 20px; /* Margen de seguridad lateral */
+    margin: 0 auto;
+    padding: 0 20px;
 }
 
-/* Estilo Individual de la Tarjeta */
 .card {
-    background-color: #18181b; /* Color de fondo oscuro (Zinc-900) */
+    background-color: #18181b;
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 24px;
     padding: 32px;
@@ -232,50 +226,34 @@ button.btn-secondary:focus {
     align-items: flex-start;
     text-align: left;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-/* Animación de entrada para las cards */
-.card {
+    
+    /* Animación inicial */
     opacity: 0;
     animation: fadeInUp 0.8s ease-out forwards;
 }
 
-/* Cascada de delays para cada card */
-.benefits-cards .card:nth-child(1) {
-    animation-delay: 1.4s;
+.card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 10px 30px rgba(168, 85, 247, 0.3);
+    border-color: rgba(255, 255, 255, 0.15);
 }
 
-.benefits-cards .card:nth-child(2) {
-    animation-delay: 1.6s;
-}
-
-.benefits-cards .card:nth-child(3) {
-    animation-delay: 1.8s;
-}
-
-.benefits-cards .card:nth-child(4) {
-    animation-delay: 2.0s;
-}
-
-/* Tipografía dentro de la tarjeta */
 .card h3 {
     color: #ffffff;
-    font-family: 'Inter', sans-serif;
     font-size: 1.25rem;
     font-weight: 700;
     margin-bottom: 12px;
-    margin-top: 0;
 }
+
+.card:hover h3 { color: #CF8BF3; }
 
 .card p {
-    color: #a1a1aa; /* Gris suave para texto secundario */
-    font-family: 'Inter', sans-serif;
+    color: #a1a1aa;
     font-size: 0.95rem;
     line-height: 1.6;
-    margin: 0;
 }
 
-/* Estilos de los Iconos */
+/* Iconos Cards */
 .icon-box {
     width: 56px;
     height: 56px;
@@ -285,35 +263,93 @@ button.btn-secondary:focus {
     align-items: center;
     margin-bottom: 24px;
 }
+.icon-box svg { width: 28px; height: 28px; stroke-width: 2; }
 
-.icon-box svg {
-    width: 28px;
-    height: 28px;
-    stroke-width: 2;
+.icon-purple { background: rgba(168, 85, 247, 0.15); color: #a855f7; }
+.icon-pink { background: rgba(236, 72, 153, 0.15); color: #ec4899; }
+.icon-blue { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
+.icon-yellow { background: rgba(234, 179, 8, 0.15); color: #eab308; }
+
+/* Animation Delays Cards */
+.benefits-cards .card:nth-child(1) { animation-delay: 1.4s; }
+.benefits-cards .card:nth-child(2) { animation-delay: 1.6s; }
+.benefits-cards .card:nth-child(3) { animation-delay: 1.8s; }
+.benefits-cards .card:nth-child(4) { animation-delay: 2.0s; }
+
+/* =========================================
+   6. PHILOSOPHY SECTION (Corrección)
+   ========================================= */
+.philosophy-section {
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 100px 20px;
+    
+    /* FLEXBOX CRUCIAL PARA CENTRADO */
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Centra horizontalmente */
+    text-align: center;  /* Centra el texto */
+    
+    opacity: 0;
+    animation: fadeInUp 0.8s ease-out forwards;
+    animation-delay: 2.2s;
 }
 
-/* Variaciones de Color (Fondo semitransparente + Color del SVG) */
-.icon-purple {
-    background-color: rgba(168, 85, 247, 0.15);
+.brain-icon {
+    margin-bottom: 30px;
+    display: flex;         /* Asegura que el div no ocupe 100% ancho bloqueando centrado */
+    justify-content: center;
+    opacity: 0;
+    animation: fadeInUp 0.8s ease-out forwards;
+    animation-delay: 2.3s;
+    filter: drop-shadow(0 0 10px rgba(168, 85, 247, 0.4));
+}
+
+.philosophy-section h2 {
+    font-size: 2.5rem;
+    font-weight: 800;
+    line-height: 1.2;
+    color: #ffffff;
+    margin-bottom: 30px;
+    opacity: 0;
+    animation: fadeInUp 0.8s ease-out forwards;
+    animation-delay: 2.4s;
+}
+
+.text-purple-gradient {
     color: #a855f7;
+    background: linear-gradient(90deg, #a855f7, #c084fc);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    display: inline-block;
 }
 
-.icon-pink {
-    background-color: rgba(236, 72, 153, 0.15);
-    color: #ec4899;
+.philosophy-text {
+    font-size: 1.15rem;
+    line-height: 1.7;
+    color: #a1a1aa;
+    max-width: 750px;
+    margin-bottom: 40px;
+    opacity: 0;
+    animation: fadeInUp 0.8s ease-out forwards;
+    animation-delay: 2.5s;
 }
 
-.icon-blue {
-    background-color: rgba(59, 130, 246, 0.15);
-    color: #3b82f6;
+.text-white { color: #ffffff; font-weight: 600; }
+
+.philosophy-quote {
+    font-size: 0.95rem;
+    font-style: italic;
+    color: #52525b;
+    opacity: 0;
+    animation: fadeInUp 0.8s ease-out forwards;
+    animation-delay: 2.6s;
 }
 
-.icon-yellow {
-    background-color: rgba(234, 179, 8, 0.15);
-    color: #eab308;
-}
-
-/* AUTH (login / register) styles */
+/* =========================================
+   7. AUTH PAGES
+   ========================================= */
 .auth-body {
     display: flex;
     align-items: center;
@@ -331,17 +367,11 @@ button.btn-secondary:focus {
     border-radius: 14px;
     box-shadow: 0 10px 30px rgba(0,0,0,0.6);
     text-align: center;
+    backdrop-filter: blur(10px);
 }
 
-.auth-container h1 {
-    font-size: 26px;
-    margin-bottom: 6px;
-}
-
-.auth-subtitle {
-    color: #bbb;
-    margin-bottom: 18px;
-}
+.auth-container h1 { font-size: 26px; margin-bottom: 6px; }
+.auth-subtitle { color: #bbb; margin-bottom: 18px; }
 
 .auth-form {
     display: flex;
@@ -351,6 +381,7 @@ button.btn-secondary:focus {
 }
 
 .auth-form input {
+    width: 100%;
     padding: 12px 14px;
     border-radius: 10px;
     border: 1px solid #2b2b2b;
@@ -359,49 +390,49 @@ button.btn-secondary:focus {
     font-size: 15px;
 }
 
-.auth-form input::placeholder {
-    color: #8e8e8e;
-}
-
 .auth-form input:focus {
     border-color: #9573ff;
     box-shadow: 0 8px 20px rgba(149,115,255,0.12);
     outline: none;
 }
 
-.btn.primary,
-.btn-primary {
-    padding: 12px 16px;
-    border-radius: 10px;
-    background: #A370FF;
-    color: white;
-    border: none;
-    font-weight: 700;
-    cursor: pointer;
-    font-size: 16px;
-    text-decoration: none;
-    display: inline-block;
+.auth-footer { margin-top: 14px; color: #bbb; }
+.auth-footer a { color: #A370FF; text-decoration: none; font-weight: 700; }
+.auth-footer a:hover { text-decoration: underline; }
+
+/* =========================================
+   8. ANIMACIONES
+   ========================================= */
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
-.btn.primary:hover,
-.btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 30px rgba(163,110,255,0.14);
+/* Delays iniciales (Landing) */
+nav .logo { animation-delay: 0s; }
+nav .menu a:nth-child(1) { animation-delay: 0.1s; }
+nav .menu a:nth-child(2) { animation-delay: 0.2s; }
+nav .menu a:nth-child(3) { animation-delay: 0.3s; }
+nav .menu a:nth-child(4) { animation-delay: 0.4s; }
+nav .btn-nav { animation-delay: 0.5s; }
+.hero h1 { animation-delay: 0.6s; }
+.hero p { animation-delay: 0.8s; }
+.hero-buttons { animation-delay: 1.0s; }
+.progress-card { animation-delay: 1.2s; }
+
+/* Elementos comunes que se animan al cargar */
+nav .logo, nav .menu a, nav .btn-nav, 
+.hero h1, .hero p, .hero-buttons, .progress-card {
+    opacity: 0;
+    animation: fadeInUp 0.8s ease-out forwards;
 }
 
-.auth-footer {
-    margin-top: 14px;
-    color: #bbb;
-}
-
-.auth-footer a {
-    color: #A370FF;
-    text-decoration: none;
-    font-weight: 700;
-}
-
-.auth-footer a:hover {
-    text-decoration: underline;
+/* =========================================
+   9. MEDIA QUERIES
+   ========================================= */
+@media (max-width: 768px) {
+    .philosophy-section h2 { font-size: 1.8rem; }
+    .philosophy-text { font-size: 1rem; }
 }
 
 @media (max-width: 520px) {
@@ -409,169 +440,3 @@ button.btn-secondary:focus {
     .auth-container { padding: 26px; }
     .auth-container h1 { font-size: 22px; }
 }
-
-/* === AUTH PAGES === */
-
-.auth-body {
-    background-color: #0b0b0d;
-    color: #fff;
-    font-family: 'Inter', sans-serif;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-}
-
-.auth-container {
-    background: rgba(255, 255, 255, 0.05);
-    padding: 40px;
-    border-radius: 16px;
-    width: 100%;
-    max-width: 400px;
-    backdrop-filter: blur(10px);
-    box-shadow: 0 0 20px rgba(177, 97, 255, 0.2);
-}
-
-.auth-container h1 {
-    font-size: 2rem;
-    margin-bottom: 10px;
-}
-
-.auth-subtitle {
-    margin-bottom: 25px;
-    opacity: 0.8;
-}
-
-.auth-form input {
-    width: 100%;
-    padding: 12px 15px;
-    margin-bottom: 15px;
-    border-radius: 8px;
-    border: none;
-    background: rgba(255, 255, 255, 0.1);
-    color: #fff;
-}
-
-.auth-form input:focus {
-    outline: 2px solid #b86bff;
-}
-
-.auth-footer {
-    margin-top: 20px;
-    text-align: center;
-    font-size: 0.9rem;
-    opacity: 0.8;
-}
-
-.auth-footer a {
-    color: #b86bff;
-    font-weight: bold;
-    text-decoration: none;
-}
-
-/* Glow Effects */
-.btn-glow {
-  position: relative;
-  background: #a855f7;        /* violeta */
-  color: white;
-  padding: 14px 28px;
-  border-radius: 12px;
-  font-size: 1.1rem;
-  border: none;
-  cursor: pointer;
-  z-index: 1;
-}
-
-.btn-glow::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  transform: scale(1.);       /* agranda el glow */
-  background: #a855f7;         /* mismo violeta */
-  filter: blur(30px);          /* blur fuerte */
-  opacity: 0.7;                /* ajustá brillo */
-  z-index: -1;
-  border-radius: inherit;
-}
-
-/* Purple Shadow */
-.shadow-purple {
-  filter: drop-shadow(0px 10px 15px rgba(168, 85, 247, 0.45));
-}
-
-/* Lower Purple Shadow */
-.shadow-purple-low {
-    filter: drop-shadow(0px 5px 10px rgba(168,85,247,0.45))
-}
-
-/* 1. Definimos la animación de entrada (de abajo hacia arriba) */
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(30px); /* Empieza 30px abajo */
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0); /* Termina en su lugar original */
-    }
-}
-
-/* 2. Estado inicial: Todos los elementos invisibles */
-/* Seleccionamos los elementos clave de tu HTML */
-nav .logo,
-nav .menu a,
-nav .btn-nav,
-.hero h1,
-.hero p,
-.hero-buttons,
-.progress-card {
-    opacity: 0; /* Ocultos al inicio */
-    animation: fadeInUp 0.8s ease-out forwards; /* 'forwards' mantiene el elemento visible al final */
-}
-
-/* 3. La Cascada: Asignamos los retrasos (delays) manualmente */
-
-/* --- NAVBAR (0s a 0.5s) --- */
-nav .logo {
-    animation-delay: 0s;
-}
-
-/* Usamos nth-child para los enlaces del menú sin ponerles clases */
-nav .menu a:nth-child(1) { animation-delay: 0.1s; }
-nav .menu a:nth-child(2) { animation-delay: 0.2s; }
-nav .menu a:nth-child(3) { animation-delay: 0.3s; }
-nav .menu a:nth-child(4) { animation-delay: 0.4s; }
-
-nav .btn-nav {
-    animation-delay: 0.5s;
-}
-
-/* --- HERO SECTION (0.6s a 1.0s) --- */
-.hero h1 {
-    animation-delay: 0.6s;
-}
-
-.hero p {
-    animation-delay: 0.8s;
-}
-
-.hero-buttons {
-    animation-delay: 1.0s;
-}
-
-/* --- CARD (1.2s) --- */
-.progress-card {
-    animation-delay: 1.2s;
-}
-
-/* Preservar hover effect sobre las cards animadas */
-.card:hover {
-    transform: translateY(-8px) !important;
-    box-shadow: 0 10px 30px rgba(168, 85, 247, 0.3) !important;
-    border-color: rgba(255, 255, 255, 0.15) !important;
-}
-
-.card:hover h3 {
-    color: #CF8BF3;
-}
-
