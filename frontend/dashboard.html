@@ -1,23 +1,607 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Dashboard</title>
-    <link rel="stylesheet" href="src/css/styles.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StudyO Main Page</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        dark: {
+                            bg: '#0a0a0c',      /* Fondo principal muy oscuro */
+                            card: '#11131a',    /* Fondo de tarjetas */
+                            sidebar: '#0a0a0c', /* Fondo sidebar */
+                            input: '#1a1d26'    /* Fondo inputs */
+                        },
+                        brand: {
+                            primary: '#a855f7', /* Púrpura base */
+                            glow: '#d946ef',    /* Rosa neón */
+                            text: '#e2e8f0'     /* Blanco hueso */
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        /* Scrollbar personalizada sutil */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0a0a0c; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+        
+        /* Mejora de efectos de glow para elementos con box-shadow */
+        [style*="box-shadow"] {
+            transition: box-shadow 0.3s ease;
+        }
+        
+        /* Efecto hover mejorado para elementos interactivos */
+        .group:hover [style*="box-shadow"] {
+            box-shadow: 0 0 0 1px rgba(168,85,247,0.3), 0 0 25px rgba(168,85,247,0.2), inset 0 0 20px rgba(168,85,247,0.05) !important;
+        }
+        
+        /* Asegurar que los gradientes de texto funcionen correctamente */
+        .bg-clip-text {
+            -webkit-background-clip: text;
+            background-clip: text;
+        }
+        
+        /* Animaciones de entrada suaves */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes fadeInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+        
+        /* Clases de animación inicial - elementos ocultos */
+        .animate-on-load {
+            opacity: 0;
+        }
+        
+        .animate-on-load.animated {
+            animation: fadeInUp 0.6s ease-out forwards;
+        }
+        
+        .animate-sidebar {
+            opacity: 0;
+        }
+        
+        .animate-sidebar.animated {
+            animation: fadeInLeft 0.5s ease-out forwards;
+        }
+        
+        .animate-fade {
+            opacity: 0;
+        }
+        
+        .animate-fade.animated {
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+        
+        /* Delays escalonados para efecto cascada */
+        .delay-100 { animation-delay: 0.1s; }
+        .delay-200 { animation-delay: 0.2s; }
+        .delay-300 { animation-delay: 0.3s; }
+        .delay-400 { animation-delay: 0.4s; }
+        .delay-500 { animation-delay: 0.5s; }
+        .delay-600 { animation-delay: 0.6s; }
+    </style>
 </head>
-<body>
-    <h1>Dashboard</h1>
+<body class="bg-dark-bg text-gray-300 h-screen flex overflow-hidden selection:bg-purple-500 selection:text-white">
 
-    <nav>
-        <a href="habits.html">Habits</a>
-        <a href="subjects.html">Subjects</a>
-        <a href="index.html">Home</a>
+    <aside class="w-64 bg-dark-sidebar flex flex-col border-r border-gray-800/50 h-full flex-shrink-0 animate-sidebar">
+        <div class="p-6 flex items-center gap-3">
+            <i data-lucide="book-open" class="text-white w-6 h-6"></i>
+            <span class="text-xl font-bold text-white tracking-wide">StudyO</span>
+            <i data-lucide="chevron-left" class="ml-auto text-gray-500 w-4 h-4 cursor-pointer"></i>
+        </div>
+
+        <nav class="flex-1 px-4 space-y-2 mt-2">
+            <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-gradient-to-r from-purple-600 via-fuchsia-500 to-purple-600 text-white shadow-[0_0_15px_rgba(168,85,247,0.5)] font-medium">
+                <i data-lucide="home" class="w-5 h-5"></i>
+                <span>Inicio</span>
+            </a>
+
+            <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gradient-to-r hover:from-purple-500/10 hover:via-fuchsia-500/10 hover:to-purple-500/10 text-gray-400 hover:text-purple-300 transition-all duration-300">
+                <i data-lucide="calendar" class="w-5 h-5"></i>
+                <span>Planificador</span>
+            </a>
+            <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gradient-to-r hover:from-purple-500/10 hover:via-fuchsia-500/10 hover:to-purple-500/10 text-gray-400 hover:text-purple-300 transition-all duration-300">
+                <i data-lucide="monitor" class="w-5 h-5"></i>
+                <span>Mi Sistema Académico</span>
+            </a>
+            <a href="habits.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gradient-to-r hover:from-purple-500/10 hover:via-fuchsia-500/10 hover:to-purple-500/10 text-gray-400 hover:text-purple-300 transition-all duration-300">
+                <i data-lucide="target" class="w-5 h-5"></i>
+                <span>Hábitos</span>
+            </a>
+            <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gradient-to-r hover:from-purple-500/10 hover:via-fuchsia-500/10 hover:to-purple-500/10 text-gray-400 hover:text-purple-300 transition-all duration-300">
+                <i data-lucide="trending-up" class="w-5 h-5"></i>
+                <span>Progreso</span>
+            </a>
     </nav>
 
-    <section id="dashboard-content">
-        <p>Loading dashboard data...</p>
-    </section>
+        <div class="p-4 border-t border-gray-800/50 space-y-2">
+            <div class="text-xs font-semibold text-gray-500 uppercase px-4 mb-2">Ajustes</div>
+            <a href="#" class="flex items-center gap-3 px-4 py-2 rounded-xl hover:bg-gradient-to-r hover:from-yellow-500/10 hover:via-orange-500/10 hover:to-yellow-500/10 text-yellow-500 hover:text-yellow-400 transition-all duration-300">
+                <i data-lucide="sparkles" class="w-4 h-4"></i>
+                <span>Tema Premium</span>
+            </a>
+            <a href="#" id="logoutBtn" class="flex items-center gap-3 px-4 py-2 rounded-xl hover:bg-gradient-to-r hover:from-red-500/10 hover:via-pink-500/10 hover:to-red-500/10 text-red-400 hover:text-red-300 transition-all duration-300">
+                <i data-lucide="log-out" class="w-4 h-4"></i>
+                <span>Cerrar Sesión</span>
+            </a>
+        </div>
+    </aside>
 
-    <script type="module" src="dist/main.js"></script>
+    <main class="flex-1 overflow-y-auto relative">
+        <div class="p-8 max-w-7xl mx-auto space-y-8">
+            
+            <header class="flex justify-between items-start animate-on-load delay-200">
+                <div>
+                    <h1 class="text-4xl font-bold text-white mb-2">
+                        Hola <span class="text-purple-400" id="userName">Usuario</span>,
+                    </h1>
+                    <p class="text-gray-400 text-lg">es hora de diseñar tu <span class="text-purple-400 font-medium">obra maestra de estudio</span>.</p>
+                </div>
+                <div class="flex gap-3">
+                    <button class="w-10 h-10 rounded-full bg-dark-card border border-gray-700 flex items-center justify-center text-gray-400 hover:text-white">
+                        <i data-lucide="maximize" class="w-4 h-4"></i>
+                    </button>
+                    <div class="w-10 h-10 rounded-full bg-gray-200 animate-pulse"></div> </div>
+            </header>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                
+                <div class="lg:col-span-2 bg-dark-card rounded-3xl p-6 relative animate-on-load delay-300" style="box-shadow: 0 0 0 1px rgba(168,85,247,0.2), 0 0 30px rgba(168,85,247,0.15), inset 0 0 20px rgba(168,85,247,0.03);">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-xl font-bold text-white">Plan de Dominación Semanal</h2>
+                        <i data-lucide="check-square" class="w-5 h-5 text-purple-400"></i>
+                    </div>
+                    <p class="text-gray-500 text-sm mb-6">Definí tus objetivos cruciales por materia. Claridad es poder.</p>
+
+                    <div class="bg-dark-input rounded-2xl p-4 mb-4 relative group" style="box-shadow: 0 0 0 1px rgba(168,85,247,0.15), 0 0 15px rgba(168,85,247,0.08);">
+                        <div class="flex justify-between items-center mb-2">
+                            <div class="flex items-center gap-2 text-purple-400 font-medium">
+                                <i data-lucide="zap" class="w-4 h-4"></i>
+                                <span>Ingeniería de Software Avanzada</span>
+                            </div>
+                            <button class="text-gray-600 hover:text-red-400"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                        </div>
+                        <textarea class="w-full bg-transparent text-white resize-none text-sm outline-none placeholder-gray-600" rows="2">Definir arquitectura de microservicios y completar diagrama de secuencia para el módulo de pagos.</textarea>
+                        
+                        <div class="mt-3 flex gap-3 items-center">
+                            <div class="bg-[#2a2d36] px-3 py-1 rounded-lg text-xs text-white font-medium flex items-center gap-2">
+                                Máxima Prioridad <i data-lucide="chevron-down" class="w-3 h-3"></i>
+                            </div>
+                            <span class="text-xs text-pink-500">Objetivo central de la semana.</span>
+                        </div>
+                        
+                        <div class="mt-3 border-t border-gray-700/50 pt-3">
+                            <input type="text" value="Revisar patrones de Saga y CQRS. Estimar 3 bloques Pomodoro." class="w-full bg-transparent text-gray-400 text-xs outline-none">
+                        </div>
+                    </div>
+
+                    <div class="bg-dark-input rounded-2xl p-4" style="box-shadow: 0 0 0 1px rgba(168,85,247,0.15), 0 0 15px rgba(168,85,247,0.08);">
+                        <div class="flex justify-between items-center mb-2">
+                            <div class="flex items-center gap-2 text-blue-400 font-medium">
+                                <i data-lucide="brain-circuit" class="w-4 h-4"></i>
+                                <span>Algoritmos Cuánticos (Autodidacta)</span>
+                            </div>
+                            <button class="text-gray-600 hover:text-red-400"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                        </div>
+                        <textarea class="w-full bg-transparent text-white resize-none text-sm outline-none placeholder-gray-600" rows="2">Comprender y simular el algoritmo de Grover en Qiskit. Documentar los pasos clave.</textarea>
+                         <div class="mt-3 flex gap-3 items-center">
+                            <div class="bg-[#2a2d36] px-3 py-1 rounded-lg text-xs text-white font-medium flex items-center gap-2">
+                                Exploración Clave <i data-lucide="chevron-down" class="w-3 h-3"></i>
+                            </div>
+                            <span class="text-xs text-yellow-500">Avance importante en nuevo material.</span>
+                        </div>
+                         <div class="mt-3 border-t border-gray-700/50 pt-3">
+                            <input type="text" value="Enfocarse en la intuición detrás del oráculo y la amplificación de amplitud." class="w-full bg-transparent text-gray-400 text-xs outline-none">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-dark-card rounded-3xl p-6 flex flex-col items-center justify-between relative overflow-hidden animate-on-load delay-400" style="box-shadow: 0 0 0 1px rgba(168,85,247,0.2), 0 0 30px rgba(168,85,247,0.15), inset 0 0 30px rgba(168,85,247,0.03);">
+                    <div class="w-full flex justify-between items-start z-10">
+                        <h2 class="text-lg font-bold text-white w-2/3">Zona de Enfoque Pomodoro</h2>
+                        <button class="p-2 rounded-lg bg-white/5 text-gray-400"><i data-lucide="sliders-horizontal" class="w-4 h-4"></i></button>
+                    </div>
+
+                    <div class="relative w-48 h-48 flex items-center justify-center my-6">
+                        <svg class="absolute inset-0 w-full h-full transform -rotate-90">
+                            <circle cx="96" cy="96" r="88" stroke="#1e212b" stroke-width="8" fill="transparent" />
+                            <circle cx="96" cy="96" r="88" stroke="url(#paint0_linear)" stroke-width="8" stroke-linecap="round" fill="transparent" stroke-dasharray="552" stroke-dashoffset="100" />
+                            <defs>
+                                <linearGradient id="paint0_linear" x1="0" y1="0" x2="1" y2="1">
+                                    <stop offset="0%" stop-color="#a855f7"/>
+                                    <stop offset="100%" stop-color="#ec4899"/>
+                                </linearGradient>
+                            </defs>
+                        </svg>
+                        
+                        <div class="text-center z-10">
+                            <div class="mb-1"><i data-lucide="briefcase" class="w-6 h-6 text-purple-400 mx-auto"></i></div>
+                            <div class="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400 tracking-tighter">25:00</div>
+                            <div class="text-sm text-purple-400 font-medium mt-1">Enfoque Total</div>
+                        </div>
+                    </div>
+
+                    <div class="text-center mb-6">
+                        <div class="text-gray-400 text-sm">Pomodoros: 0</div>
+                        <div class="text-gray-600 text-xs">Set: 0 / 4</div>
+                    </div>
+
+                    <div class="flex gap-4 mb-4">
+                        <button class="w-12 h-12 rounded-2xl bg-white/5 hover:bg-white/10 flex items-center justify-center text-white border border-gray-700"><i data-lucide="play" class="w-5 h-5 ml-1"></i></button>
+                        <button class="w-12 h-12 rounded-2xl bg-white/5 hover:bg-white/10 flex items-center justify-center text-white border border-gray-700"><i data-lucide="skip-forward" class="w-5 h-5"></i></button>
+                        <button class="w-12 h-12 rounded-2xl bg-white/5 hover:bg-white/10 flex items-center justify-center text-white border border-gray-700"><i data-lucide="rotate-ccw" class="w-5 h-5"></i></button>
+                    </div>
+
+                    <div class="w-full flex justify-between items-center mt-auto pt-4 border-t border-gray-800">
+                        <span class="text-xs text-gray-500">Define tu ritmo. Domina tu tiempo.</span>
+                        <i data-lucide="volume-2" class="w-4 h-4 text-gray-500 cursor-pointer"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="lg:col-span-2 bg-dark-card rounded-3xl p-6 relative animate-on-load delay-500" style="box-shadow: 0 0 0 1px rgba(168,85,247,0.2), 0 0 30px rgba(168,85,247,0.15), inset 0 0 20px rgba(168,85,247,0.02);">
+                    <div class="flex justify-between items-start mb-6">
+                        <div>
+                            <h2 class="text-xl font-bold text-white">Ritmo de Estudio Semanal</h2>
+                            <p class="text-gray-500 text-sm mt-1">Horas de estudio profundo registradas.</p>
+                        </div>
+                        <i data-lucide="bar-chart-2" class="w-5 h-5 text-purple-400"></i>
+                    </div>
+
+                    <div class="h-48 w-full relative">
+                        <div class="absolute left-0 top-0 bottom-6 w-px bg-gray-800"></div>
+                        <div class="absolute left-0 bottom-0 right-0 h-px bg-gray-800"></div>
+                        
+                        <svg class="w-full h-full overflow-visible">
+                            <path d="M0,100 C50,90 100,50 150,80 C200,110 250,60 300,40 C350,20 400,90 450,130" 
+                                  fill="none" stroke="#c084fc" stroke-width="3" />
+                            <circle cx="0" cy="100" r="4" fill="#1e212b" stroke="#c084fc" stroke-width="2"/>
+                            <circle cx="150" cy="80" r="4" fill="#1e212b" stroke="#c084fc" stroke-width="2"/>
+                            <circle cx="300" cy="40" r="4" fill="#1e212b" stroke="#c084fc" stroke-width="2"/>
+                            <circle cx="450" cy="130" r="4" fill="#1e212b" stroke="#c084fc" stroke-width="2"/>
+                        </svg>
+
+                        <div class="absolute bottom-0 left-0 right-0 flex justify-between text-xs text-gray-600 pt-2 px-2">
+                            <span>Lu</span><span>Ma</span><span>Mi</span><span>Ju</span><span>Vi</span><span>Sá</span><span>Do</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-dark-card rounded-3xl p-6 flex flex-col relative animate-on-load delay-600" style="box-shadow: 0 0 0 1px rgba(168,85,247,0.2), 0 0 30px rgba(168,85,247,0.15), inset 0 0 20px rgba(168,85,247,0.02);">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <h2 class="text-lg font-bold text-white">Distribución de Enfoque</h2>
+                            <p class="text-gray-500 text-xs mt-1">Tiempo dedicado por área de estudio.</p>
+                        </div>
+                        <button class="p-2 rounded-lg bg-white/5 text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400" style="color: #a855f7;"><i data-lucide="pie-chart" class="w-4 h-4"></i></button>
+                    </div>
+
+                    <div class="flex-1 flex flex-col items-center justify-center relative">
+                        <div class="w-40 h-40 rounded-full relative flex items-center justify-center"
+                             style="background: conic-gradient(#a855f7 0% 35%, #60a5fa 35% 60%, #34d399 60% 85%, #fbbf24 85% 100%);">
+                            <div class="w-28 h-28 bg-dark-card rounded-full flex items-center justify-center z-10">
+                                <span class="text-2xl font-bold text-white">100h</span>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-6 flex flex-wrap justify-center gap-x-4 gap-y-2 text-[10px] text-gray-400">
+                            <div class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-purple-500"></span> Ing. Software</div>
+                            <div class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-blue-400"></span> Algoritmia</div>
+                            <div class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-green-400"></span> Cloud Comp.</div>
+                            <div class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-yellow-400"></span> Des. Personal</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-dark-card rounded-3xl p-6 relative animate-on-load delay-100" style="box-shadow: 0 0 0 1px rgba(168,85,247,0.25), 0 0 35px rgba(168,85,247,0.2), inset 0 0 20px rgba(168,85,247,0.03);">
+                    <div class="flex justify-between items-start mb-4">
+                        <h2 class="text-xl font-bold text-white">Desafío Semanal Activo</h2>
+                        <i data-lucide="award" class="text-purple-400 w-6 h-6"></i>
+                    </div>
+                    
+                    <h3 class="text-white font-medium mb-1">Racha de Enfoque Élite</h3>
+                    <p class="text-gray-500 text-sm mb-4">Completá 5 Pomodoros diarios por 5 días seguidos.</p>
+                    
+                    <div class="w-full bg-gray-800 h-2 rounded-full mb-2">
+                        <div class="bg-gradient-to-r from-purple-500 via-pink-500 to-purple-500 h-2 rounded-full w-3/5 shadow-[0_0_10px_rgba(168,85,247,0.5)]"></div>
+                    </div>
+                    <div class="text-xs bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent font-medium mb-3">3 de 5 días completados.</div>
+                    
+                    <div class="text-xs text-gray-400">
+                        Recompensa: <span class="text-gray-300">Acceso Beta: Sonidos Binaurales Avanzados</span>
+                    </div>
+                </div>
+
+                <div class="bg-dark-card rounded-3xl p-6 relative animate-on-load delay-200" style="box-shadow: 0 0 0 1px rgba(168,85,247,0.25), 0 0 35px rgba(168,85,247,0.2), inset 0 0 20px rgba(168,85,247,0.03);">
+                     <div class="flex justify-between items-start mb-4">
+                        <h2 class="text-xl font-bold text-white w-2/3">Tu Momento Peak de Productividad</h2>
+                         <div class="p-2 rounded-full bg-gradient-to-br from-purple-500/20 via-pink-500/20 to-purple-500/20 text-purple-400" style="box-shadow: 0 0 0 1px rgba(168,85,247,0.3);"><i data-lucide="trending-up" class="w-5 h-5"></i></div>
+                    </div>
+                    
+                    <div class="text-3xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent mb-2">Jueves, 14:00 - 17:00</div>
+                    <p class="text-gray-500 text-sm leading-relaxed">
+                        Datos de las últimas 4 semanas indican que esta es tu franja de máxima concentración. 
+                        <span class="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent font-medium">¡Aprovechala al máximo para tareas complejas!</span>
+                    </p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                 <div class="bg-dark-card rounded-3xl p-6 flex flex-col relative animate-on-load delay-300" style="box-shadow: 0 0 0 1px rgba(168,85,247,0.15), 0 0 25px rgba(168,85,247,0.1);">
+                    <div class="flex justify-between items-start mb-2">
+                        <h2 class="text-lg font-bold text-white">Revisión de Balance Semanal</h2>
+                        <i data-lucide="pie-chart" class="text-purple-400 w-5 h-5"></i>
+                    </div>
+                    <p class="text-gray-500 text-xs mb-6">Analizá tu distribución de tiempo y ajustá tu estrategia.</p>
+
+                     <div class="flex-1 flex flex-col items-center justify-center relative mb-4">
+                        <div class="w-32 h-32 rounded-full relative flex items-center justify-center"
+                             style="background: conic-gradient(#c084fc 0% 40%, #fbbf24 40% 65%, #34d399 65% 100%);">
+                            <div class="w-20 h-20 bg-dark-card rounded-full flex items-center justify-center z-10">
+                                <span class="text-xl font-bold text-white">100h</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-2 bg-dark-card rounded-3xl p-6 relative animate-on-load delay-400" style="box-shadow: 0 0 0 1px rgba(168,85,247,0.2), 0 0 30px rgba(168,85,247,0.15), inset 0 0 20px rgba(168,85,247,0.02);">
+                    <div class="flex justify-between items-start mb-6">
+                        <div>
+                            <h2 class="text-xl font-bold text-white">Impulso de Hábitos Clave</h2>
+                            <p class="text-gray-500 text-sm mt-1">Pequeñas victorias diarias, grandes resultados.</p>
+                        </div>
+                        <div class="p-2 rounded-full bg-gradient-to-br from-purple-500/20 via-pink-500/20 to-purple-500/20 text-purple-400" style="box-shadow: 0 0 0 1px rgba(168,85,247,0.3);"><i data-lucide="activity" class="w-5 h-5"></i></div>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between bg-dark-input p-4 rounded-xl relative group transition-all duration-300 cursor-pointer" style="box-shadow: 0 0 0 1px rgba(168,85,247,0.15), 0 0 15px rgba(168,85,247,0.08);">
+                            <div class="flex items-center gap-4">
+                                <div class="w-6 h-6 rounded border border-gray-600 flex items-center justify-center group-hover:border-purple-500">
+                                    </div>
+                                <div class="flex items-center gap-2 text-gray-300 font-medium">
+                                    <i data-lucide="zap" class="w-4 h-4 text-purple-400"></i>
+                                    2 Bloques Pomodoro Enfocados
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-1 text-xs bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+                                <i data-lucide="trending-up" class="w-3 h-3"></i> 5
+                            </div>
+                        </div>
+
+                         <div class="flex items-center justify-between bg-dark-input p-4 rounded-xl relative transition-all duration-300 cursor-pointer" style="box-shadow: 0 0 0 1px rgba(168,85,247,0.15), 0 0 15px rgba(168,85,247,0.08);">
+                            <div class="flex items-center gap-4">
+                                <div class="w-6 h-6 rounded bg-gradient-to-br from-purple-500/20 via-pink-500/20 to-purple-500/20 flex items-center justify-center text-purple-400" style="box-shadow: 0 0 0 1px rgba(168,85,247,0.3);">
+                                    <i data-lucide="check" class="w-4 h-4"></i>
+                                </div>
+                                <div class="flex items-center gap-2 text-gray-400 line-through">
+                                    <i data-lucide="book-open" class="w-4 h-4 text-purple-400"></i>
+                                    Repaso Activo de Apuntes
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-1 text-xs bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+                                <i data-lucide="trending-up" class="w-3 h-3"></i> 12
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between bg-dark-input p-4 rounded-xl relative group transition-all duration-300 cursor-pointer" style="box-shadow: 0 0 0 1px rgba(168,85,247,0.15), 0 0 15px rgba(168,85,247,0.08);">
+                            <div class="flex items-center gap-4">
+                                <div class="w-6 h-6 rounded border border-gray-600 flex items-center justify-center group-hover:border-purple-500"></div>
+                                <div class="flex items-center gap-2 text-gray-300 font-medium">
+                                    <i data-lucide="target" class="w-4 h-4 text-purple-400"></i>
+                                    Planificar Próximo Día
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-1 text-xs bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+                                <i data-lucide="trending-up" class="w-3 h-3"></i> 2
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6">
+                        <div class="flex justify-between text-xs text-gray-500 mb-2">
+                            <span>Progreso Diario General</span>
+                            <span class="text-white font-bold">33%</span>
+                        </div>
+                        <div class="w-full bg-gray-800 h-1.5 rounded-full">
+                            <div class="bg-gradient-to-r from-purple-500 via-pink-500 to-purple-500 h-1.5 rounded-full w-1/3 shadow-[0_0_8px_rgba(168,85,247,0.4)]"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 pb-8">
+                <div class="bg-dark-card rounded-3xl p-6 flex flex-col h-full relative animate-on-load delay-500" style="box-shadow: 0 0 0 1px rgba(168,85,247,0.2), 0 0 30px rgba(168,85,247,0.15), inset 0 0 20px rgba(168,85,247,0.02);">
+                    <div class="flex justify-between items-start mb-4">
+                        <h2 class="text-xl font-bold text-white">Espacio de Autoevaluación</h2>
+                        <div class="p-2 rounded-full bg-gradient-to-br from-purple-500/20 via-pink-500/20 to-purple-500/20 text-purple-400" style="box-shadow: 0 0 0 1px rgba(168,85,247,0.3);"><i data-lucide="lightbulb" class="w-5 h-5"></i></div>
+                    </div>
+                    <p class="text-gray-400 text-sm mb-4">¿De qué logro estás más orgulloso esta semana?</p>
+                    
+                    <textarea class="flex-1 bg-dark-input rounded-xl border border-gray-800 p-4 text-gray-300 text-sm focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none resize-none mb-4 transition-all" placeholder="Tus pensamientos, ideas, lecciones aprendidas..."></textarea>
+                    
+                    <button class="w-fit flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-purple-500/20 via-pink-500/20 to-purple-500/20 text-purple-400 text-sm hover:from-purple-500/30 hover:via-pink-500/30 hover:to-purple-500/30 transition-all" style="box-shadow: 0 0 0 1px rgba(168,85,247,0.3);">
+                        <i data-lucide="save" class="w-4 h-4"></i> Guardar Reflexión
+                    </button>
+                </div>
+
+                <div class="bg-dark-card rounded-3xl p-6 relative animate-on-load delay-600" style="box-shadow: 0 0 0 1px rgba(168,85,247,0.2), 0 0 30px rgba(168,85,247,0.15), inset 0 0 20px rgba(168,85,247,0.02);">
+                    <div class="flex justify-between items-start mb-2">
+                        <h2 class="text-xl font-bold text-white">Tu Desafío Personalizado</h2>
+                        <i data-lucide="award" class="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400 w-6 h-6" style="color: #a855f7;"></i>
+                    </div>
+                    <p class="text-gray-500 text-sm mb-6">Definí una meta ambiciosa y su recompensa. Vos marcás el ritmo.</p>
+
+                    <div class="space-y-4">
+                        <div>
+                            <label class="text-xs text-gray-500 block mb-1">Título del Desafío</label>
+                            <input type="text" value="Dominar Recursividad Avanzada" class="w-full bg-dark-input border border-gray-700 rounded-lg px-4 py-2 text-white text-sm focus:border-yellow-500 outline-none">
+                        </div>
+                        
+                        <div>
+                            <label class="text-xs text-gray-500 block mb-1">Descripción / Criterios de Éxito</label>
+                            <textarea class="w-full bg-dark-input border border-gray-700 rounded-lg px-4 py-2 text-white text-sm focus:border-yellow-500 outline-none resize-none" rows="2">Resolver 5 problemas de LeetCode Hard sobre recursividad y backtracking. Explicar cada solución en voz alta.</textarea>
+                        </div>
+                        
+                        <div>
+                            <label class="text-xs text-gray-500 block mb-1">Tu Recompensa al Lograrlo</label>
+                            <input type="text" value="Permitirme una tarde libre para un proyecto personal de progra..." class="w-full bg-dark-input border border-gray-700 rounded-lg px-4 py-2 text-yellow-400 text-sm focus:border-yellow-500 outline-none">
+                        </div>
+
+                         <div>
+                            <label class="text-xs text-gray-500 block mb-1">Progreso Estimado (%)</label>
+                            <div class="flex items-center gap-4">
+                                <span class="bg-dark-input px-3 py-1 rounded text-white text-sm border border-gray-700">60</span>
+                                <div class="flex-1 bg-gray-800 h-2 rounded-full">
+                                    <div class="bg-gradient-to-r from-purple-500 via-pink-500 to-purple-500 h-2 rounded-full w-[60%] shadow-[0_0_8px_rgba(168,85,247,0.4)]"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button class="w-full mt-6 py-2 rounded-lg bg-gradient-to-r from-purple-500/20 via-pink-500/20 to-purple-500/20 text-purple-400 text-sm font-medium hover:from-purple-500/30 hover:via-pink-500/30 hover:to-purple-500/30 transition-all flex items-center justify-center gap-2" style="box-shadow: 0 0 0 1px rgba(168,85,247,0.3);">
+                        <i data-lucide="edit-2" class="w-4 h-4"></i> Actualizar Desafío
+                    </button>
+                </div>
+            </div>
+
+            <div class="bg-dark-card rounded-3xl p-6 relative mb-8 animate-on-load delay-100" style="box-shadow: 0 0 0 1px rgba(168,85,247,0.2), 0 0 30px rgba(168,85,247,0.15), inset 0 0 20px rgba(168,85,247,0.02);">
+                 <h3 class="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent text-sm font-semibold mb-3">Tu Ajuste Estratégico Manual:</h3>
+                 <div class="relative">
+                    <textarea class="w-full bg-dark-input rounded-xl border border-gray-800 p-4 text-white text-sm focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none resize-none transition-all" rows="3">Esta semana, voy a dedicar una sesión extra a Matemática Discreta para reforzar los temas de grafos, tomando tiempo de Ing. Software que está más avanzado.</textarea>
+                    <div class="absolute bottom-3 right-3 w-3 h-3 bg-white opacity-50 cursor-se-resize"></div> </div>
+                 <button class="mt-4 flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-purple-500/20 via-pink-500/20 to-purple-500/20 text-purple-400 text-sm hover:from-purple-500/30 hover:via-pink-500/30 hover:to-purple-500/30 transition-all" style="box-shadow: 0 0 0 1px rgba(168,85,247,0.3);">
+                    <i data-lucide="save" class="w-4 h-4"></i> Guardar Reflexión
+                </button>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Sección para datos dinámicos del dashboard -->
+    <div id="dashboard-stats" style="display: none;">
+        <!-- Estadísticas de Hábitos -->
+        <div id="habits-stats">
+            <span id="total-habits">0</span>
+            <span id="max-streak">0</span>
+            <span id="avg-streak">0</span>
+        </div>
+        <!-- Estadísticas de Materias -->
+        <div id="subjects-stats">
+            <span id="total-subjects">0</span>
+            <span id="avg-progress">0</span>
+        </div>
+        <!-- Estadísticas de Pomodoro -->
+        <div id="pomodoro-stats">
+            <span id="sessions-today">0</span>
+            <span id="minutes-today">0</span>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+        
+        // Activar animaciones al cargar la página
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animar sidebar
+            const sidebar = document.querySelector('.animate-sidebar');
+            if (sidebar) {
+                setTimeout(() => {
+                    sidebar.classList.add('animated');
+                }, 50);
+            }
+            
+            // Animar elementos principales con delays escalonados
+            const animatedElements = document.querySelectorAll('.animate-on-load');
+            animatedElements.forEach((element, index) => {
+                setTimeout(() => {
+                    element.classList.add('animated');
+                }, 100 + (index * 50));
+            });
+        });
+    </script>
+    <script type="module">
+        import { logout, getCurrentUser } from './dist/ts/api.js';
+
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Cargar nombre del usuario
+            try {
+                const user = await getCurrentUser();
+                const userNameElement = document.getElementById('userName');
+                if (userNameElement && user.username) {
+                    userNameElement.textContent = user.username;
+                }
+            } catch (error) {
+                console.error('Error al cargar información del usuario:', error);
+                // Si no está autenticado, redirigir a login
+                if (error.message === "No autenticado" || error.message === "Sesión expirada") {
+                    window.location.href = 'login.html';
+                }
+            }
+
+            // Configurar botón de logout
+            const logoutBtn = document.getElementById('logoutBtn');
+            
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    
+                    try {
+                        await logout();
+                        // Redirigir a index.html después de cerrar sesión
+                        window.location.href = 'index.html';
+                    } catch (error) {
+                        console.error('Error al cerrar sesión:', error);
+                        // Aún así redirigir si hay error (el token ya se eliminó localmente)
+                        window.location.href = 'index.html';
+                    }
+                });
+            }
+        });
+    </script>
+    <script type="module" src="dist/ts/dashboard.js"></script>
 </body>
 </html>

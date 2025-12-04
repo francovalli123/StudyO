@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,10 +13,13 @@
         <h1>Iniciar Sesión</h1>
         <p class="auth-subtitle">Bienvenido de nuevo 👋</p>
 
-        <form class="auth-form">
-            <input type="email" placeholder="Email" required>
-            <input type="password" placeholder="Contraseña" required>
-            <a href="subjects.html" type="submit" class="btn-primary" style="width: 100%; border-radius: 10px;"> Ingresar </a>
+        <form class="auth-form" id="loginForm">
+            <input type="text" id="username" placeholder="Usuario" required>
+            <input type="password" id="password" placeholder="Contraseña" required>
+            <div id="errorMessage" style="color: red; display: none; margin-bottom: 10px;"></div>
+            <button type="submit" class="btn-primary" style="width: 100%; border-radius: 10px;">
+                Ingresar
+            </button>
         </form>
 
         <p class="auth-footer">
@@ -23,5 +27,33 @@
             <a href="register.html">Registrate acá</a>
         </p>
     </div>
+
+    <script type="module">
+        import { login } from './dist/ts/api.js';
+
+        const form = document.getElementById('loginForm');
+        const errorMessage = document.getElementById('errorMessage');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            // Reset error message
+            errorMessage.style.display = 'none';
+            errorMessage.textContent = '';
+
+            try {
+                await login(username, password);
+                // Redirect to dashboard on success
+                window.location.href = 'dashboard.html';
+            } catch (error) {
+                errorMessage.textContent = error.message || 'Error al iniciar sesión. Verifica tus credenciales.';
+                errorMessage.style.display = 'block';
+            }
+        });
+    </script>
 </body>
+
 </html>

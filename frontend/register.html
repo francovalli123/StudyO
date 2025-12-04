@@ -12,11 +12,15 @@
         <h1>Crear Cuenta</h1>
         <p class="auth-subtitle">Unite y empezá a dominar tu estudio 🚀</p>
 
-        <form class="auth-form">
-            <input type="text" placeholder="Nombre" required>
-            <input type="email" placeholder="Email" required>
-            <input type="password" placeholder="Contraseña" required>
-            <button type="submit" class="btn-primary" style="width: 100%; border-radius: 10px;"> Crear cuenta </button>
+        <form class="auth-form" id="registerForm">
+            <input type="text" id="username" placeholder="Usuario" required>
+            <input type="email" id="email" placeholder="Email" required>
+            <input type="password" id="password" placeholder="Contraseña" required>
+            <div id="errorMessage" style="color: red; display: none; margin-bottom: 10px;"></div>
+            <div id="successMessage" style="color: green; display: none; margin-bottom: 10px;"></div>
+            <button type="submit" class="btn-primary" style="width: 100%; border-radius: 10px;">
+                Crear cuenta
+            </button>
         </form>
 
         <p class="auth-footer">
@@ -24,5 +28,52 @@
             <a href="login.html">Iniciar Sesión</a>
         </p>
     </div>
+
+    <script type="module">
+        import { register } from './dist/ts/api.js';
+
+        const form = document.getElementById('registerForm');
+        const errorMessage = document.getElementById('errorMessage');
+        const successMessage = document.getElementById('successMessage');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            // Reset messages
+            errorMessage.style.display = 'none';
+            errorMessage.textContent = '';
+            successMessage.style.display = 'none';
+            successMessage.textContent = '';
+
+            try {
+                const data = await register(username, email, password);
+                successMessage.textContent = '¡Cuenta creada exitosamente! Redirigiendo...';
+                successMessage.style.display = 'block';
+                
+                // Redirect to login after 1.5 seconds
+                setTimeout(() => {
+                    window.location.href = 'login.html';
+                }, 1500);
+            } catch (error) {
+                let errorText = 'Error al crear la cuenta. ';
+                try {
+                    const errorObj = JSON.parse(error.message);
+                    // Format Django validation errors
+                    const errors = Object.entries(errorObj)
+                        .map(([field, messages]) => `${field}: ${Array.isArray(messages) ? messages.join(', ') : messages}`)
+                        .join('; ');
+                    errorText += errors;
+                } catch {
+                    errorText += error.message || 'Verifica los datos ingresados.';
+                }
+                errorMessage.textContent = errorText;
+                errorMessage.style.display = 'block';
+            }
+        });
+    </script>
 </body>
 </html>

@@ -29,6 +29,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/signup/', RegisterView.as_view(), name="api_signup"),
     path('api/login/', obtain_auth_token, name='api_login'),
+    path('api/user/me/', CurrentUserView.as_view(), name='current_user'),
     path('api/logout/', LogoutView.as_view(), name="api_logout"),
     path('api/delete-account/', DeleteAccountView.as_view(), name='delete_account'),
     path('api/habits/', HabitListCreateView.as_view(), name='habit_list_create'),

@@ -17,7 +17,7 @@ body {
     color: white;
     overflow-x: hidden;
     /* Aseguramos que el body ocupe todo para centrar bien */
-    min-height: 100vh; 
+    min-height: 100vh;
 }
 
 /* =========================================
@@ -115,7 +115,8 @@ nav .menu a:hover {
     cursor: pointer;
     font-size: 17px;
     min-width: 158px;
-    display: inline-flex; /* Mejor que inline-block para centrar texto */
+    display: inline-flex;
+    /* Mejor que inline-block para centrar texto */
     justify-content: center;
     align-items: center;
     text-decoration: none !important;
@@ -140,13 +141,20 @@ nav .menu a:hover {
     transition: transform 0.3s ease;
 }
 
-.btn-primary:hover, .btn-secondary:hover {
+.btn-primary:hover,
+.btn-secondary:hover {
     transform: scale(1.05);
 }
 
 /* Sombras */
-.shadow-purple { filter: drop-shadow(0px 10px 15px rgba(168, 85, 247, 0.45)); }
-.shadow-purple-low { filter: drop-shadow(0px 5px 10px rgba(168,85,247,0.45)); }
+.shadow-purple {
+    filter: drop-shadow(0px 10px 15px rgba(168, 85, 247, 0.45));
+}
+
+.shadow-purple-low {
+    filter: drop-shadow(0px 5px 10px rgba(168, 85, 247, 0.45));
+}
+
 /* =========================================
    4. PROGRESS CARD (CAROUSEL)
    ========================================= */
@@ -158,9 +166,9 @@ nav .menu a:hover {
     border-radius: 20px;
     backdrop-filter: blur(6px);
     box-shadow: 0 0 25px rgba(155, 89, 182, 0.25);
-    
+
     /* Altura fija necesaria para el carrusel */
-    height: 350px; 
+    height: 350px;
     position: relative;
     overflow: hidden;
 
@@ -175,7 +183,8 @@ nav .menu a:hover {
     font-size: 24px;
     font-weight: 700;
     color: white;
-    transition: opacity 0.3s ease; /* Suavizar cambio de texto */
+    transition: opacity 0.3s ease;
+    /* Suavizar cambio de texto */
 }
 
 /* --- ESTRUCTURA DEL CARRUSEL --- */
@@ -192,7 +201,8 @@ nav .menu a:hover {
     width: 100%;
     height: 100%;
     opacity: 0;
-    transform: translateX(30px); /* Desplazamiento inicial */
+    transform: translateX(30px);
+    /* Desplazamiento inicial */
     transition: all 0.6s cubic-bezier(0.25, 1, 0.5, 1);
     pointer-events: none;
 }
@@ -204,11 +214,37 @@ nav .menu a:hover {
 }
 
 /* --- ESTILOS SLIDE 1 (Progreso) --- */
-.progress-row { margin: 25px 0; }
-.progress-title { font-size: 14px; margin-bottom: 8px; color: #d4d4d8; }
-.progress-bar { height: 8px; width: 100%; background: #27272a; border-radius: 10px; overflow: hidden; }
-.progress-fill { height: 100%; background: linear-gradient(90deg, #A770EF, #CF8BF3); border-radius: 10px; }
-.streak { text-align: center; margin-top: 25px; font-size: 15px; color: #f3c623; font-weight: 600; }
+.progress-row {
+    margin: 25px 0;
+}
+
+.progress-title {
+    font-size: 14px;
+    margin-bottom: 8px;
+    color: #d4d4d8;
+}
+
+.progress-bar {
+    height: 8px;
+    width: 100%;
+    background: #27272a;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #A770EF, #CF8BF3);
+    border-radius: 10px;
+}
+
+.streak {
+    text-align: center;
+    margin-top: 25px;
+    font-size: 15px;
+    color: #f3c623;
+    font-weight: 600;
+}
 
 /* --- ESTILOS SLIDES 2 y 3 (Centrados) --- */
 .slide-center {
@@ -217,7 +253,8 @@ nav .menu a:hover {
     align-items: center;
     justify-content: center;
     text-align: center;
-    padding-bottom: 40px; /* Compensa el título de arriba */
+    padding-bottom: 40px;
+    /* Compensa el título de arriba */
 }
 
 /* Reutilizamos clases de iconos pero los hacemos más grandes aquí */
@@ -226,6 +263,7 @@ nav .menu a:hover {
     height: 80px;
     margin-bottom: 20px;
 }
+
 .icon-large svg {
     width: 40px;
     height: 40px;
@@ -246,22 +284,31 @@ nav .menu a:hover {
 }
 
 /* Colores de iconos (Asegúrate de tener esto si no lo copiaste de Benefits) */
-.icon-purple { background: rgba(168, 85, 247, 0.15); color: #a855f7; }
-.icon-pink { background: rgba(236, 72, 153, 0.15); color: #ec4899; }
+.icon-purple {
+    background: rgba(168, 85, 247, 0.15);
+    color: #a855f7;
+}
+
+.icon-pink {
+    background: rgba(236, 72, 153, 0.15);
+    color: #ec4899;
+}
+
 /* =========================================
    5. BENEFITS SECTION
    ========================================= */
 
 /* 1. Contenedor*/
-#beneficios, .benefits-section {
-    padding: 120px 0; 
+#beneficios,
+.benefits-section {
+    padding: 120px 0;
     width: 100%;
 }
 
 /* 2. Bloque de Título */
 .benefits {
     text-align: center;
-    margin-bottom: 50px; 
+    margin-bottom: 50px;
     padding: 0 20px;
 }
 
@@ -285,8 +332,9 @@ nav .menu a:hover {
 .benefits-cards {
     display: grid;
     /* Usamos 250px en vez de 280px para asegurar que quepan 4 en línea en más pantallas */
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
-    gap: 24px; /* Un espacio un poco más cerrado y cohesivo */
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 24px;
+    /* Un espacio un poco más cerrado y cohesivo */
     max-width: 1200px;
     margin: 0 auto;
     padding: 0 20px;
@@ -303,7 +351,7 @@ nav .menu a:hover {
     align-items: flex-start;
     text-align: left;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
-    
+
     opacity: 0;
     animation: fadeInUp 0.8s ease-out forwards;
 }
@@ -321,7 +369,9 @@ nav .menu a:hover {
     margin-bottom: 12px;
 }
 
-.card:hover h3 { color: #CF8BF3; }
+.card:hover h3 {
+    color: #CF8BF3;
+}
 
 .card p {
     color: #a1a1aa;
@@ -339,18 +389,49 @@ nav .menu a:hover {
     align-items: center;
     margin-bottom: 24px;
 }
-.icon-box svg { width: 28px; height: 28px; stroke-width: 2; }
 
-.icon-purple { background: rgba(168, 85, 247, 0.15); color: #a855f7; }
-.icon-pink { background: rgba(236, 72, 153, 0.15); color: #ec4899; }
-.icon-blue { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
-.icon-yellow { background: rgba(234, 179, 8, 0.15); color: #eab308; }
+.icon-box svg {
+    width: 28px;
+    height: 28px;
+    stroke-width: 2;
+}
+
+.icon-purple {
+    background: rgba(168, 85, 247, 0.15);
+    color: #a855f7;
+}
+
+.icon-pink {
+    background: rgba(236, 72, 153, 0.15);
+    color: #ec4899;
+}
+
+.icon-blue {
+    background: rgba(59, 130, 246, 0.15);
+    color: #3b82f6;
+}
+
+.icon-yellow {
+    background: rgba(234, 179, 8, 0.15);
+    color: #eab308;
+}
 
 /* Animation Delays Cards */
-.benefits-cards .card:nth-child(1) { animation-delay: 1.4s; }
-.benefits-cards .card:nth-child(2) { animation-delay: 1.6s; }
-.benefits-cards .card:nth-child(3) { animation-delay: 1.8s; }
-.benefits-cards .card:nth-child(4) { animation-delay: 2.0s; }
+.benefits-cards .card:nth-child(1) {
+    animation-delay: 1.4s;
+}
+
+.benefits-cards .card:nth-child(2) {
+    animation-delay: 1.6s;
+}
+
+.benefits-cards .card:nth-child(3) {
+    animation-delay: 1.8s;
+}
+
+.benefits-cards .card:nth-child(4) {
+    animation-delay: 2.0s;
+}
 
 /* =========================================
    6. PHILOSOPHY SECTION
@@ -360,13 +441,15 @@ nav .menu a:hover {
     max-width: 900px;
     margin: 0 auto;
     padding: 100px 20px;
-    
+
     /* FLEXBOX CRUCIAL PARA CENTRADO */
     display: flex;
     flex-direction: column;
-    align-items: center; /* Centra horizontalmente */
-    text-align: center;  /* Centra el texto */
-    
+    align-items: center;
+    /* Centra horizontalmente */
+    text-align: center;
+    /* Centra el texto */
+
     opacity: 0;
     animation: fadeInUp 0.8s ease-out forwards;
     animation-delay: 2.2s;
@@ -374,7 +457,8 @@ nav .menu a:hover {
 
 .brain-icon {
     margin-bottom: 30px;
-    display: flex;         /* Asegura que el div no ocupe 100% ancho bloqueando centrado */
+    display: flex;
+    /* Asegura que el div no ocupe 100% ancho bloqueando centrado */
     justify-content: center;
     opacity: 0;
     animation: fadeInUp 0.8s ease-out forwards;
@@ -412,7 +496,10 @@ nav .menu a:hover {
     animation-delay: 2.5s;
 }
 
-.text-white { color: #ffffff; font-weight: 600; }
+.text-white {
+    color: #ffffff;
+    font-weight: 600;
+}
 
 .philosophy-quote {
     font-size: 0.95rem;
@@ -438,16 +525,23 @@ nav .menu a:hover {
 .auth-container {
     width: 100%;
     max-width: 420px;
-    background: rgba(255,255,255,0.03);
+    background: rgba(255, 255, 255, 0.03);
     padding: 36px 32px;
     border-radius: 14px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
     text-align: center;
     backdrop-filter: blur(10px);
 }
 
-.auth-container h1 { font-size: 26px; margin-bottom: 6px; }
-.auth-subtitle { color: #bbb; margin-bottom: 18px; }
+.auth-container h1 {
+    font-size: 26px;
+    margin-bottom: 6px;
+}
+
+.auth-subtitle {
+    color: #bbb;
+    margin-bottom: 18px;
+}
 
 .auth-form {
     display: flex;
@@ -461,44 +555,96 @@ nav .menu a:hover {
     padding: 12px 14px;
     border-radius: 10px;
     border: 1px solid #2b2b2b;
-    background: rgba(255,255,255,0.02);
+    background: rgba(255, 255, 255, 0.02);
     color: white;
     font-size: 15px;
 }
 
 .auth-form input:focus {
     border-color: #9573ff;
-    box-shadow: 0 8px 20px rgba(149,115,255,0.12);
+    box-shadow: 0 8px 20px rgba(149, 115, 255, 0.12);
     outline: none;
 }
 
-.auth-footer { margin-top: 14px; color: #bbb; }
-.auth-footer a { color: #A370FF; text-decoration: none; font-weight: 700; }
-.auth-footer a:hover { text-decoration: underline; }
+.auth-footer {
+    margin-top: 14px;
+    color: #bbb;
+}
+
+.auth-footer a {
+    color: #A370FF;
+    text-decoration: none;
+    font-weight: 700;
+}
+
+.auth-footer a:hover {
+    text-decoration: underline;
+}
 
 /* =========================================
    8. ANIMACIONES
    ========================================= */
 @keyframes fadeInUp {
-    from { opacity: 0; transform: translateY(30px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* Delays iniciales (Landing) */
-nav .logo { animation-delay: 0s; }
-nav .menu a:nth-child(1) { animation-delay: 0.1s; }
-nav .menu a:nth-child(2) { animation-delay: 0.2s; }
-nav .menu a:nth-child(3) { animation-delay: 0.3s; }
-nav .menu a:nth-child(4) { animation-delay: 0.4s; }
-nav .btn-nav { animation-delay: 0.5s; }
-.hero h1 { animation-delay: 0.6s; }
-.hero p { animation-delay: 0.8s; }
-.hero-buttons { animation-delay: 1.0s; }
-.progress-card { animation-delay: 1.2s; }
+nav .logo {
+    animation-delay: 0s;
+}
+
+nav .menu a:nth-child(1) {
+    animation-delay: 0.1s;
+}
+
+nav .menu a:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+nav .menu a:nth-child(3) {
+    animation-delay: 0.3s;
+}
+
+nav .menu a:nth-child(4) {
+    animation-delay: 0.4s;
+}
+
+nav .btn-nav {
+    animation-delay: 0.5s;
+}
+
+.hero h1 {
+    animation-delay: 0.6s;
+}
+
+.hero p {
+    animation-delay: 0.8s;
+}
+
+.hero-buttons {
+    animation-delay: 1.0s;
+}
+
+.progress-card {
+    animation-delay: 1.2s;
+}
 
 /* Elementos comunes que se animan al cargar */
-nav .logo, nav .menu a, nav .btn-nav, 
-.hero h1, .hero p, .hero-buttons, .progress-card {
+nav .logo,
+nav .menu a,
+nav .btn-nav,
+.hero h1,
+.hero p,
+.hero-buttons,
+.progress-card {
     opacity: 0;
     animation: fadeInUp 0.8s ease-out forwards;
 }
@@ -561,17 +707,18 @@ nav .logo, nav .menu a, nav .btn-nav,
 */
 /* Fondo Base (El que ya tienes en el body) */
 .bg-base {
-    background-color: #0B0B0D; 
+    background-color: #0B0B0D;
 }
 
 /* Fondo "Zinc" (El mismo de tus tarjetas, bueno para resaltar una sección entera) */
 .bg-surface {
-    background-color: #121214; 
+    background-color: #121214;
 }
 
 /* Fondo con tinte Púrpura muy oscuro (Para secciones especiales) */
 .bg-purple-dark {
-    background-color: #0f0b14; /* Casi negro, pero con un toque violeta */
+    background-color: #0f0b14;
+    /* Casi negro, pero con un toque violeta */
 }
 
 /* =========================================
@@ -581,7 +728,8 @@ nav .logo, nav .menu a, nav .btn-nav,
 .testimonials-section {
     padding: 100px 20px;
     width: 100%;
-    background-color: #121214; /* Fondo base */
+    background-color: #121214;
+    /* Fondo base */
 }
 
 .testimonials-container {
@@ -617,13 +765,15 @@ nav .logo, nav .menu a, nav .btn-nav,
 
 /* Tarjeta Individual */
 .testimonial-card {
-    background: #18181b; /* Zinc-900 */
+    background: #18181b;
+    /* Zinc-900 */
     border: 1px solid rgba(255, 255, 255, 0.05);
     border-radius: 24px;
     padding: 40px 32px;
     display: flex;
     flex-direction: column;
-    justify-content: space-between; /* Empuja el footer hacia abajo */
+    justify-content: space-between;
+    /* Empuja el footer hacia abajo */
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     position: relative;
     overflow: hidden;
@@ -638,7 +788,8 @@ nav .logo, nav .menu a, nav .btn-nav,
 /* Icono de Comillas Decorativo */
 .quote-icon {
     font-size: 4rem;
-    color: rgba(255, 255, 255, 0.05); /* Muy sutil en el fondo */
+    color: rgba(255, 255, 255, 0.05);
+    /* Muy sutil en el fondo */
     font-family: serif;
     line-height: 1;
     position: absolute;
@@ -649,7 +800,8 @@ nav .logo, nav .menu a, nav .btn-nav,
 
 /* Texto del testimonio */
 .testimonial-text {
-    color: #d4d4d8; /* Gris claro */
+    color: #d4d4d8;
+    /* Gris claro */
     font-size: 1.05rem;
     line-height: 1.6;
     margin-bottom: 30px;
@@ -691,9 +843,17 @@ nav .logo, nav .menu a, nav .btn-nav,
 }
 
 /* Colores para los avatares */
-.avatar-circle.purple { background: linear-gradient(135deg, #a855f7, #7c3aed); }
-.avatar-circle.pink { background: linear-gradient(135deg, #ec4899, #db2777); }
-.avatar-circle.blue { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+.avatar-circle.purple {
+    background: linear-gradient(135deg, #a855f7, #7c3aed);
+}
+
+.avatar-circle.pink {
+    background: linear-gradient(135deg, #ec4899, #db2777);
+}
+
+.avatar-circle.blue {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+}
 
 .user-details h4 {
     color: white;
@@ -703,14 +863,20 @@ nav .logo, nav .menu a, nav .btn-nav,
 }
 
 .user-details span {
-    color: #71717a; /* Zinc-500 */
+    color: #71717a;
+    /* Zinc-500 */
     font-size: 0.85rem;
 }
 
 /* Ajustes Responsive */
 @media (max-width: 768px) {
-    .section-header h2 { font-size: 2rem; }
-    .testimonial-card { padding: 30px 24px; }
+    .section-header h2 {
+        font-size: 2rem;
+    }
+
+    .testimonial-card {
+        padding: 30px 24px;
+    }
 }
 
 /* =========================================
@@ -725,7 +891,8 @@ nav .logo, nav .menu a, nav .btn-nav,
 }
 
 .faq-container {
-    max-width: 800px; /* Un poco más angosto para facilitar la lectura */
+    max-width: 800px;
+    /* Un poco más angosto para facilitar la lectura */
     margin: 0 auto;
 }
 
@@ -739,22 +906,26 @@ nav .logo, nav .menu a, nav .btn-nav,
     transition: all 0.3s ease;
     opacity: 0;
     animation: fadeInUp 0.8s ease-out forwards;
-    animation-delay: 3.00s; /* base, se sobreescribe por nth-child */
+    animation-delay: 3.00s;
+    /* base, se sobreescribe por nth-child */
 }
 
 /* Efecto al abrir o pasar el mouse */
 .faq-item:hover,
 .faq-item[open] {
-    border-color: rgba(168, 85, 247, 0.4); /* Borde violeta */
+    border-color: rgba(168, 85, 247, 0.4);
+    /* Borde violeta */
 }
 
 .faq-item[open] {
-    background: #1c1c20; /* Fondo un pelín más claro al abrir */
+    background: #1c1c20;
+    /* Fondo un pelín más claro al abrir */
 }
 
 /* El encabezado de la pregunta (Summary) */
 summary {
-    list-style: none; /* Quita el triángulo por defecto */
+    list-style: none;
+    /* Quita el triángulo por defecto */
     padding: 24px;
     display: flex;
     justify-content: space-between;
@@ -776,55 +947,91 @@ summary::-webkit-details-marker {
 /* El icono + */
 .faq-icon {
     font-size: 1.5rem;
-    color: #a855f7; /* Violeta */
+    color: #a855f7;
+    /* Violeta */
     transition: transform 0.3s ease;
     line-height: 1;
 }
 
 /* Rotación del icono al abrir */
 details[open] .faq-icon {
-    transform: rotate(45deg); /* Se convierte en una X */
-    color: #ec4899; /* Cambia a rosa */
+    transform: rotate(45deg);
+    /* Se convierte en una X */
+    color: #ec4899;
+    /* Cambia a rosa */
 }
 
 /* La respuesta (contenido oculto) */
 .faq-answer {
     padding: 0 24px 24px 24px;
-    color: #a1a1aa; /* Gris claro */
+    color: #a1a1aa;
+    /* Gris claro */
     line-height: 1.6;
     font-size: 1rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.02); /* Línea separadora sutil */
-    margin-top: -10px; /* Ajuste visual */
+    border-top: 1px solid rgba(255, 255, 255, 0.02);
+    /* Línea separadora sutil */
+    margin-top: -10px;
+    /* Ajuste visual */
     padding-top: 20px;
     animation: fadeIn 0.4s ease;
 }
 
 /* Animación simple de aparición */
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-10px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* Ajuste móvil */
 @media (max-width: 768px) {
-    .faq-question { font-size: 1rem; }
-    .faq-item { margin-bottom: 12px; }
+    .faq-question {
+        font-size: 1rem;
+    }
+
+    .faq-item {
+        margin-bottom: 12px;
+    }
 }
 
 /* Añadir la misma animación fadeInUp a las tarjetas FAQ (staggered) */
 .faq-item {
     opacity: 0;
     animation: fadeInUp 0.8s ease-out forwards;
-    animation-delay: 3.00s; /* base, se sobreescribe por nth-child */
+    animation-delay: 3.00s;
+    /* base, se sobreescribe por nth-child */
 }
 
 /* Staggered delays para que las tarjetas aparezcan en cascada */
-.faq-container .faq-item:nth-child(1) { animation-delay: 3.00s; }
-.faq-container .faq-item:nth-child(2) { animation-delay: 3.15s; }
-.faq-container .faq-item:nth-child(3) { animation-delay: 3.30s; }
-.faq-container .faq-item:nth-child(4) { animation-delay: 3.45s; }
-.faq-container .faq-item:nth-child(5) { animation-delay: 3.60s; }
-.faq-container .faq-item:nth-child(6) { animation-delay: 3.75s; }
+.faq-container .faq-item:nth-child(1) {
+    animation-delay: 3.00s;
+}
+
+.faq-container .faq-item:nth-child(2) {
+    animation-delay: 3.15s;
+}
+
+.faq-container .faq-item:nth-child(3) {
+    animation-delay: 3.30s;
+}
+
+.faq-container .faq-item:nth-child(4) {
+    animation-delay: 3.45s;
+}
+
+.faq-container .faq-item:nth-child(5) {
+    animation-delay: 3.60s;
+}
+
+.faq-container .faq-item:nth-child(6) {
+    animation-delay: 3.75s;
+}
 
 /* Asegurar que el estado open no haga desaparecer la animación */
 .faq-item[open] {
@@ -835,16 +1042,34 @@ details[open] .faq-icon {
 .faq-item summary {
     opacity: 0;
     animation: fadeInUp 0.6s ease-out forwards;
-    animation-delay: 0.05s; /* pequeño offset para que siga a la card */
+    animation-delay: 0.05s;
+    /* pequeño offset para que siga a la card */
 }
 
 /* Stagger summary slightly after card */
-.faq-container .faq-item:nth-child(1) summary { animation-delay: 3.05s; }
-.faq-container .faq-item:nth-child(2) summary { animation-delay: 3.20s; }
-.faq-container .faq-item:nth-child(3) summary { animation-delay: 3.35s; }
-.faq-container .faq-item:nth-child(4) summary { animation-delay: 3.50s; }
-.faq-container .faq-item:nth-child(5) summary { animation-delay: 3.65s; }
-.faq-container .faq-item:nth-child(6) summary { animation-delay: 3.80s; }
+.faq-container .faq-item:nth-child(1) summary {
+    animation-delay: 3.05s;
+}
+
+.faq-container .faq-item:nth-child(2) summary {
+    animation-delay: 3.20s;
+}
+
+.faq-container .faq-item:nth-child(3) summary {
+    animation-delay: 3.35s;
+}
+
+.faq-container .faq-item:nth-child(4) summary {
+    animation-delay: 3.50s;
+}
+
+.faq-container .faq-item:nth-child(5) summary {
+    animation-delay: 3.65s;
+}
+
+.faq-container .faq-item:nth-child(6) summary {
+    animation-delay: 3.80s;
+}
 
 
 /* =========================================
@@ -853,8 +1078,10 @@ details[open] .faq-icon {
 
 .site-footer {
     width: 100%;
-    background-color: #050507; /* Un negro casi puro, más oscuro que el body */
-    border-top: 1px solid rgba(255, 255, 255, 0.05); /* Línea divisoria sutil */
+    background-color: #050507;
+    /* Un negro casi puro, más oscuro que el body */
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    /* Línea divisoria sutil */
     padding: 80px 20px 40px;
     font-size: 0.95rem;
 }
@@ -900,7 +1127,8 @@ details[open] .faq-icon {
 }
 
 .social-icon:hover {
-    color: #a855f7; /* Violeta al pasar el mouse */
+    color: #a855f7;
+    /* Violeta al pasar el mouse */
     transform: translateY(-2px);
 }
 
@@ -927,13 +1155,15 @@ details[open] .faq-icon {
 }
 
 .footer-links a {
-    color: #71717a; /* Gris más oscuro (Zinc-500) */
+    color: #71717a;
+    /* Gris más oscuro (Zinc-500) */
     text-decoration: none;
     transition: color 0.2s ease;
 }
 
 .footer-links a:hover {
-    color: white; /* Blanco al pasar el mouse */
+    color: white;
+    /* Blanco al pasar el mouse */
 }
 
 /* Parte Inferior (Copyright) */
@@ -941,20 +1171,23 @@ details[open] .faq-icon {
     border-top: 1px solid rgba(255, 255, 255, 0.05);
     padding-top: 30px;
     text-align: center;
-    color: #52525b; /* Gris muy oscuro para info secundaria */
+    color: #52525b;
+    /* Gris muy oscuro para info secundaria */
     font-size: 0.85rem;
 }
 
 /* Ajustes Responsive */
 @media (max-width: 768px) {
     .footer-top {
-        grid-template-columns: 1fr; /* Todo en una columna */
+        grid-template-columns: 1fr;
+        /* Todo en una columna */
         gap: 40px;
         text-align: center;
     }
 
     .footer-brand p {
-        margin: 0 auto 24px; /* Centrar texto */
+        margin: 0 auto 24px;
+        /* Centrar texto */
     }
 
     .social-links {
@@ -966,12 +1199,425 @@ details[open] .faq-icon {
    13. MEDIA QUERIES
    ========================================= */
 @media (max-width: 768px) {
-    .philosophy-section h2 { font-size: 1.8rem; }
-    .philosophy-text { font-size: 1rem; }
+    .philosophy-section h2 {
+        font-size: 1.8rem;
+    }
+
+    .philosophy-text {
+        font-size: 1rem;
+    }
 }
 
 @media (max-width: 520px) {
-    .hero h1 { font-size: 36px; }
-    .auth-container { padding: 26px; }
-    .auth-container h1 { font-size: 22px; }
+    .hero h1 {
+        font-size: 36px;
+    }
+
+    .auth-container {
+        padding: 26px;
+    }
+
+    .auth-container h1 {
+        font-size: 22px;
+    }
+}
+
+/* =========================================
+   14. DASHBOARD
+   ========================================= */
+
+.dashboard-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 40px 20px;
+}
+
+.dashboard-header {
+    margin-bottom: 40px;
+    text-align: center;
+}
+
+.dashboard-header h1 {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: white;
+    margin-bottom: 10px;
+}
+
+.dashboard-subtitle {
+    color: #a1a1aa;
+    font-size: 1.1rem;
+}
+
+/* Grid de Estadísticas */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+    margin-bottom: 50px;
+}
+
+.stat-card {
+    background: #18181b;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 20px;
+    padding: 32px;
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 30px rgba(168, 85, 247, 0.2);
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+.stat-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 16px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.stat-icon svg {
+    width: 28px;
+    height: 28px;
+}
+
+.stat-content {
+    flex: 1;
+}
+
+.stat-content h3 {
+    color: #a1a1aa;
+    font-size: 0.95rem;
+    font-weight: 500;
+    margin-bottom: 12px;
+}
+
+.stat-value {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: white;
+    margin-bottom: 12px;
+}
+
+.stat-details {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 0.85rem;
+    color: #71717a;
+}
+
+.stat-details strong {
+    color: #a855f7;
+    font-weight: 600;
+}
+
+/* Secciones del Dashboard */
+.dashboard-sections {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 30px;
+}
+
+.dashboard-column {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+}
+
+.dashboard-section {
+    background: #18181b;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 20px;
+    padding: 32px;
+}
+
+.section-header-dash {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.section-header-dash h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: white;
+}
+
+.section-link {
+    color: #a855f7;
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: color 0.2s ease;
+}
+
+.section-link:hover {
+    color: #c084fc;
+}
+
+.section-content {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* Items de Hábitos */
+.habit-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.2s ease;
+}
+
+.habit-item:hover {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(168, 85, 247, 0.3);
+}
+
+.habit-info {
+    flex: 1;
+}
+
+.habit-info h4 {
+    color: white;
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.habit-frequency {
+    color: #71717a;
+    font-size: 0.85rem;
+}
+
+.habit-streak {
+    display: flex;
+    align-items: center;
+}
+
+.streak-badge {
+    background: linear-gradient(135deg, #f59e0b, #f97316);
+    color: white;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+/* Items de Materias */
+.subject-item {
+    padding: 16px;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.2s ease;
+}
+
+.subject-item:hover {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(168, 85, 247, 0.3);
+}
+
+.subject-info {
+    margin-bottom: 12px;
+}
+
+.subject-info h4 {
+    color: white;
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.exam-date {
+    color: #a855f7;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.subject-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+}
+
+.priority-badge {
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.progress-mini {
+    flex: 1;
+    height: 4px;
+    background: #27272a;
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.progress-mini-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #A770EF, #CF8BF3);
+    border-radius: 2px;
+    transition: width 0.3s ease;
+}
+
+/* Cards de Materias Completas */
+.subject-card {
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.2s ease;
+}
+
+.subject-card:hover {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(168, 85, 247, 0.3);
+}
+
+.subject-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.subject-header h4 {
+    color: white;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.progress-section {
+    margin-top: 12px;
+}
+
+.progress-info {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    font-size: 0.85rem;
+    color: #a1a1aa;
+}
+
+.progress-info span:last-child {
+    color: white;
+    font-weight: 600;
+}
+
+/* Items de Pomodoro */
+.pomodoro-item {
+    padding: 16px;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.2s ease;
+}
+
+.pomodoro-item:hover {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(168, 85, 247, 0.3);
+}
+
+.pomodoro-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.pomodoro-info h4 {
+    color: white;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.pomodoro-date {
+    color: #71717a;
+    font-size: 0.85rem;
+}
+
+.pomodoro-notes {
+    color: #a1a1aa;
+    font-size: 0.9rem;
+    margin-top: 8px;
+    font-style: italic;
+}
+
+/* Estados vacíos y de error */
+.empty-state,
+.error-state,
+.loading {
+    text-align: center;
+    color: #71717a;
+    padding: 40px 20px;
+    font-size: 0.95rem;
+}
+
+.empty-state a,
+.error-state a {
+    color: #a855f7;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.empty-state a:hover,
+.error-state a:hover {
+    text-decoration: underline;
+}
+
+.error-state {
+    color: #ef4444;
+}
+
+/* Navbar activo */
+nav .menu a.active {
+    color: #a855f7;
+    font-weight: 600;
+}
+
+/* Responsive Dashboard */
+@media (max-width: 1024px) {
+    .dashboard-sections {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .dashboard-header h1 {
+        font-size: 2rem;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .stat-value {
+        font-size: 2rem;
+    }
+
+    .dashboard-section {
+        padding: 24px;
+    }
+
+    .section-header-dash h2 {
+        font-size: 1.25rem;
+    }
 }

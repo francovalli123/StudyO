@@ -1,21 +1,337 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Habits</title>
-    <link rel="stylesheet" href="src/css/styles.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hábitos - StudyO</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        dark: {
+                            bg: '#0a0a0c',
+                            card: '#11131a',
+                            sidebar: '#0a0a0c',
+                            input: '#1a1d26'
+                        },
+                        brand: {
+                            primary: '#a855f7',
+                            glow: '#d946ef',
+                            text: '#e2e8f0'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0a0a0c; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+        
+        [style*="box-shadow"] { transition: box-shadow 0.3s ease; }
+        
+        .group:hover [style*="box-shadow"] {
+            box-shadow: 0 0 0 1px rgba(168,85,247,0.3), 0 0 25px rgba(168,85,247,0.2), inset 0 0 20px rgba(168,85,247,0.05) !important;
+        }
+        
+        .bg-clip-text { -webkit-background-clip: text; background-clip: text; }
+        
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeInLeft {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .animate-on-load { opacity: 0; }
+        .animate-on-load.animated { animation: fadeInUp 0.6s ease-out forwards; }
+        
+        .animate-sidebar { opacity: 0; }
+        .animate-sidebar.animated { animation: fadeInLeft 0.5s ease-out forwards; }
+        
+        .animate-fade { opacity: 0; }
+        .animate-fade.animated { animation: fadeIn 0.4s ease-out forwards; }
+        
+        .delay-100 { animation-delay: 0.1s; }
+        .delay-200 { animation-delay: 0.2s; }
+        .delay-300 { animation-delay: 0.3s; }
+        .delay-400 { animation-delay: 0.4s; }
+        .delay-500 { animation-delay: 0.5s; }
+        .delay-600 { animation-delay: 0.6s; }
+        
+        /* Modal styles */
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.75); z-index: 1000; backdrop-filter: blur(4px);
+        }
+        .modal-overlay.active {
+            display: flex; align-items: center; justify-content: center; animation: fadeIn 0.3s ease-out;
+        }
+        .modal-content {
+            background: #11131a; border-radius: 1.5rem; padding: 2rem;
+            max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto;
+            box-shadow: 0 0 0 1px rgba(168,85,247,0.3), 0 0 50px rgba(168,85,247,0.2);
+            animation: fadeInUp 0.4s ease-out;
+        }
+        
+        /* Icon selection styles */
+        .icon-option { transition: all 0.2s ease; }
+        .icon-option:hover { transform: scale(1.1); }
+        .icon-option.selected {
+            box-shadow: 0 0 0 2px rgba(168,85,247,0.5), 0 0 20px rgba(168,85,247,0.3);
+        }
+    </style>
 </head>
-<body>
-    <h1>Your Habits</h1>
+<body class="bg-dark-bg text-gray-300 h-screen flex overflow-hidden selection:bg-purple-500 selection:text-white">
 
-    <nav>
-        <a href="dashboard.html">Dashboard</a>
-        <a href="subjects.html">Subjects</a>
-        <a href="index.html">Home</a>
-    </nav>
+    <aside class="w-64 bg-dark-sidebar flex flex-col border-r border-gray-800/50 h-full flex-shrink-0 animate-sidebar">
+        <div class="p-6 flex items-center gap-3">
+            <i data-lucide="book-open" class="text-white w-6 h-6"></i>
+            <span class="text-xl font-bold text-white tracking-wide">StudyO</span>
+            <i data-lucide="chevron-left" class="ml-auto text-gray-500 w-4 h-4 cursor-pointer"></i>
+        </div>
 
-    <section id="habit-list"></section>
+        <nav class="flex-1 px-4 space-y-2 mt-2">
+            <a href="dashboard.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gradient-to-r hover:from-purple-500/10 hover:via-fuchsia-500/10 hover:to-purple-500/10 text-gray-400 hover:text-purple-300 transition-all duration-300">
+                <i data-lucide="home" class="w-5 h-5"></i>
+                <span>Inicio</span>
+            </a>
+            <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gradient-to-r hover:from-purple-500/10 hover:via-fuchsia-500/10 hover:to-purple-500/10 text-gray-400 hover:text-purple-300 transition-all duration-300">
+                <i data-lucide="calendar" class="w-5 h-5"></i>
+                <span>Planificador</span>
+            </a>
+            <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gradient-to-r hover:from-purple-500/10 hover:via-fuchsia-500/10 hover:to-purple-500/10 text-gray-400 hover:text-purple-300 transition-all duration-300">
+                <i data-lucide="monitor" class="w-5 h-5"></i>
+                <span>Mi Sistema Académico</span>
+            </a>
+            <a href="habits.html" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-gradient-to-r from-purple-600 via-fuchsia-500 to-purple-600 text-white shadow-[0_0_15px_rgba(168,85,247,0.5)] font-medium">
+                <i data-lucide="target" class="w-5 h-5"></i>
+                <span>Hábitos</span>
+            </a>
+            <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gradient-to-r hover:from-purple-500/10 hover:via-fuchsia-500/10 hover:to-purple-500/10 text-gray-400 hover:text-purple-300 transition-all duration-300">
+                <i data-lucide="trending-up" class="w-5 h-5"></i>
+                <span>Progreso</span>
+            </a>
+        </nav>
 
-    <script type="module" src="dist/habits.js"></script>
+        <div class="p-4 border-t border-gray-800/50 space-y-2">
+            <div class="text-xs font-semibold text-gray-500 uppercase px-4 mb-2">Ajustes</div>
+            <a href="#" class="flex items-center gap-3 px-4 py-2 rounded-xl hover:bg-gradient-to-r hover:from-yellow-500/10 hover:via-orange-500/10 hover:to-yellow-500/10 text-yellow-500 hover:text-yellow-400 transition-all duration-300">
+                <i data-lucide="sparkles" class="w-4 h-4"></i>
+                <span>Tema Premium</span>
+            </a>
+            <a href="#" id="logoutBtn" class="flex items-center gap-3 px-4 py-2 rounded-xl hover:bg-gradient-to-r hover:from-red-500/10 hover:via-pink-500/10 hover:to-red-500/10 text-red-400 hover:text-red-300 transition-all duration-300">
+                <i data-lucide="log-out" class="w-4 h-4"></i>
+                <span>Cerrar Sesión</span>
+            </a>
+        </div>
+    </aside>
+
+    <main class="flex-1 overflow-y-auto relative">
+        <div class="p-8 max-w-7xl mx-auto space-y-8">
+            
+            <header class="flex justify-between items-start animate-on-load delay-200">
+                <div>
+                    <h1 class="text-4xl font-bold text-white mb-2">
+                        Seguimiento de Hábitos
+                    </h1>
+                    <p class="text-gray-400 text-lg">Construí una rutina de estudio sólida y productiva.</p>
+                </div>
+                <button id="addHabitBtn" class="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-purple-600 via-fuchsia-500 to-purple-600 text-white font-medium hover:from-purple-500 hover:via-fuchsia-400 hover:to-purple-500 transition-all duration-300 shadow-[0_0_15px_rgba(168,85,247,0.5)]">
+                    <i data-lucide="plus-circle" class="w-5 h-5"></i>
+                    <span>Añadir Nuevo Hábito</span>
+                </button>
+            </header>
+
+            <div id="dailyProgress" class="bg-dark-card rounded-3xl p-6 relative animate-on-load delay-300" style="box-shadow: 0 0 0 1px rgba(168,85,247,0.2), 0 0 30px rgba(168,85,247,0.15), inset 0 0 20px rgba(168,85,247,0.03);">
+                <h2 class="text-xl font-bold text-white mb-2">Progreso Diario de Hábitos</h2>
+                <p id="progressText" class="text-gray-400">Completaste <span id="progressPercentage" class="text-purple-400 font-bold">0%</span> de tus hábitos hoy.</p>
+            </div>
+
+            <div id="emptyState" class="hidden bg-dark-card rounded-3xl p-12 flex flex-col items-center justify-center text-center animate-on-load delay-400" style="box-shadow: 0 0 0 1px rgba(168,85,247,0.2), 0 0 30px rgba(168,85,247,0.15), inset 0 0 20px rgba(168,85,247,0.03);">
+                <div class="w-24 h-24 rounded-full bg-gradient-to-br from-purple-500/20 via-fuchsia-500/20 to-purple-500/20 flex items-center justify-center mb-6" style="box-shadow: 0 0 0 1px rgba(168,85,247,0.3);">
+                    <i data-lucide="target" class="w-12 h-12 text-purple-400"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-white mb-3">¡Comienza tu jornada de hábitos!</h3>
+                <p class="text-gray-400 mb-6 max-w-md">Aún no has creado ningún hábito. Los pequeños pasos diarios son la base del éxito académico. ¡Crea tu primer hábito y comienza a construir tu rutina!</p>
+                <button id="emptyStateAddBtn" class="px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 via-fuchsia-500 to-purple-600 text-white font-medium hover:from-purple-500 hover:via-fuchsia-400 hover:to-purple-500 transition-all duration-300 shadow-[0_0_15px_rgba(168,85,247,0.5)]">
+                    <i data-lucide="plus-circle" class="w-5 h-5 inline mr-2"></i>
+                    Crear mi primer hábito
+                </button>
+            </div>
+
+            <div id="habitsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                </div>
+
+        </div>
+    </main>
+
+    <div id="habitModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="flex justify-between items-center mb-6">
+                <h2 id="modalTitle" class="text-2xl font-bold text-white">Añadir Nuevo Hábito</h2>
+                <button id="closeModalBtn" class="text-gray-400 hover:text-white transition-colors">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+
+            <form id="habitForm" class="space-y-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Nombre del Hábito</label>
+                    <input type="text" id="habitName" name="name" required
+                           class="w-full bg-dark-input border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all"
+                           placeholder="Ej: Estudiar 2 bloques Pomodoro">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Frecuencia</label>
+                    <select id="habitFrequency" name="frequency" required
+                            class="w-full bg-dark-input border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all">
+                        <option value="1">Diario</option>
+                        <option value="2">Semanal</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Materia (Opcional)</label>
+                    <select id="habitSubject" name="subject"
+                            class="w-full bg-dark-input border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all">
+                        <option value="">Ninguna</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-3">Icono del Hábito</label>
+                    <div class="grid grid-cols-4 gap-3">
+                        </div>
+                </div>
+
+                <div class="flex gap-3 pt-4">
+                    <button type="submit" class="flex-1 px-4 py-3 rounded-lg bg-gradient-to-r from-purple-600 via-fuchsia-500 to-purple-600 text-white font-medium hover:from-purple-500 hover:via-fuchsia-400 hover:to-purple-500 transition-all duration-300 shadow-[0_0_15px_rgba(168,85,247,0.5)]">
+                        <span id="submitBtnText">Crear Hábito</span>
+                    </button>
+                    <button type="button" id="cancelBtn" class="px-4 py-3 rounded-lg bg-dark-input border border-gray-700 text-gray-300 font-medium hover:bg-gray-800 transition-all duration-300">
+                        Cancelar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+        
+        // Activate animations on load
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebar = document.querySelector('.animate-sidebar');
+            if (sidebar) {
+                setTimeout(() => {
+                    sidebar.classList.add('animated');
+                }, 50);
+            }
+            
+            const animatedElements = document.querySelectorAll('.animate-on-load');
+            animatedElements.forEach((element, index) => {
+                setTimeout(() => {
+                    element.classList.add('animated');
+                }, 100 + (index * 50));
+            });
+        });
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const grid = document.getElementById('habitsGrid');
+            const percentageText = document.getElementById('progressPercentage');
+
+            // Esta función cuenta los botones completados visualmente
+            const recalculateProgress = () => {
+                const buttons = grid.querySelectorAll('button'); 
+                const total = buttons.length;
+                
+                if (total === 0) {
+                    if(percentageText) percentageText.textContent = "0%";
+                    return;
+                }
+
+                let completed = 0;
+                buttons.forEach(btn => {
+                    // INTELIGENCIA: Detectamos si está completado buscando clases que indican "activo"
+                    // Buscamos 'bg-gradient' (tu estilo de activo) o atributos data
+                    // Ajusta esto si tu botón completado se ve diferente
+                    const isCompleted = 
+                        btn.classList.contains('bg-gradient-to-r') || 
+                        btn.getAttribute('data-completed') === 'true' ||
+                        btn.classList.contains('bg-orange-500'); // Por si acaso usas el estilo antiguo
+
+                    if (isCompleted) {
+                        completed++;
+                    }
+                });
+
+                const percent = Math.round((completed / total) * 100);
+                if(percentageText) percentageText.textContent = `${percent}%`;
+            };
+
+            // 1. ESCUCHAR CLICKS: Cuando clickeas un hábito, esperamos un poco y recalculamos
+            if (grid) {
+                grid.addEventListener('click', (e) => {
+                    // Usamos timeout para dar tiempo a que tu otro script cambie el color del botón
+                    setTimeout(recalculateProgress, 100); 
+                });
+
+                // 2. ESCUCHAR CARGA: Cuando el TS inyecta los hábitos, recalculamos
+                const observer = new MutationObserver(recalculateProgress);
+                observer.observe(grid, { childList: true, subtree: true });
+            }
+        });
+    </script>
+
+    <script type="module">
+        import { logout, getCurrentUser } from './dist/ts/api.js';
+
+        document.addEventListener('DOMContentLoaded', async function() {
+            try {
+                const user = await getCurrentUser();
+            } catch (error) {
+                console.error('Error al cargar información del usuario:', error);
+                if (error.message === "No autenticado" || error.message === "Sesión expirada") {
+                    window.location.href = 'login.html';
+                }
+            }
+
+            const logoutBtn = document.getElementById('logoutBtn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    try {
+                        await logout();
+                        window.location.href = 'index.html';
+                    } catch (error) {
+                        console.error('Error al cerrar sesión:', error);
+                        window.location.href = 'index.html';
+                    }
+                });
+            }
+        });
+    </script>
+    <script type="module" src="dist/ts/habits.js"></script>
 </body>
 </html>

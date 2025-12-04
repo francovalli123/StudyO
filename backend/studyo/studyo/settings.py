@@ -52,19 +52,28 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'corsheaders.middleware.CorsMiddleware',  # CORS debe estar antes de CommonMiddleware
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
 ]
 
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",  # o donde esté corriendo tu front
+    "http://localhost:3000",
+    "http://localhost:5500",  # Live Server
+    "http://localhost:8080",  # Otros servidores comunes
+    "http://127.0.0.1:5500",
+    "http://127.0.0.1:8080",
+    "http://127.0.0.1:3000",
 ]
+
+# Permitir todos los orígenes en desarrollo (solo para desarrollo)
+# En producción, usar solo los orígenes específicos de arriba
+CORS_ALLOW_ALL_ORIGINS = False  # Cambiar a True solo en desarrollo si es necesario
 
 ROOT_URLCONF = 'studyo.urls'
 
@@ -138,3 +147,24 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'user.User'
+
+# REST Framework configuration
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+}
+
+# CSRF settings for API (disable for token auth)
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:3000",
+    "http://localhost:5500",
+    "http://localhost:8080",
+    "http://127.0.0.1:5500",
+    "http://127.0.0.1:8080",
+    "http://127.0.0.1:3000",
+]
