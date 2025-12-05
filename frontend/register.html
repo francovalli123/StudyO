@@ -13,7 +13,9 @@
         <p class="auth-subtitle">Unite y empezá a dominar tu estudio 🚀</p>
 
         <form class="auth-form" id="registerForm">
-            <input type="text" id="username" placeholder="Usuario" required>
+            <input type="text" id="username" placeholder="Nombre de usuario" required>
+            <input type="text" id="firstName" placeholder="Nombre" required>
+            <input type="text" id="lastName" placeholder="Apellido" required>
             <input type="email" id="email" placeholder="Email" required>
             <input type="password" id="password" placeholder="Contraseña" required>
             <div id="errorMessage" style="color: red; display: none; margin-bottom: 10px;"></div>
@@ -40,6 +42,8 @@
             e.preventDefault();
             
             const username = document.getElementById('username').value;
+            const firstName = document.getElementById('firstName').value;
+            const lastName = document.getElementById('lastName').value;
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
 
@@ -50,7 +54,7 @@
             successMessage.textContent = '';
 
             try {
-                const data = await register(username, email, password);
+                const data = await register(username, firstName, lastName, email, password);
                 successMessage.textContent = '¡Cuenta creada exitosamente! Redirigiendo...';
                 successMessage.style.display = 'block';
                 

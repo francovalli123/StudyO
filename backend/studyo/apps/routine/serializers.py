@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Routine
+from .models import Routine, WeeklyObjective
 from apps.routineBlock.serializers import RoutineBlockSerializer
 from apps.routineBlock.models import RoutineBlock
 
@@ -37,3 +37,18 @@ class RoutineSerializer(serializers.ModelSerializer):
             RoutineBlock.objects.create(routine=routine, **block_data)
 
         return routine
+
+
+class WeeklyObjectiveSerializer(serializers.ModelSerializer):
+    subject_name = serializers.CharField(source='subject.name', read_only=True)
+
+    class Meta:
+        model = WeeklyObjective
+        fields = ['id', 'title', 'detail', 'priority', 'notes', 'subject', 'subject_name', 'created_at', 'updated_at']
+        read_only_fields = ['created_at', 'updated_at', 'user']
+
+    def create(self, validated_data):
+        # asegurar que el usuario autenticado se asigne
+        validated_data.pop('user', None)
+        user = self.context['request'].user
+        return WeeklyObjective.objects.create(user=user, **validated_data)

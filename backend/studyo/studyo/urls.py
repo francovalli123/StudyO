@@ -40,6 +40,8 @@ urlpatterns = [
     path('api/routines/', RoutineListCreateView.as_view(), name='routine_list_create'),
     path('api/routine/<int:pk>/', RoutineDetailView.as_view(), name="routine_detail"),
     path('api/routines/generate/', generate_routine, name='routine_generate'),
+    path('api/weekly-objectives/', WeeklyObjectiveListCreateView.as_view(), name='weekly_objective_list_create'),
+    path('api/weekly-objectives/<int:pk>/', WeeklyObjectiveDetailView.as_view(), name='weekly_objective_detail'),
     path('api/pomodoro/', PomodoroSessionCreateView.as_view(), name='pomodoro_list_create'),
     path('api/pomodoro/<int:pk>/', PomodoroSessionDetailView.as_view(), name='pomodoro_detail'),
 ]

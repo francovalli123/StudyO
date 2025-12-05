@@ -132,7 +132,7 @@
         </div>
 
         <nav class="flex-1 px-4 space-y-2 mt-2">
-            <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-gradient-to-r from-purple-600 via-fuchsia-500 to-purple-600 text-white shadow-[0_0_15px_rgba(168,85,247,0.5)] font-medium">
+            <a href="dashboard.html" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-gradient-to-r from-purple-600 via-fuchsia-500 to-purple-600 text-white shadow-[0_0_15px_rgba(168,85,247,0.5)] font-medium">
                 <i data-lucide="home" class="w-5 h-5"></i>
                 <span>Inicio</span>
             </a>
@@ -141,7 +141,7 @@
                 <i data-lucide="calendar" class="w-5 h-5"></i>
                 <span>Planificador</span>
             </a>
-            <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gradient-to-r hover:from-purple-500/10 hover:via-fuchsia-500/10 hover:to-purple-500/10 text-gray-400 hover:text-purple-300 transition-all duration-300">
+            <a href="subjects.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gradient-to-r hover:from-purple-500/10 hover:via-fuchsia-500/10 hover:to-purple-500/10 text-gray-400 hover:text-purple-300 transition-all duration-300">
                 <i data-lucide="monitor" class="w-5 h-5"></i>
                 <span>Mi Sistema Académico</span>
             </a>
@@ -174,7 +174,7 @@
             <header class="flex justify-between items-start animate-on-load delay-200">
                 <div>
                     <h1 class="text-4xl font-bold text-white mb-2">
-                        Hola <span class="text-purple-400" id="userName">Usuario</span>,
+                        Hola <span class="text-purple-400" id="firstName">Usuario</span>,
                     </h1>
                     <p class="text-gray-400 text-lg">es hora de diseñar tu <span class="text-purple-400 font-medium">obra maestra de estudio</span>.</p>
                 </div>
@@ -194,59 +194,28 @@
                     </div>
                     <p class="text-gray-500 text-sm mb-6">Definí tus objetivos cruciales por materia. Claridad es poder.</p>
 
-                    <div class="bg-dark-input rounded-2xl p-4 mb-4 relative group" style="box-shadow: 0 0 0 1px rgba(168,85,247,0.15), 0 0 15px rgba(168,85,247,0.08);">
-                        <div class="flex justify-between items-center mb-2">
-                            <div class="flex items-center gap-2 text-purple-400 font-medium">
-                                <i data-lucide="zap" class="w-4 h-4"></i>
-                                <span>Ingeniería de Software Avanzada</span>
-                            </div>
-                            <button class="text-gray-600 hover:text-red-400"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-                        </div>
-                        <textarea class="w-full bg-transparent text-white resize-none text-sm outline-none placeholder-gray-600" rows="2">Definir arquitectura de microservicios y completar diagrama de secuencia para el módulo de pagos.</textarea>
-                        
-                        <div class="mt-3 flex gap-3 items-center">
-                            <div class="bg-[#2a2d36] px-3 py-1 rounded-lg text-xs text-white font-medium flex items-center gap-2">
-                                Máxima Prioridad <i data-lucide="chevron-down" class="w-3 h-3"></i>
-                            </div>
-                            <span class="text-xs text-pink-500">Objetivo central de la semana.</span>
-                        </div>
-                        
-                        <div class="mt-3 border-t border-gray-700/50 pt-3">
-                            <input type="text" value="Revisar patrones de Saga y CQRS. Estimar 3 bloques Pomodoro." class="w-full bg-transparent text-gray-400 text-xs outline-none">
-                        </div>
+                    <!-- Container for weekly objectives (empty when no items) -->
+                    <div id="weeklyObjectivesContainer" class="space-y-3 mb-6">
+                        <!-- Objectives will be inserted here by TypeScript -->
                     </div>
 
-                    <div class="bg-dark-input rounded-2xl p-4" style="box-shadow: 0 0 0 1px rgba(168,85,247,0.15), 0 0 15px rgba(168,85,247,0.08);">
-                        <div class="flex justify-between items-center mb-2">
-                            <div class="flex items-center gap-2 text-blue-400 font-medium">
-                                <i data-lucide="brain-circuit" class="w-4 h-4"></i>
-                                <span>Algoritmos Cuánticos (Autodidacta)</span>
-                            </div>
-                            <button class="text-gray-600 hover:text-red-400"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-                        </div>
-                        <textarea class="w-full bg-transparent text-white resize-none text-sm outline-none placeholder-gray-600" rows="2">Comprender y simular el algoritmo de Grover en Qiskit. Documentar los pasos clave.</textarea>
-                         <div class="mt-3 flex gap-3 items-center">
-                            <div class="bg-[#2a2d36] px-3 py-1 rounded-lg text-xs text-white font-medium flex items-center gap-2">
-                                Exploración Clave <i data-lucide="chevron-down" class="w-3 h-3"></i>
-                            </div>
-                            <span class="text-xs text-yellow-500">Avance importante en nuevo material.</span>
-                        </div>
-                         <div class="mt-3 border-t border-gray-700/50 pt-3">
-                            <input type="text" value="Enfocarse en la intuición detrás del oráculo y la amplificación de amplitud." class="w-full bg-transparent text-gray-400 text-xs outline-none">
-                        </div>
-                    </div>
+                    <!-- Add button (shown when container is empty or always visible) -->
+                    <button id="addObjectiveBtn" class="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-gradient-to-r from-purple-500/20 via-pink-500/20 to-purple-500/20 text-purple-400 text-sm hover:from-purple-500/30 hover:via-pink-500/30 hover:to-purple-500/30 transition-all border border-purple-500/30" style="box-shadow: 0 0 0 1px rgba(168,85,247,0.3);">
+                        <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                        <span>Añadir Objetivo Estratégico</span>
+                    </button>
                 </div>
 
                 <div class="bg-dark-card rounded-3xl p-6 flex flex-col items-center justify-between relative overflow-hidden animate-on-load delay-400" style="box-shadow: 0 0 0 1px rgba(168,85,247,0.2), 0 0 30px rgba(168,85,247,0.15), inset 0 0 30px rgba(168,85,247,0.03);">
                     <div class="w-full flex justify-between items-start z-10">
                         <h2 class="text-lg font-bold text-white w-2/3">Zona de Enfoque Pomodoro</h2>
-                        <button class="p-2 rounded-lg bg-white/5 text-gray-400"><i data-lucide="sliders-horizontal" class="w-4 h-4"></i></button>
+                        <button id="pomodoroSettingsBtn" class="p-2 rounded-lg bg-white/5 text-gray-400"><i data-lucide="sliders-horizontal" class="w-4 h-4"></i></button>
                     </div>
 
                     <div class="relative w-48 h-48 flex items-center justify-center my-6">
                         <svg class="absolute inset-0 w-full h-full transform -rotate-90">
                             <circle cx="96" cy="96" r="88" stroke="#1e212b" stroke-width="8" fill="transparent" />
-                            <circle cx="96" cy="96" r="88" stroke="url(#paint0_linear)" stroke-width="8" stroke-linecap="round" fill="transparent" stroke-dasharray="552" stroke-dashoffset="100" />
+                            <circle id="pomodoroProgressCircle" cx="96" cy="96" r="88" stroke="url(#paint0_linear)" stroke-width="8" stroke-linecap="round" fill="transparent" stroke-dasharray="552" stroke-dashoffset="552" />
                             <defs>
                                 <linearGradient id="paint0_linear" x1="0" y1="0" x2="1" y2="1">
                                     <stop offset="0%" stop-color="#a855f7"/>
@@ -257,8 +226,8 @@
                         
                         <div class="text-center z-10">
                             <div class="mb-1"><i data-lucide="briefcase" class="w-6 h-6 text-purple-400 mx-auto"></i></div>
-                            <div class="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400 tracking-tighter">25:00</div>
-                            <div class="text-sm text-purple-400 font-medium mt-1">Enfoque Total</div>
+                            <div id="pomodoroTimerDisplay" class="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400 tracking-tighter">25:00</div>
+                            <div id="pomodoroStageLabel" class="text-sm text-purple-400 font-medium mt-1">Enfoque Total</div>
                         </div>
                     </div>
 
@@ -268,9 +237,9 @@
                     </div>
 
                     <div class="flex gap-4 mb-4">
-                        <button class="w-12 h-12 rounded-2xl bg-white/5 hover:bg-white/10 flex items-center justify-center text-white border border-gray-700"><i data-lucide="play" class="w-5 h-5 ml-1"></i></button>
-                        <button class="w-12 h-12 rounded-2xl bg-white/5 hover:bg-white/10 flex items-center justify-center text-white border border-gray-700"><i data-lucide="skip-forward" class="w-5 h-5"></i></button>
-                        <button class="w-12 h-12 rounded-2xl bg-white/5 hover:bg-white/10 flex items-center justify-center text-white border border-gray-700"><i data-lucide="rotate-ccw" class="w-5 h-5"></i></button>
+                        <button id="pomodoroPlayBtn" class="w-12 h-12 rounded-2xl bg-white/5 hover:bg-white/10 flex items-center justify-center text-white border border-gray-700"><i data-lucide="play" class="w-5 h-5 ml-1"></i></button>
+                        <button id="pomodoroSkipBtn" class="w-12 h-12 rounded-2xl bg-white/5 hover:bg-white/10 flex items-center justify-center text-white border border-gray-700"><i data-lucide="skip-forward" class="w-5 h-5"></i></button>
+                        <button id="pomodoroResetBtn" class="w-12 h-12 rounded-2xl bg-white/5 hover:bg-white/10 flex items-center justify-center text-white border border-gray-700"><i data-lucide="rotate-ccw" class="w-5 h-5"></i></button>
                     </div>
 
                     <div class="w-full flex justify-between items-center mt-auto pt-4 border-t border-gray-800">
@@ -521,6 +490,105 @@
         </div>
     </main>
 
+    <!-- Weekly Objective Modal -->
+    <div id="objectiveModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center" style="display:none; z-index: 1000; backdrop-filter: blur(4px);">
+        <div class="bg-dark-card rounded-2xl p-6 w-full max-w-500px mx-4" style="box-shadow: 0 0 0 1px rgba(168,85,247,0.3), 0 0 50px rgba(168,85,247,0.2);">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-white">Añadir Objetivo Estratégico</h2>
+                <button id="closeObjectiveModalBtn" class="text-gray-400 hover:text-white transition-colors">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+
+            <form id="objectiveForm" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Título del Objetivo</label>
+                    <input type="text" id="objectiveTitle" name="title" required
+                           class="w-full bg-dark-input border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all"
+                           placeholder="Ej: Definir arquitectura de microservicios">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Descripción detallada</label>
+                    <textarea id="objectiveDetail" name="detail" rows="3"
+                              class="w-full bg-dark-input border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none resize-none transition-all"
+                              placeholder="Describe tu objetivo con más detalle..."></textarea>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Materia (Opcional)</label>
+                    <select id="objectiveSubject" name="subject"
+                            class="w-full bg-dark-input border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all">
+                        <option value="">-- Ninguna materia --</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Prioridad</label>
+                    <select id="objectivePriority" name="priority"
+                            class="w-full bg-dark-input border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all">
+                        <option value="">-- Sin prioridad --</option>
+                        <option value="1">Alta (Máxima Prioridad)</option>
+                        <option value="2">Media (Exploración Clave)</option>
+                        <option value="3">Baja (Complementario)</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Notas (Opcional)</label>
+                    <input type="text" id="objectiveNotes" name="notes"
+                           class="w-full bg-dark-input border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all"
+                           placeholder="Ej: Estimar 3 bloques Pomodoro">
+                </div>
+
+                <div class="flex gap-3 pt-4">
+                    <button type="submit" class="flex-1 px-4 py-3 rounded-lg bg-gradient-to-r from-purple-600 via-fuchsia-500 to-purple-600 text-white font-medium hover:from-purple-500 hover:via-fuchsia-400 hover:to-purple-500 transition-all duration-300 shadow-[0_0_15px_rgba(168,85,247,0.5)]">
+                        Crear Objetivo
+                    </button>
+                    <button type="button" id="cancelObjectiveBtn" class="px-4 py-3 rounded-lg bg-dark-input border border-gray-700 text-gray-300 font-medium hover:bg-gray-800 transition-all duration-300">
+                        Cancelar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Pomodoro Settings Modal -->
+    <div id="pomodoroSettingsModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center" style="display:none; z-index: 60;">
+        <div class="bg-dark-card rounded-2xl p-6 w-full max-w-lg mx-4">
+            <h3 class="text-lg font-bold text-white mb-4">Ajustes Pomodoro</h3>
+            <form id="pomodoroSettingsForm" class="space-y-4">
+                <div>
+                    <label class="text-sm text-gray-400">Duración enfoque (min)</label>
+                    <input type="number" name="workMinutes" id="workMinutes" class="w-full bg-dark-input rounded px-3 py-2 text-white" min="1">
+                </div>
+                <div>
+                    <label class="text-sm text-gray-400">Descanso corto (min)</label>
+                    <input type="number" name="shortBreakMinutes" id="shortBreakMinutes" class="w-full bg-dark-input rounded px-3 py-2 text-white" min="1">
+                </div>
+                <div>
+                    <label class="text-sm text-gray-400">Descanso largo (min)</label>
+                    <input type="number" name="longBreakMinutes" id="longBreakMinutes" class="w-full bg-dark-input rounded px-3 py-2 text-white" min="1">
+                </div>
+                <div>
+                    <label class="text-sm text-gray-400">Ciclos antes de descanso largo</label>
+                    <input type="number" name="cyclesBeforeLongBreak" id="cyclesBeforeLongBreak" class="w-full bg-dark-input rounded px-3 py-2 text-white" min="1">
+                </div>
+                <div>
+                    <label class="text-sm text-gray-400">Materia por defecto (opcional)</label>
+                    <select id="pomodoroDefaultSubjectSelect" class="w-full bg-dark-input rounded px-3 py-2 text-white">
+                        <option value="">-- Ninguna --</option>
+                    </select>
+                </div>
+
+                <div class="flex justify-end gap-3 mt-4">
+                    <button type="button" id="pomodoroSettingsCancel" class="px-4 py-2 rounded bg-gray-700 text-gray-200">Cancelar</button>
+                    <button type="submit" id="pomodoroSettingsSave" class="px-4 py-2 rounded bg-purple-600 text-white">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Sección para datos dinámicos del dashboard -->
     <div id="dashboard-stats" style="display: none;">
         <!-- Estadísticas de Hábitos -->
@@ -570,9 +638,19 @@
             // Cargar nombre del usuario
             try {
                 const user = await getCurrentUser();
-                const userNameElement = document.getElementById('userName');
-                if (userNameElement && user.username) {
-                    userNameElement.textContent = user.username;
+                const firstNameElement = document.getElementById('firstName');
+
+                if (firstNameElement) {
+                    // Usa el first_name si existe. Si es vacío o null, usa el username.
+                    const nameToDisplay = user.first_name ? user.first_name : user.username;
+
+                    // Si user.first_name está vacío, el console.log no es necesario,
+                    // pero si quieres uno que refleje la lógica, podría ser:
+                    if (!user.first_name) {
+                        console.log("first_name no disponible, mostrando username como fallback.");
+                    }
+
+                    firstNameElement.textContent = nameToDisplay;
                 }
             } catch (error) {
                 console.error('Error al cargar información del usuario:', error);

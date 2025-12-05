@@ -26,4 +26,4 @@ class SubjectDetailView(RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return Subject.objects.filter(user=self.request.user())
+        return Subject.objects.filter(user=self.request.user)

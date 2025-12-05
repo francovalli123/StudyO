@@ -213,11 +213,20 @@ export async function getCurrentUser(): Promise<{ id: number; username: string; 
     });
 
     if (!response.ok) {
+        // Intenta leer el cuerpo para obtener detalles del error del servidor (útil en DEBUG)
+        let body: string = '';
+        try {
+            body = await response.text();
+        } catch (e) {
+            body = '<no response body available>';
+        }
+
         if (response.status === 401) {
             removeToken();
             throw new Error("Sesión expirada");
         }
-        throw new Error("Error al obtener información del usuario");
+
+        throw new Error(`Error al obtener información del usuario (status ${response.status}): ${body}`);
     }
 
     return await response.json();

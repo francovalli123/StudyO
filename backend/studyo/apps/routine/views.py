@@ -2,8 +2,8 @@ from django.shortcuts import render
 from rest_framework.generics import ListCreateAPIView
 from rest_framework.generics import RetrieveUpdateDestroyAPIView
 from rest_framework.permissions import IsAuthenticated
-from .serializers import RoutineSerializer
-from .models import Routine
+from .serializers import RoutineSerializer, WeeklyObjectiveSerializer
+from .models import Routine, WeeklyObjective
 from rest_framework.decorators import api_view
 from apps.routineBlock.models import RoutineBlock
 from rest_framework.response import Response
@@ -140,3 +140,26 @@ def generate_routine(request):
         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
     except Exception as e:
         return Response({"error": "Error al generar la rutina."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+# Weekly Objectives API
+class WeeklyObjectiveListCreateView(ListCreateAPIView):
+    serializer_class = WeeklyObjectiveSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return WeeklyObjective.objects.filter(user=self.request.user).order_by('-created_at')
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class WeeklyObjectiveDetailView(RetrieveUpdateDestroyAPIView):
+    serializer_class = WeeklyObjectiveSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return WeeklyObjective.objects.filter(user=self.request.user)
+
+    def perform_update(self, serializer):
+        serializer.save(user=self.request.user)
