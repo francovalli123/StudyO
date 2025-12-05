@@ -11,6 +11,7 @@ interface Habit {
     frequency: number;
     streak: number;
     subject: number | null;
+    completed_today?: boolean; 
 }
 
 interface Subject {
@@ -81,13 +82,32 @@ const COLOR_CLASSES: { [key: string]: { card: string; text: string; icon: string
     }
 };
 
+// En habits.ts
+
 function getTodayKey(): string {
-    return new Date().toISOString().split('T')[0];
+    // Esto devuelve fecha local del navegador "YYYY-MM-DD"
+    // Al pasar las 00:00 local, esto cambia automáticamente.
+    const localDate = new Date();
+    const year = localDate.getFullYear();
+    const month = String(localDate.getMonth() + 1).padStart(2, '0');
+    const day = String(localDate.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
 }
 
 function getTodayCompletions(): Set<number> {
-    const key = `habit_completions_${getTodayKey()}`;
-    const stored = localStorage.getItem(key);
+    const currentKey = `habit_completions_${getTodayKey()}`;
+    
+    // 1. Buscamos todas las claves en localStorage
+    // Si encontramos claves de días viejos, las borramos para no acumular basura
+    for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('habit_completions_') && key !== currentKey) {
+            localStorage.removeItem(key); // Borra caché de ayer
+        }
+    }
+
+    // 2. Obtenemos la de hoy
+    const stored = localStorage.getItem(currentKey);
     return stored ? new Set(JSON.parse(stored)) : new Set();
 }
 
@@ -131,24 +151,40 @@ async function loadHabits() {
             return;
         }
 
-        todayCompletions = getTodayCompletions();
-
+        // 1. Obtenemos datos frescos del servidor
         const habitsData: Habit[] = await apiGet('/habits/');
 
+        // 2. Obtenemos el set local actual (y limpiamos claves viejas si cambió el día)
+        todayCompletions = getTodayCompletions();
+
         habits = habitsData.map(h => {
-            const completedToday = todayCompletions.has(h.id);
+            // La "Verdad" es lo que dice el servidor (h.completed_today).
+            // Si el servidor dice False, es False, no importa qué diga el localStorage.
+            
+            const serverSaysCompleted = h.completed_today || false;
+
+            // Sincronizamos: Si el servidor dice una cosa y el local otra, corregimos el local.
+            if (serverSaysCompleted) {
+                todayCompletions.add(h.id);
+            } else {
+                todayCompletions.delete(h.id);
+            }
+
             const iconConfig = getIconForHabit(h);
+            
             return {
                 ...h,
-                completedToday,
+                completedToday: serverSaysCompleted, // Usamos el valor del servidor
                 icon: iconConfig.icon,
                 color: iconConfig.color
             };
         });
 
+        // 3. Guardamos el estado corregido en localStorage para mantenerlos sincronizados
+        saveTodayCompletions(todayCompletions);
+
         renderHabits();
 
-        // 👇 actualización REAL del progreso
         updateDailyProgress(
             habits.filter(h => h.completedToday).length,
             habits.length

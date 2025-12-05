@@ -2,6 +2,7 @@ from django.db import models
 from django.conf import settings
 from datetime import timedelta, date
 from apps.subject.models import *
+from django.utils import timezone
 
 class Habit(models.Model):
     # Defino las constantes para la frecuencia
@@ -35,24 +36,68 @@ class Habit(models.Model):
     def __str__(self):
         return f"{self.name} ({self.get_frequency_display()})" # Esto sirve para debuggear
 
-    # Función para calcular la racha
+    # Propiedad para saber si se completó hoy
+    @property
+    def is_completed_today(self):
+        # localdate() usa la hora configurada en tu settings.py (TIME_ZONE)
+        today = timezone.localdate() 
+        return self.records.filter(date=today, completed=True).exists()
+
+    # Lógica de Racha que se resetea a 0 si fallas
     def calculate_streak(self):
-        records = self.records.filter(completed=True).order_by('-date') # Busca todos los registros completados de ese habito, ordenado del mas reciente al mas viejo
-        if not records:
-            return 0    # Si no hay registros completados, devuelve 0
+        # Obtenemos solo registros completados, ordenados del más nuevo al más viejo
+        records = self.records.filter(completed=True).order_by('-date')
+        
+        if not records.exists():
+            return 0
 
-        streak = 0 
-        today = date.today()    # Esto define el día actual
+        today = timezone.localdate()
+        last_record_date = records[0].date
+        streak = 0
+        
+        # LÓGICA DE CORTE (RESET A CERO)
+        # Calculamos la diferencia en días entre hoy y el último registro
+        delta_days = (today - last_record_date).days
 
-        for i, record in enumerate(records):    # Se recorre uno por uno los registros
-            if self.frequency == Habit.DAILY:
-                expected_date = today - timedelta(days=i) # Si el hábito es diario, se espera que todos los registros estén en dias consecutivos
-            elif self.frequency == Habit.WEEKLY:
-                expected_date = today - timedelta(weeks=i) # Si el hábito es semanal, espera que estén en semanas consecutivas, por ejemplo, todos los lunes
+        if self.frequency == self.DAILY:
+            # Si es diario:
+            # delta 0 = Lo hice hoy (Racha sigue)
+            # delta 1 = Lo hice ayer (Racha sigue, pendiente hoy)
+            # delta > 1 = No lo hice ayer (Racha ROTA -> 0)
+            if delta_days > 1:
+                return 0
+                
+            # Definimos desde qué fecha empezamos a contar hacia atrás
+            check_date = last_record_date 
 
-            if record.date == expected_date: # Compara la fecha del registro con la fecha esperada
-                streak += 1 # Sigue la racha
-            else:
-                break   # Se corta la racha
+        elif self.frequency == self.WEEKLY:
+            # Si es semanal (lógica simple de semanas naturales o ventana de 7 días):
+            # Aquí asumimos que si pasaron más de 7 días desde el último, se rompe.
+            if delta_days > 7: # Puedes ajustar este margen según tu regla de negocio
+                return 0
+            check_date = last_record_date
 
-        return streak # Cuando termina de contar, devuelve el valor final de la racha
+        # BUCLE DE CONTEO
+        for record in records:
+            # Si la fecha coincide con la esperada, sumamos
+            if record.date == check_date:
+                streak += 1
+                
+                # Preparamos la siguiente fecha esperada hacia el pasado
+                if self.frequency == self.DAILY:
+                    check_date -= timedelta(days=1)
+                elif self.frequency == self.WEEKLY:
+                    # Si hay varios registros en la misma semana, debemos tener cuidado.
+                    # Para simplificar, buscamos consistencia semanal:
+                    # Esta lógica asume 1 por semana estricto. 
+                    # Si permites flexibilidad, la lógica cambia un poco.
+                    check_date -= timedelta(weeks=1)
+            
+            # Si encontramos un registro MÁS VIEJO que la fecha esperada, hay un hueco
+            elif record.date < check_date:
+                break 
+                # Ejemplo: Esperaba el 20/10, encontré el 18/10. Faltó el 19. Fin.
+            
+            # Si record.date > check_date (duplicados del mismo día), los ignoramos y seguimos
+            
+        return streak
