@@ -35,11 +35,11 @@ interface WeeklyObjective {
     title: string;
     detail: string;
     priority: number | null;
-    notes: string;
+    notes: string;    
+    area?: string; 
+    icon?: string; 
     subject: number | null;
-    subject_name: string | null;
     created_at: string;
-    updated_at: string;
 }
 
 // Función para formatear fechas
@@ -234,57 +234,198 @@ async function loadSubjectsStats() {
 async function loadWeeklyObjectives() {
     try {
         const objectives: WeeklyObjective[] = await apiGet("/weekly-objectives/");
+        console.log("Objetivos cargados del backend:", objectives);
+        
         const container = document.getElementById("weeklyObjectivesContainer");
         
         if (!container) return;
         
+        // Guardar en localStorage también para referencia local
+        localStorage.setItem('weeklyObjectives', JSON.stringify(objectives));
+        
+        // Cuando NO hay datos (Estado vacío)
         if (objectives.length === 0) {
-            container.innerHTML = '';
+            container.innerHTML = `
+                <div class="flex flex-col items-center justify-center py-12 text-center animate-fade animated">
+                    
+                    <div class="relative mb-5 group cursor-pointer" onclick="document.getElementById('addObjectiveBtn').click()">
+                        <div class="absolute inset-0 bg-purple-500/20 rounded-full blur-xl group-hover:bg-purple-500/30 transition-all duration-500"></div>
+                        <div class="relative w-20 h-20 bg-[#1a1d26] rounded-full flex items-center justify-center border border-gray-800 group-hover:border-purple-500/50 group-hover:scale-105 transition-all duration-300 shadow-xl">
+                            <i data-lucide="crosshair" class="w-10 h-10 text-gray-500 group-hover:text-purple-400 transition-colors duration-300"></i>
+                        </div>
+                    </div>
+
+                    <h3 class="text-xl font-bold text-white mb-2 tracking-tight">
+                        Sin objetivos estratégicos
+                    </h3>
+                    
+                    <p class="text-gray-500 text-sm max-w-[280px] mx-auto leading-relaxed mb-6">
+                        La semana te domina si no tienes un plan. <br>
+                        <span class="text-purple-400/80">Define tu primera victoria ahora.</span>
+                    </p>
+
+                    <div class="animate-bounce text-gray-700">
+                        <i data-lucide="arrow-down" class="w-5 h-5"></i>
+                    </div>
+                </div>
+            `;
         } else {
+            // Esto es para cuando SI hay datos
             container.innerHTML = objectives.map(obj => {
-                const priorityName = {1: 'Máxima Prioridad', 2: 'Exploración Clave', 3: 'Complementario'}[obj.priority || 2] || 'Sin prioridad';
-                const priorityColor = {1: '#ef4444', 2: '#f59e0b', 3: '#10b981'}[obj.priority || 2] || '#71717a';
-                const subjectEmoji = {1: '⚡', 2: '🧠', 3: '📚'}[obj.priority || 2] || '🎯';
-                
+                // Lógica de colores de prioridad 
+                const priorityMap: Record<number, { name: string; color: string; bg: string; border: string }> = {
+                    1: { name: 'MÁXIMA PRIORIDAD', color: '#ef4444', bg: 'rgba(239, 68, 68, 0.1)', border: 'rgba(239, 68, 68, 0.2)' },
+                    2: { name: 'EXPLORACIÓN CLAVE', color: '#f59e0b', bg: 'rgba(245, 158, 11, 0.1)', border: 'rgba(245, 158, 11, 0.2)' },
+                    3: { name: 'COMPLEMENTARIO', color: '#10b981', bg: 'rgba(16, 185, 129, 0.1)', border: 'rgba(16, 185, 129, 0.2)' }
+                };
+
+                const priorityConfig = priorityMap[obj.priority || 2] || priorityMap[2];
+
+                // Usamos los datos guardados o fallbacks
+                const displayIcon = obj.icon || '⚡';
+                const displayArea = obj.area || 'General';
+
                 return `
-                    <div class="objective-item bg-dark-input rounded-2xl p-4" data-objective-id="${obj.id}" style="box-shadow: 0 0 0 1px rgba(168,85,247,0.15), 0 0 15px rgba(168,85,247,0.08);">
-                        <div class="flex justify-between items-start mb-2">
-                            <div class="flex items-center gap-2 font-medium" style="color: ${priorityColor}">
-                                <span>${subjectEmoji}</span>
-                                <span>${obj.subject_name || 'General'}</span>
+                        <div class="objective-item bg-dark-input rounded-2xl p-5 relative group transition-all duration-300 hover:bg-[#1f222e] hover:translate-y-[-2px]" 
+                            data-objective-id="${obj.id}" 
+                            style="box-shadow: 0 0 0 1px rgba(255,255,255,0.05);">
+                            
+                            <div class="flex justify-between items-start mb-3">
+                                <div class="flex items-center gap-2.5 flex-1">
+                                    <span class="text-lg filter drop-shadow-md icon-display cursor-pointer hover:text-2xl transition-all" data-id="${obj.id}" title="Haz clic para editar" data-field="icon">
+                                        ${displayIcon}
+                                    </span>
+                                    <span class="text-sm font-bold text-transparent bg-clip-text bg-gradient-to-r from-gray-200 to-gray-400 tracking-wide area-display cursor-pointer hover:opacity-80 transition-all" data-id="${obj.id}" title="Haz clic para editar" data-field="area">
+                                        ${displayArea}
+                                    </span>
+                                </div>
+                                
+                                <div class="flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                    <button class="edit-objective p-1.5 rounded-lg text-gray-400 hover:text-purple-400 hover:bg-purple-500/10 transition-all duration-200" data-id="${obj.id}" title="Editar">
+                                        <i data-lucide="edit-3" class="w-4 h-4"></i>
+                                    </button>
+                                    <button class="delete-objective p-1.5 rounded-lg text-gray-400 hover:text-red-400 hover:bg-red-500/10 transition-all duration-200" data-id="${obj.id}" title="Eliminar">
+                                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                    </button>
+                                </div>
                             </div>
-                            <button class="delete-objective text-gray-600 hover:text-red-400 transition-colors" data-id="${obj.id}">
-                                <i data-lucide="trash-2" class="w-4 h-4"></i>
-                            </button>
-                        </div>
-                        <textarea class="w-full bg-transparent text-white resize-none text-sm outline-none placeholder-gray-600" rows="2" readonly>${obj.detail}</textarea>
-                        
-                        <div class="mt-3 flex gap-3 items-center">
-                            <div class="bg-[#2a2d36] px-3 py-1 rounded-lg text-xs text-white font-medium flex items-center gap-2">
-                                ${priorityName}
+
+                            <div class="text-white text-base font-semibold mb-2 leading-snug">
+                                ${obj.title}
                             </div>
-                            <span class="text-xs" style="color: ${priorityColor};">${{1: 'Objetivo central de la semana', 2: 'Avance importante en nuevo material', 3: 'Desarrollo gradual'}[obj.priority || 2] || ''}</span>
+                            
+                            <p class="text-gray-500 text-xs mb-4 leading-relaxed line-clamp-2">
+                                ${obj.detail}
+                            </p>
+                            
+                            <div class="flex items-center justify-between mt-auto pt-3 border-t border-gray-800/50">
+                                <span class="text-[10px] font-bold px-2 py-1 rounded tracking-wider" 
+                                    style="color: ${priorityConfig.color}; background: ${priorityConfig.bg}; border: 1px solid ${priorityConfig.border}">
+                                    ${priorityConfig.name}
+                                </span>
+                                
+                                ${obj.notes ? `
+                                <div class="flex items-center gap-1.5 text-xs text-purple-400/80">
+                                    <i data-lucide="folder-open" class="w-3 h-3"></i>
+                                    <span class="italic truncate max-w-[120px]">${obj.notes}</span>
+                                </div>` : ''}
+                            </div>
                         </div>
-                        
-                        ${obj.notes ? `<div class="mt-3 border-t border-gray-700/50 pt-3">
-                            <input type="text" value="${obj.notes}" class="w-full bg-transparent text-gray-400 text-xs outline-none" readonly>
-                        </div>` : ''}\n                    </div>
-                `;
+                    `;
             }).join("");
+            
+            // Attach edit handlers
+            container.querySelectorAll('.edit-objective').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    const id = (btn as HTMLElement).getAttribute('data-id');
+                    if (id) {
+                        const objId = Number(id);
+                        const objective = objectives.find(o => o.id === objId);
+                        if (objective) {
+                            // Llenar modal con datos
+                            const titleEl = document.getElementById('objectiveTitle') as HTMLInputElement;
+                            const detailEl = document.getElementById('objectiveDetail') as HTMLTextAreaElement;
+                            const areaEl = document.getElementById('objectiveArea') as HTMLInputElement;
+                            const iconEl = document.getElementById('objectiveIcon') as HTMLSelectElement;
+                            const priorityEl = document.getElementById('objectivePriority') as HTMLSelectElement;
+                            const notesEl = document.getElementById('objectiveNotes') as HTMLInputElement;
+                            
+                            if (titleEl) titleEl.value = objective.title;
+                            if (detailEl) detailEl.value = objective.detail || '';
+                            if (areaEl) areaEl.value = objective.area || 'General';
+                            if (priorityEl) priorityEl.value = (objective.priority || 2).toString();
+                            if (notesEl) notesEl.value = objective.notes || '';
+                            
+                            // Cambiar botón a "Actualizar"
+                            const submitBtn = document.getElementById('submitObjectiveBtn') as HTMLButtonElement;
+                            if (submitBtn) submitBtn.textContent = 'Actualizar Objetivo';
+                            
+                            // Guardar id para saber que estamos editando
+                            (window as any).editingObjectiveId = objId;
+                            
+                            const modal = document.getElementById('objectiveModal');
+                            if (modal) modal.style.display = 'flex';
+                        }
+                    }
+                });
+            });
             
             // Attach delete handlers
             container.querySelectorAll('.delete-objective').forEach(btn => {
                 btn.addEventListener('click', async (e) => {
+                    e.stopPropagation();
                     e.preventDefault();
                     const id = (btn as HTMLElement).getAttribute('data-id');
                     if (id) await deleteObjective(Number(id));
                 });
             });
+            
+            // Attach inline edit handlers para icon y area - abre el modal
+            container.querySelectorAll('.icon-display, .area-display').forEach(el => {
+                el.addEventListener('click', async (e) => {
+                    const id = (el as HTMLElement).getAttribute('data-id');
+                    if (id) {
+                        const objId = Number(id);
+                        const objective = objectives.find(o => o.id === objId);
+                        if (objective) {
+                            // Llenar modal con datos
+                            const titleEl = document.getElementById('objectiveTitle') as HTMLInputElement;
+                            const detailEl = document.getElementById('objectiveDetail') as HTMLTextAreaElement;
+                            const areaEl = document.getElementById('objectiveArea') as HTMLInputElement;
+                            const iconEl = document.getElementById('objectiveIcon') as HTMLSelectElement;
+                            const priorityEl = document.getElementById('objectivePriority') as HTMLSelectElement;
+                            const notesEl = document.getElementById('objectiveNotes') as HTMLInputElement;
+                            
+                            if (titleEl) titleEl.value = objective.title;
+                            if (detailEl) detailEl.value = objective.detail || '';
+                            if (areaEl) areaEl.value = objective.area || 'General';
+                            if (iconEl) iconEl.value = objective.icon || '⚡';
+                            if (priorityEl) priorityEl.value = (objective.priority || 2).toString();
+                            if (notesEl) notesEl.value = objective.notes || '';
+                            
+                            // Cambiar botón a "Actualizar"
+                            const submitBtn = document.getElementById('submitObjectiveBtn') as HTMLButtonElement;
+                            if (submitBtn) submitBtn.textContent = 'Actualizar Objetivo';
+                            
+                            // Guardar id para saber que estamos editando
+                            (window as any).editingObjectiveId = objId;
+                            
+                            const modal = document.getElementById('objectiveModal');
+                            if (modal) modal.style.display = 'flex';
+                        }
+                    }
+                });
+            });
         }
         
+        // IMPORTANTE: Recargar iconos para el nuevo contenido inyectado
         lucide.createIcons();
+        
     } catch (error) {
         console.error("Error loading weekly objectives:", error);
+        // Opcional: Mostrar estado de error en el contenedor
     }
 }
 
@@ -329,16 +470,22 @@ function closeObjectiveModal() {
     if (form) {
         form.reset();
     }
+    // Resetear estado de edición
+    (window as any).editingObjectiveId = null;
+    // Restaurar botón a "Guardar Objetivo"
+    const submitBtn = document.getElementById('submitObjectiveBtn') as HTMLButtonElement;
+    if (submitBtn) submitBtn.textContent = 'Guardar Objetivo';
 }
 
 async function submitObjectiveForm(e: Event) {
     e.preventDefault();
     
-    const titleEl = document.getElementById('objectiveTitle') as HTMLInputElement | null;
-    const detailEl = document.getElementById('objectiveDetail') as HTMLTextAreaElement | null;
-    const subjectEl = document.getElementById('objectiveSubject') as HTMLSelectElement | null;
-    const priorityEl = document.getElementById('objectivePriority') as HTMLSelectElement | null;
-    const notesEl = document.getElementById('objectiveNotes') as HTMLInputElement | null;
+    const titleEl = document.getElementById('objectiveTitle') as HTMLInputElement;
+    const detailEl = document.getElementById('objectiveDetail') as HTMLTextAreaElement;
+    const areaEl = document.getElementById('objectiveArea') as HTMLInputElement;
+    const iconEl = document.getElementById('objectiveIcon') as HTMLSelectElement;
+    const priorityEl = document.getElementById('objectivePriority') as HTMLSelectElement;
+    const notesEl = document.getElementById('objectiveNotes') as HTMLInputElement;
     
     if (!titleEl || !titleEl.value) {
         alert('Por favor ingresá un título');
@@ -346,19 +493,36 @@ async function submitObjectiveForm(e: Event) {
     }
     
     try {
-        await apiPost('/weekly-objectives/', {
+        const objectiveData = {
             title: titleEl.value,
             detail: detailEl?.value || '',
             notes: notesEl?.value || '',
-            priority: priorityEl?.value ? Number(priorityEl.value) : null,
-            subject: subjectEl?.value ? Number(subjectEl.value) : null
-        }, true);
+            priority: priorityEl?.value ? Number(priorityEl.value) : 2,
+            area: areaEl?.value || 'General', 
+            icon: iconEl?.value || '⚡',
+            subject: null 
+        };
+        
+        console.log("Enviando datos del objetivo:", objectiveData);
+        
+        const editingId = (window as any).editingObjectiveId;
+        
+        if (editingId) {
+            // Estamos editando - usar PUT
+            console.log(`Actualizando objetivo ${editingId}...`);
+            await apiPut(`/weekly-objectives/${editingId}/`, objectiveData);
+            (window as any).editingObjectiveId = null;
+        } else {
+            // Estamos creando nuevo - usar POST
+            console.log("Creando nuevo objetivo...");
+            await apiPost('/weekly-objectives/', objectiveData, true);
+        }
         
         closeObjectiveModal();
         loadWeeklyObjectives();
     } catch (error) {
-        console.error("Error creating objective:", error);
-        alert('Error al crear el objetivo');
+        console.error("Error creating/updating objective:", error);
+        alert('Error al guardar el objetivo');
     }
 }
 
@@ -538,6 +702,8 @@ if (document.readyState === 'loading') {
     const circle = document.getElementById('pomodoroProgressCircle') as SVGCircleElement | null;
     const timerDisplay = document.getElementById('pomodoroTimerDisplay');
     const stageLabel = document.getElementById('pomodoroStageLabel');
+    const pomodorosCountEl = document.getElementById('pomodorosCount');
+    const pomodoroSetLabelEl = document.getElementById('pomodoroSetLabel');
     const playBtn = document.getElementById('pomodoroPlayBtn');
     const skipBtn = document.getElementById('pomodoroSkipBtn');
     const resetBtn = document.getElementById('pomodoroResetBtn');
@@ -587,6 +753,16 @@ if (document.readyState === 'loading') {
             const offset = Math.round(CIRCLE_LENGTH * (1 - progress));
             circle.style.strokeDashoffset = `${offset}`;
         }
+        // Update pomodoro counters (pomodoros completed and set progress)
+        try {
+            if (pomodorosCountEl) pomodorosCountEl.textContent = `Pomodoros: ${completedCycles}`;
+            if (pomodoroSetLabelEl) {
+                const cycles = Math.max(1, settings.cyclesBeforeLongBreak);
+                let inSet = completedCycles % cycles;
+                if (inSet === 0 && completedCycles > 0) inSet = cycles;
+                pomodoroSetLabelEl.textContent = `Set: ${inSet} / ${cycles}`;
+            }
+        } catch (e) { /* ignore DOM issues */ }
     }
 
     function playBeep() {
@@ -611,6 +787,7 @@ if (document.readyState === 'loading') {
     function startTimer() {
         if (isRunning) return;
         isRunning = true;
+        updatePlayButtonState();
         if (!sessionStart && currentStage === 'work') sessionStart = new Date();
         timerInterval = window.setInterval(() => {
             remainingSeconds -= 1;
@@ -641,6 +818,7 @@ if (document.readyState === 'loading') {
             timerInterval = null;
         }
         isRunning = false;
+        updatePlayButtonState();    
     }
 
     function resetTimer(toStage: Stage | null = null) {
@@ -666,6 +844,7 @@ if (document.readyState === 'loading') {
         }
         playBeep();
         isRunning = false;
+        updatePlayButtonState();
         advanceStage();
     }
 
@@ -711,6 +890,24 @@ if (document.readyState === 'loading') {
             console.warn('Could not load subjects for pomodoro select', e);
         }
     }
+    
+    // Función auxiliar para cambiar el icono del botón
+    function updatePlayButtonState() {
+        if (!playBtn) return;
+        
+        if (isRunning) {
+            // Si está corriendo -> Mostrar PAUSA
+            // Quitamos ml-1 porque el icono de pausa ya se ve centrado
+            playBtn.innerHTML = '<i data-lucide="pause" class="w-5 h-5"></i>';
+        } else {
+            // Si está detenido -> Mostrar PLAY
+            // Agregamos ml-1 para compensación óptica visual
+            playBtn.innerHTML = '<i data-lucide="play" class="w-5 h-5 ml-1"></i>';
+        }
+        
+        // IMPORTANTE: Renderizar el nuevo icono
+        lucide.createIcons();
+    }
 
     // UI wiring
     document.addEventListener('DOMContentLoaded', () => {
@@ -723,7 +920,11 @@ if (document.readyState === 'loading') {
             if (isRunning) pauseTimer(); else startTimer();
         });
         if (skipBtn) skipBtn.addEventListener('click', () => skipStage());
-        if (resetBtn) resetBtn.addEventListener('click', () => { resetTimer('work'); completedCycles = 0; });
+        if (resetBtn) resetBtn.addEventListener('click', () => { 
+            completedCycles = 0; 
+            resetTimer('work'); 
+            updateDisplay();
+        });
 
         // settings modal
         if (settingsBtn && modal) {
@@ -757,6 +958,8 @@ if (document.readyState === 'loading') {
             // update timer if stopped
             if (!isRunning) resetTimer('work');
             if (modal) modal.style.display = 'none';
+            // Refresh counters/UI to reflect new settings
+            updateDisplay();
         });
 
         // initialize subject select load in background
