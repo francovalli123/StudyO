@@ -11,7 +11,9 @@ interface Habit {
     frequency: number;
     streak: number;
     subject: number | null;
-    completed_today?: boolean; 
+    completed_today?: boolean;
+    is_key?: boolean;
+    created_at?: string;
 }
 
 interface Subject {
@@ -124,9 +126,7 @@ let editingHabitId: number | null = null;
 let selectedIcon = 'zap';
 let selectedColor = 'orange';
 
-/* ============================================================
-   ✅ NUEVA FUNCIÓN QUE ACTUALIZA EXACTAMENTE EL PROGRESO
-   ============================================================ */
+/* Función que actualiza el progreso diario */
 function updateDailyProgress(completed: number, total: number) {
     const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
 
@@ -229,7 +229,7 @@ function saveIconForHabit(habitId: number, icon: string, color: string) {
 
 function renderHabits() {
     const grid = document.getElementById("habitsGrid");
-    const emptyState = document.getElementById("emptyState"); // 1. Referencia al "coso" vacío
+    const emptyState = document.getElementById("emptyState"); // 1. Referencia al estado vacío
     
     if (!grid || !emptyState) return;
 
@@ -279,7 +279,7 @@ function renderHabits() {
         </div>`;
     }).join("");
 
-    lucide.createIcons();
+    if (typeof lucide !== 'undefined') lucide.createIcons();
     attachHabitEventListeners();
 }
 
@@ -299,11 +299,13 @@ async function handleSaveHabit(e: Event) {
         const frequency = parseInt(formData.get('frequency') as string);
         const subjectValue = formData.get('subject') as string;
         const subject = subjectValue ? parseInt(subjectValue) : null;
+        const isKey = formData.get('is_key') === 'on' || formData.get('is_key') === 'true';
 
         const payload = {
             name,
             frequency,
-            subject
+            subject,
+            is_key: isKey
         };
 
         // Enviamos a la API
@@ -350,17 +352,17 @@ async function toggleHabitCompletion(habitId: number, complete: boolean) {
     const previousStreak = habits[index].streak;
 
     try {
+        // Actualizo el estado local
         habits[index].completedToday = complete;
-        habits[index].streak = complete
-            ? previousStreak + 1
-            : Math.max(0, previousStreak - 1);
+        // La idea es que no adivine la racha, sino que deje que se calcule mediante la llamada a la API
+        // Se actualiza la racha a partir de la respuesta de la llamada a la API
 
         if (complete) todayCompletions.add(habitId);
         else todayCompletions.delete(habitId);
 
         saveTodayCompletions(todayCompletions);
 
-        // 👇 progreso actualizado al instante
+        // progreso actualizado al instante
         updateDailyProgress(
             habits.filter(h => h.completedToday).length,
             habits.length
@@ -380,6 +382,13 @@ async function toggleHabitCompletion(habitId: number, complete: boolean) {
         );
 
         if (!response.ok) throw new Error("Error API");
+
+        // Update the streak with the correct value from the server
+        const data = await response.json();
+        if (data.streak !== undefined) {
+            habits[index].streak = data.streak;
+            renderHabits();
+        }
 
     } catch (err) {
         habits[index].completedToday = previousState;

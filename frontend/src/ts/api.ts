@@ -1,6 +1,16 @@
+/**
+ * API CONFIGURATION
+ * We are using a hardcoded URL to avoid 'import.meta' errors with your current TS config.
+ * Ideally, this should come from environment variables in the future.
+ */
 const BASE_URL = "http://127.0.0.1:8000/api";
 
-// Token management
+/**
+ * ==========================================
+ * Token Management
+ * ==========================================
+ */
+
 export function getToken(): string | null {
     return localStorage.getItem('authToken');
 }
@@ -14,220 +24,190 @@ export function removeToken(): void {
 }
 
 export function isAuthenticated(): boolean {
-    return getToken() !== null;
+    return !!getToken();
 }
 
-// API functions with authentication
-export async function apiGet(path: string) {
-    const token = getToken();
-    const headers: HeadersInit = {
-        "Content-Type": "application/json",
+/**
+ * ==========================================
+ * Private Helpers (Internal Use)
+ * ==========================================
+ */
+
+/**
+ * Helper to construct headers with the auth token if available.
+ */
+function getHeaders(contentType: string = "application/json"): HeadersInit {
+    const headers: Record<string, string> = {
+        "Content-Type": contentType,
     };
     
+    const token = getToken();
     if (token) {
         headers["Authorization"] = `Token ${token}`;
     }
-
-    const res = await fetch(`${BASE_URL}${path}`, {
-        headers,
-        credentials: "include"
-    });
-    return res.json();
+    
+    return headers;
 }
 
-export async function apiPost(path: string, data: any, requireAuth: boolean = false) {
-    const token = getToken();
-    const headers: HeadersInit = {
-        "Content-Type": "application/json",
-    };
-    
-    if (token) {
-        headers["Authorization"] = `Token ${token}`;
-    } else if (requireAuth) {
-        throw new Error("No autenticado");
+/**
+ * Centralized request handler to manage responses and errors globally.
+ */
+async function handleRequest<T>(response: Response): Promise<T> {
+    // Handle 401 Unauthorized globally
+    if (response.status === 401) {
+        removeToken();
+        // Optional: You could trigger a page reload or redirect here
+        throw new Error("Session expired. Please login again.");
+    }
+
+    // Handle 204 No Content (common in DELETE or empty PUTs)
+    if (response.status === 204) {
+        return null as T;
+    }
+
+    // Handle standard errors
+    if (!response.ok) {
+        let errorMessage = `HTTP Error ${response.status}`;
+        try {
+            const errorBody = await response.json();
+            // Stringify solely for the Error object message
+            errorMessage = JSON.stringify(errorBody);
+        } catch (e) {
+            // Fallback if response isn't JSON
+            errorMessage = await response.text() || errorMessage;
+        }
+        throw new Error(errorMessage);
+    }
+
+    return response.json();
+}
+
+/**
+ * ==========================================
+ * API Methods (Generic)
+ * T = Expected return type (defaults to any for backward compatibility)
+ * ==========================================
+ */
+
+export async function apiGet<T = any>(path: string): Promise<T> {
+    const res = await fetch(`${BASE_URL}${path}`, {
+        method: "GET",
+        headers: getHeaders(),
+        credentials: "include"
+    });
+    return handleRequest<T>(res);
+}
+
+export async function apiPost<T = any>(path: string, data: any, requireAuth: boolean = false): Promise<T> {
+    if (requireAuth && !getToken()) {
+        throw new Error("User not authenticated");
     }
 
     const res = await fetch(`${BASE_URL}${path}`, {
         method: "POST",
-        headers,
+        headers: getHeaders(),
         body: JSON.stringify(data),
         credentials: "include"
     });
-    return res.json();
+    return handleRequest<T>(res);
 }
 
-export async function apiPut(path: string, data: any) {
-    const token = getToken();
-    if (!token) {
-        throw new Error("No autenticado");
-    }
-
-    const headers: HeadersInit = {
-        "Content-Type": "application/json",
-        "Authorization": `Token ${token}`
-    };
+export async function apiPut<T = any>(path: string, data: any): Promise<T> {
+    if (!getToken()) throw new Error("User not authenticated");
 
     const res = await fetch(`${BASE_URL}${path}`, {
         method: "PUT",
-        headers,
+        headers: getHeaders(),
         body: JSON.stringify(data),
         credentials: "include"
     });
-    
-    if (!res.ok) {
-        const error = await res.json();
-        throw new Error(JSON.stringify(error));
-    }
-    
-    return res.json();
+    return handleRequest<T>(res);
 }
 
-export async function apiPatch(path: string, data: any) {
-    const token = getToken();
-    if (!token) {
-        throw new Error("No autenticado");
-    }
-
-    const headers: HeadersInit = {
-        "Content-Type": "application/json",
-        "Authorization": `Token ${token}`
-    };
+export async function apiPatch<T = any>(path: string, data: any): Promise<T> {
+    if (!getToken()) throw new Error("User not authenticated");
 
     const res = await fetch(`${BASE_URL}${path}`, {
         method: "PATCH",
-        headers,
+        headers: getHeaders(),
         body: JSON.stringify(data),
         credentials: "include"
     });
-    
-    if (!res.ok) {
-        const error = await res.json();
-        throw new Error(JSON.stringify(error));
-    }
-    
-    return res.json();
+    return handleRequest<T>(res);
 }
 
-export async function apiDelete(path: string) {
-    const token = getToken();
-    if (!token) {
-        throw new Error("No autenticado");
-    }
-
-    const headers: HeadersInit = {
-        "Content-Type": "application/json",
-        "Authorization": `Token ${token}`
-    };
+export async function apiDelete<T = any>(path: string): Promise<T | null> {
+    if (!getToken()) throw new Error("User not authenticated");
 
     const res = await fetch(`${BASE_URL}${path}`, {
         method: "DELETE",
-        headers,
+        headers: getHeaders(),
         credentials: "include"
     });
-    
-    if (!res.ok && res.status !== 204) {
-        const error = await res.json();
-        throw new Error(JSON.stringify(error));
-    }
-    
-    return res.status === 204 ? null : res.json();
+    return handleRequest<T>(res);
 }
 
-// Authentication functions
+/**
+ * ==========================================
+ * Authentication Specific Functions
+ * ==========================================
+ */
+
 export async function login(username: string, password: string): Promise<{ token: string }> {
+    // We use direct fetch here because login endpoint might differ in headers logic slightly
+    // but we can still reuse handleRequest for response parsing
     const response = await fetch(`${BASE_URL}/login/`, {
         method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
         credentials: "include"
     });
 
-    if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.detail || error.non_field_errors?.[0] || "Error al iniciar sesión");
+    try {
+        const data = await handleRequest<{ token: string }>(response);
+        if (data.token) {
+            setToken(data.token);
+        }
+        return data;
+    } catch (error: any) {
+        let msg = "Login failed";
+        try {
+            const errObj = JSON.parse(error.message);
+            msg = errObj.detail || errObj.non_field_errors?.[0] || msg;
+        } catch {
+            msg = error.message; 
+        }
+        throw new Error(msg);
     }
-
-    const data = await response.json();
-    if (data.token) {
-        setToken(data.token);
-    }
-    return data;
 }
 
 export async function register(username: string, email: string, password: string): Promise<any> {
     const response = await fetch(`${BASE_URL}/signup/`, {
         method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, email, password }),
         credentials: "include"
     });
-
-    if (!response.ok) {
-        const error = await response.json();
-        throw new Error(JSON.stringify(error));
-    }
-
-    const data = await response.json();
-    return data;
+    return handleRequest(response);
 }
 
 export async function logout(): Promise<void> {
     const token = getToken();
-    if (!token) {
-        return;
-    }
+    if (!token) return;
 
     try {
         await fetch(`${BASE_URL}/logout/`, {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Token ${token}`
-            },
+            headers: getHeaders(),
             credentials: "include"
         });
     } catch (error) {
-        console.error("Error al cerrar sesión:", error);
+        console.error("Logout error:", error);
     } finally {
         removeToken();
     }
 }
 
 export async function getCurrentUser(): Promise<{ id: number; username: string; email: string }> {
-    const token = getToken();
-    if (!token) {
-        throw new Error("No autenticado");
-    }
-
-    const response = await fetch(`${BASE_URL}/user/me/`, {
-        method: "GET",
-        headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Token ${token}`
-        },
-        credentials: "include"
-    });
-
-    if (!response.ok) {
-        // Intenta leer el cuerpo para obtener detalles del error del servidor (útil en DEBUG)
-        let body: string = '';
-        try {
-            body = await response.text();
-        } catch (e) {
-            body = '<no response body available>';
-        }
-
-        if (response.status === 401) {
-            removeToken();
-            throw new Error("Sesión expirada");
-        }
-
-        throw new Error(`Error al obtener información del usuario (status ${response.status}): ${body}`);
-    }
-
-    return await response.json();
+    return apiGet<{ id: number; username: string; email: string }>("/user/me/");
 }

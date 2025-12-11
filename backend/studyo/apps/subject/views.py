@@ -4,6 +4,9 @@ from rest_framework.generics import RetrieveUpdateDestroyAPIView
 from rest_framework.permissions import IsAuthenticated
 from .serializers import SubjectSerializer
 from .models import Subject
+from django.db.models import Sum, Q
+from django.utils import timezone
+from datetime import timedelta
 
 # Boceto para view de materia
 
@@ -14,7 +17,11 @@ class SubjectListCreateView(ListCreateAPIView):
  
     def get_queryset(self):
         # Devuelve solo las materias del usuario autenticado
-        return Subject.objects.filter(user=self.request.user)
+        # Anotamos los minutos de estudio de la última semana (7 días incluyendo hoy)
+        start_date = (timezone.now() - timedelta(days=6)).date()
+        return Subject.objects.filter(user=self.request.user).annotate(
+            study_minutes_week=Sum('pomodoro_sessions__duration', filter=Q(pomodoro_sessions__start_time__date__gte=start_date))
+        )
     
     def perform_create(self, serializer):
         # Asigna el usuario automáticamente
@@ -26,4 +33,7 @@ class SubjectDetailView(RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return Subject.objects.filter(user=self.request.user)
+        start_date = (timezone.now() - timedelta(days=6)).date()
+        return Subject.objects.filter(user=self.request.user).annotate(
+            study_minutes_week=Sum('pomodoro_sessions__duration', filter=Q(pomodoro_sessions__start_time__date__gte=start_date))
+        )

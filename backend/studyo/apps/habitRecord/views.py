@@ -54,4 +54,8 @@ class CompleteHabitView(APIView):
         except HabitRecord.DoesNotExist:
             return Response({'detail': 'Este hábito no fue marcado como completado hoy.'}, status=status.HTTP_200_OK)
 
+        # Recalcular la racha después de eliminar el registro
+        habit.streak = habit.calculate_streak()
+        habit.save()
+
         return Response({'detail': 'Hábito desmarcado como completado.', 'streak': habit.streak}, status=status.HTTP_200_OK)

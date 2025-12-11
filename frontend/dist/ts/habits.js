@@ -97,9 +97,7 @@ let subjects = [];
 let editingHabitId = null;
 let selectedIcon = 'zap';
 let selectedColor = 'orange';
-/* ============================================================
-   ✅ NUEVA FUNCIÓN QUE ACTUALIZA EXACTAMENTE EL PROGRESO
-   ============================================================ */
+/* Función que actualiza el progreso diario */
 function updateDailyProgress(completed, total) {
     const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
     const bar = document.getElementById("dailyProgressBar");
@@ -180,7 +178,7 @@ function saveIconForHabit(habitId, icon, color) {
 }
 function renderHabits() {
     const grid = document.getElementById("habitsGrid");
-    const emptyState = document.getElementById("emptyState"); // 1. Referencia al "coso" vacío
+    const emptyState = document.getElementById("emptyState"); // 1. Referencia al estado vacío
     if (!grid || !emptyState)
         return;
     // 2. Comprobamos si hay hábitos
@@ -225,7 +223,8 @@ function renderHabits() {
             </button>
         </div>`;
     }).join("");
-    lucide.createIcons();
+    if (typeof lucide !== 'undefined')
+        lucide.createIcons();
     attachHabitEventListeners();
 }
 function handleSaveHabit(e) {
@@ -242,10 +241,12 @@ function handleSaveHabit(e) {
             const frequency = parseInt(formData.get('frequency'));
             const subjectValue = formData.get('subject');
             const subject = subjectValue ? parseInt(subjectValue) : null;
+            const isKey = formData.get('is_key') === 'on' || formData.get('is_key') === 'true';
             const payload = {
                 name,
                 frequency,
-                subject
+                subject,
+                is_key: isKey
             };
             // Enviamos a la API
             const newHabit = yield apiPost('/habits/', payload, true);
@@ -288,16 +289,16 @@ function toggleHabitCompletion(habitId, complete) {
         const previousState = habits[index].completedToday;
         const previousStreak = habits[index].streak;
         try {
+            // Actualizo el estado local
             habits[index].completedToday = complete;
-            habits[index].streak = complete
-                ? previousStreak + 1
-                : Math.max(0, previousStreak - 1);
+            // La idea es que no adivine la racha, sino que deje que se calcule mediante la llamada a la API
+            // Se actualiza la racha a partir de la respuesta de la llamada a la API
             if (complete)
                 todayCompletions.add(habitId);
             else
                 todayCompletions.delete(habitId);
             saveTodayCompletions(todayCompletions);
-            // 👇 progreso actualizado al instante
+            // progreso actualizado al instante
             updateDailyProgress(habits.filter(h => h.completedToday).length, habits.length);
             renderHabits();
             const response = yield fetch(`http://127.0.0.1:8000/api/habits/${habitId}/complete/`, {
@@ -309,6 +310,12 @@ function toggleHabitCompletion(habitId, complete) {
             });
             if (!response.ok)
                 throw new Error("Error API");
+            // Update the streak with the correct value from the server
+            const data = yield response.json();
+            if (data.streak !== undefined) {
+                habits[index].streak = data.streak;
+                renderHabits();
+            }
         }
         catch (err) {
             habits[index].completedToday = previousState;

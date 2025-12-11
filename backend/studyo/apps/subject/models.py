@@ -27,6 +27,7 @@ class Subject (models.Model):
     updated_at = models.DateTimeField(auto_now=True)      # Se actualiza cada vez que se guarda
     next_exam_date = models.DateField(blank=True, null=True)    # Próxima fecha de examen
     progress = models.PositiveIntegerField(default=0)  # Progreso de la materia, de 0 a 100
+    weekly_target_minutes = models.PositiveIntegerField(default=300, help_text = "Objetivo semanal medido en minutos. ") # Objetivo de minutos semanales, 5 hs por defecto
 
     def __str__(self):
         return self.name

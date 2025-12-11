@@ -33,6 +33,8 @@ class Habit(models.Model):
         blank=True  
     )
     
+    is_key = models.BooleanField(default=False)  # Marca si el hábito es clave/importante
+    
     def __str__(self):
         return f"{self.name} ({self.get_frequency_display()})" # Esto sirve para debuggear
 

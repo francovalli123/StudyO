@@ -8,4 +8,4 @@ class HabitSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Habit
-        fields = ['id', 'name', 'frequency', 'subject', 'streak', 'completed_today']
+        fields = ['id', 'name', 'frequency', 'subject', 'streak', 'completed_today', 'is_key', 'created_at']

@@ -220,6 +220,13 @@
                            class="w-full bg-dark-input border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all">
                 </div>
 
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Objetivo semanal (min)</label>
+                    <input type="number" name="weekly_target_minutes" min="0" step="10"
+                           class="w-full bg-dark-input border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all"
+                           placeholder="Ej: 300 (minutos por semana)">
+                </div>
+
                 <div class="flex gap-3 pt-4">
                     <button type="submit" class="flex-1 px-4 py-3 rounded-lg bg-gradient-to-r from-purple-600 via-fuchsia-500 to-purple-600 text-white font-medium hover:from-purple-500 hover:via-fuchsia-400 hover:to-purple-500 transition-all duration-300 shadow-[0_0_15px_rgba(168,85,247,0.5)]">
                         <span id="submitBtnText">Crear Materia</span>
@@ -233,7 +240,7 @@
     </div>
 
     <script>
-        lucide.createIcons();
+        if (typeof lucide !== 'undefined') lucide.createIcons();
 
         document.addEventListener('DOMContentLoaded', function() {
             const sidebar = document.querySelector('.animate-sidebar');

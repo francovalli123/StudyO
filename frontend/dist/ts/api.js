@@ -7,8 +7,17 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+/**
+ * API CONFIGURATION
+ * We are using a hardcoded URL to avoid 'import.meta' errors with your current TS config.
+ * Ideally, this should come from environment variables in the future.
+ */
 const BASE_URL = "http://127.0.0.1:8000/api";
-// Token management
+/**
+ * ==========================================
+ * Token Management
+ * ==========================================
+ */
 export function getToken() {
     return localStorage.getItem('authToken');
 }
@@ -19,173 +28,187 @@ export function removeToken() {
     localStorage.removeItem('authToken');
 }
 export function isAuthenticated() {
-    return getToken() !== null;
+    return !!getToken();
 }
-// API functions with authentication
+/**
+ * ==========================================
+ * Private Helpers (Internal Use)
+ * ==========================================
+ */
+/**
+ * Helper to construct headers with the auth token if available.
+ */
+function getHeaders(contentType = "application/json") {
+    const headers = {
+        "Content-Type": contentType,
+    };
+    const token = getToken();
+    if (token) {
+        headers["Authorization"] = `Token ${token}`;
+    }
+    return headers;
+}
+/**
+ * Centralized request handler to manage responses and errors globally.
+ */
+function handleRequest(response) {
+    return __awaiter(this, void 0, void 0, function* () {
+        // Handle 401 Unauthorized globally
+        if (response.status === 401) {
+            removeToken();
+            // Optional: You could trigger a page reload or redirect here
+            throw new Error("Session expired. Please login again.");
+        }
+        // Handle 204 No Content (common in DELETE or empty PUTs)
+        if (response.status === 204) {
+            return null;
+        }
+        // Handle standard errors
+        if (!response.ok) {
+            let errorMessage = `HTTP Error ${response.status}`;
+            try {
+                const errorBody = yield response.json();
+                // Stringify solely for the Error object message
+                errorMessage = JSON.stringify(errorBody);
+            }
+            catch (e) {
+                // Fallback if response isn't JSON
+                errorMessage = (yield response.text()) || errorMessage;
+            }
+            throw new Error(errorMessage);
+        }
+        return response.json();
+    });
+}
+/**
+ * ==========================================
+ * API Methods (Generic)
+ * T = Expected return type (defaults to any for backward compatibility)
+ * ==========================================
+ */
 export function apiGet(path) {
     return __awaiter(this, void 0, void 0, function* () {
-        const token = getToken();
-        const headers = {
-            "Content-Type": "application/json",
-        };
-        if (token) {
-            headers["Authorization"] = `Token ${token}`;
-        }
         const res = yield fetch(`${BASE_URL}${path}`, {
-            headers,
+            method: "GET",
+            headers: getHeaders(),
             credentials: "include"
         });
-        return res.json();
+        return handleRequest(res);
     });
 }
 export function apiPost(path_1, data_1) {
     return __awaiter(this, arguments, void 0, function* (path, data, requireAuth = false) {
-        const token = getToken();
-        const headers = {
-            "Content-Type": "application/json",
-        };
-        if (token) {
-            headers["Authorization"] = `Token ${token}`;
-        }
-        else if (requireAuth) {
-            throw new Error("No autenticado");
+        if (requireAuth && !getToken()) {
+            throw new Error("User not authenticated");
         }
         const res = yield fetch(`${BASE_URL}${path}`, {
             method: "POST",
-            headers,
+            headers: getHeaders(),
             body: JSON.stringify(data),
             credentials: "include"
         });
-        return res.json();
+        return handleRequest(res);
     });
 }
 export function apiPut(path, data) {
     return __awaiter(this, void 0, void 0, function* () {
-        const token = getToken();
-        if (!token) {
-            throw new Error("No autenticado");
-        }
-        const headers = {
-            "Content-Type": "application/json",
-            "Authorization": `Token ${token}`
-        };
+        if (!getToken())
+            throw new Error("User not authenticated");
         const res = yield fetch(`${BASE_URL}${path}`, {
             method: "PUT",
-            headers,
+            headers: getHeaders(),
             body: JSON.stringify(data),
             credentials: "include"
         });
-        if (!res.ok) {
-            const error = yield res.json();
-            throw new Error(JSON.stringify(error));
-        }
-        return res.json();
+        return handleRequest(res);
     });
 }
 export function apiPatch(path, data) {
     return __awaiter(this, void 0, void 0, function* () {
-        const token = getToken();
-        if (!token) {
-            throw new Error("No autenticado");
-        }
-        const headers = {
-            "Content-Type": "application/json",
-            "Authorization": `Token ${token}`
-        };
+        if (!getToken())
+            throw new Error("User not authenticated");
         const res = yield fetch(`${BASE_URL}${path}`, {
             method: "PATCH",
-            headers,
+            headers: getHeaders(),
             body: JSON.stringify(data),
             credentials: "include"
         });
-        if (!res.ok) {
-            const error = yield res.json();
-            throw new Error(JSON.stringify(error));
-        }
-        return res.json();
+        return handleRequest(res);
     });
 }
 export function apiDelete(path) {
     return __awaiter(this, void 0, void 0, function* () {
-        const token = getToken();
-        if (!token) {
-            throw new Error("No autenticado");
-        }
-        const headers = {
-            "Content-Type": "application/json",
-            "Authorization": `Token ${token}`
-        };
+        if (!getToken())
+            throw new Error("User not authenticated");
         const res = yield fetch(`${BASE_URL}${path}`, {
             method: "DELETE",
-            headers,
+            headers: getHeaders(),
             credentials: "include"
         });
-        if (!res.ok && res.status !== 204) {
-            const error = yield res.json();
-            throw new Error(JSON.stringify(error));
-        }
-        return res.status === 204 ? null : res.json();
+        return handleRequest(res);
     });
 }
-// Authentication functions
+/**
+ * ==========================================
+ * Authentication Specific Functions
+ * ==========================================
+ */
 export function login(username, password) {
     return __awaiter(this, void 0, void 0, function* () {
         var _a;
+        // We use direct fetch here because login endpoint might differ in headers logic slightly
+        // but we can still reuse handleRequest for response parsing
         const response = yield fetch(`${BASE_URL}/login/`, {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ username, password }),
             credentials: "include"
         });
-        if (!response.ok) {
-            const error = yield response.json();
-            throw new Error(error.detail || ((_a = error.non_field_errors) === null || _a === void 0 ? void 0 : _a[0]) || "Error al iniciar sesión");
+        try {
+            const data = yield handleRequest(response);
+            if (data.token) {
+                setToken(data.token);
+            }
+            return data;
         }
-        const data = yield response.json();
-        if (data.token) {
-            setToken(data.token);
+        catch (error) {
+            let msg = "Login failed";
+            try {
+                const errObj = JSON.parse(error.message);
+                msg = errObj.detail || ((_a = errObj.non_field_errors) === null || _a === void 0 ? void 0 : _a[0]) || msg;
+            }
+            catch (_b) {
+                msg = error.message;
+            }
+            throw new Error(msg);
         }
-        return data;
     });
 }
 export function register(username, email, password) {
     return __awaiter(this, void 0, void 0, function* () {
         const response = yield fetch(`${BASE_URL}/signup/`, {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ username, email, password }),
             credentials: "include"
         });
-        if (!response.ok) {
-            const error = yield response.json();
-            throw new Error(JSON.stringify(error));
-        }
-        const data = yield response.json();
-        return data;
+        return handleRequest(response);
     });
 }
 export function logout() {
     return __awaiter(this, void 0, void 0, function* () {
         const token = getToken();
-        if (!token) {
+        if (!token)
             return;
-        }
         try {
             yield fetch(`${BASE_URL}/logout/`, {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Token ${token}`
-                },
+                headers: getHeaders(),
                 credentials: "include"
             });
         }
         catch (error) {
-            console.error("Error al cerrar sesión:", error);
+            console.error("Logout error:", error);
         }
         finally {
             removeToken();
@@ -194,33 +217,6 @@ export function logout() {
 }
 export function getCurrentUser() {
     return __awaiter(this, void 0, void 0, function* () {
-        const token = getToken();
-        if (!token) {
-            throw new Error("No autenticado");
-        }
-        const response = yield fetch(`${BASE_URL}/user/me/`, {
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Token ${token}`
-            },
-            credentials: "include"
-        });
-        if (!response.ok) {
-            // Intenta leer el cuerpo para obtener detalles del error del servidor (útil en DEBUG)
-            let body = '';
-            try {
-                body = yield response.text();
-            }
-            catch (e) {
-                body = '<no response body available>';
-            }
-            if (response.status === 401) {
-                removeToken();
-                throw new Error("Sesión expirada");
-            }
-            throw new Error(`Error al obtener información del usuario (status ${response.status}): ${body}`);
-        }
-        return yield response.json();
+        return apiGet("/user/me/");
     });
 }

@@ -48,6 +48,7 @@ function loadSubjects() {
                             <span class="text-xs text-gray-400">Avance Clave</span>
                             <span class="text-sm font-bold text-purple-400">${s.progress || 0}%</span>
                         </div>
+                        <div class="text-xs text-gray-400 mb-2">${s.study_minutes_week || 0} / ${s.weekly_target_minutes || 0} min esta semana</div>
                         <div class="w-full h-2 rounded-full bg-gray-700/50" style="box-shadow: inset 0 0 10px rgba(0,0,0,0.3);">
                             <div class="h-full rounded-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all duration-300" style="width: ${s.progress || 0}%; box-shadow: 0 0 15px rgba(168,85,247,0.6);"></div>
                         </div>
@@ -68,7 +69,8 @@ function loadSubjects() {
                 </div>
             `)
                 .join("");
-            lucide.createIcons();
+            if (typeof lucide !== 'undefined')
+                lucide.createIcons();
             attachSubjectEventListeners();
         }
         catch (error) {
@@ -161,7 +163,14 @@ function handleSaveSubject(e) {
                 name: formData.get('name'),
                 professor_name: formData.get('professor_name') || undefined,
                 color: formData.get('color') || undefined,
-                next_exam_date: formData.get('next_exam_date') || undefined
+                next_exam_date: formData.get('next_exam_date') || undefined,
+                weekly_target_minutes: (() => {
+                    const raw = formData.get('weekly_target_minutes');
+                    if (!raw)
+                        return undefined;
+                    const n = Number(raw);
+                    return isNaN(n) ? undefined : Math.max(0, Math.floor(n));
+                })()
             };
             const priorityValue = formData.get('priority');
             payload.priority = priorityValue ? parseInt(priorityValue) : undefined;
@@ -216,6 +225,9 @@ function openSubjectModal(subjectId = null) {
                 priorityInput.value = subject.priority ? String(subject.priority) : '';
             if (colorInput)
                 colorInput.value = subject.color || '';
+            const targetInput = form.querySelector('[name="weekly_target_minutes"]');
+            if (targetInput)
+                targetInput.value = subject.weekly_target_minutes ? String(subject.weekly_target_minutes) : '';
             if (subject.next_exam_date && examInput) {
                 // Asumiendo que `next_exam_date` ya viene en formato compatible con input[type=date]
                 examInput.value = subject.next_exam_date;

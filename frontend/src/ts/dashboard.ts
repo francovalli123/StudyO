@@ -1,6 +1,8 @@
-import { apiGet, apiPost, apiDelete, apiPut } from "./api.js";
+import { apiGet, apiPost, apiDelete, apiPut, getToken } from "./api.js";
 
 declare const lucide: any;
+
+// Interfaces del dashboard  
 
 interface Habit {
     id: number;
@@ -9,6 +11,8 @@ interface Habit {
     streak: number;
     subject: number | null;
     created_at: string;
+    is_key: boolean;
+    completed_today: boolean;
 }
 
 interface Subject {
@@ -44,7 +48,7 @@ interface WeeklyObjective {
 
 // Función para formatear fechas
 function formatDate(dateString: string | null): string {
-    if (!dateString) return "No programado";
+    if (!dateString) return "No programado"; // Caso de error: no se ha programado una fecha.
     const date = new Date(dateString);
     const today = new Date();
     const diffTime = date.getTime() - today.getTime();
@@ -60,7 +64,7 @@ function formatDate(dateString: string | null): string {
 
 // Función para obtener el nombre de la prioridad
 function getPriorityName(priority: number | null): string {
-    if (!priority) return "Sin prioridad";
+    if (!priority) return "Sin prioridad"; // Caso de error: no hay prioridad asignada.
     const priorities: { [key: number]: string } = {
         1: "Alta",
         2: "Media",
@@ -71,7 +75,7 @@ function getPriorityName(priority: number | null): string {
 
 // Función para obtener el color de la prioridad
 function getPriorityColor(priority: number | null): string {
-    if (!priority) return "#71717a";
+    if (!priority) return "#71717a";    // Si no hay prioridad, se asigna un color por defecto.
     const colors: { [key: number]: string } = {
         1: "#ef4444", // Rojo para alta
         2: "#f59e0b", // Amarillo para media
@@ -233,18 +237,17 @@ async function loadSubjectsStats() {
 // Cargar y mostrar objetivos semanales
 async function loadWeeklyObjectives() {
     try {
-        const objectives: WeeklyObjective[] = await apiGet("/weekly-objectives/");
-        console.log("Objetivos cargados del backend:", objectives);
+        const objectives: WeeklyObjective[] = await apiGet("/weekly-objectives/");  // Espera a la respuesta de la API 
         
         const container = document.getElementById("weeklyObjectivesContainer");
         
-        if (!container) return;
+        if (!container) return; 
         
         // Guardar en localStorage también para referencia local
         localStorage.setItem('weeklyObjectives', JSON.stringify(objectives));
         
         // Cuando NO hay datos (Estado vacío)
-        if (objectives.length === 0) {
+        if (objectives.length === 0) {  // Si el array de objetives tiene longitud vacía, entonces quiere decir que el usuario no tiene objetivos semanales definidos.
             container.innerHTML = `
                 <div class="flex flex-col items-center justify-center py-12 text-center animate-fade animated">
                     
@@ -282,8 +285,8 @@ async function loadWeeklyObjectives() {
                 const priorityConfig = priorityMap[obj.priority || 2] || priorityMap[2];
 
                 // Usamos los datos guardados o fallbacks
-                const displayIcon = obj.icon || '⚡';
-                const displayArea = obj.area || 'General';
+                const displayIcon = obj.icon || '⚡'; // Ícono por defecto
+                const displayArea = obj.area || 'General';  // Label por defecto.
 
                 return `
                         <div class="objective-item bg-dark-input rounded-2xl p-5 relative group transition-all duration-300 hover:bg-[#1f222e] hover:translate-y-[-2px]" 
@@ -420,12 +423,11 @@ async function loadWeeklyObjectives() {
             });
         }
         
-        // IMPORTANTE: Recargar iconos para el nuevo contenido inyectado
-        lucide.createIcons();
+        // IMPORTANTE: Recargar iconos para el nuevo contenido inyectado (si el lib está disponible)
+        if (typeof lucide !== 'undefined') lucide.createIcons();
         
     } catch (error) {
-        console.error("Error loading weekly objectives:", error);
-        // Opcional: Mostrar estado de error en el contenedor
+        console.error("Error loading weekly objectives:", error);   // Manejo de errores: muestra el error al cargar los objetivos semanales.
     }
 }
 
@@ -580,6 +582,659 @@ async function loadPomodoroStats() {
     }
 }
 
+// Cargar ritmo de estudio semanal basado en Pomodoro
+async function loadWeeklyStudyRhythm() {
+    try {
+        const sessions: PomodoroSession[] = await apiGet("/pomodoro/");
+        
+        // Obtener sesiones de la última semana
+        const today = new Date();
+        const weekAgo = new Date(today);
+        weekAgo.setDate(weekAgo.getDate() - 7);
+        
+        const weeklySessions = sessions.filter(s => {
+            const sessionDate = new Date(s.start_time);
+            return sessionDate >= weekAgo;
+        });
+        
+        // Agrupar por día de la semana (0 = Domingo, 1 = Lunes, etc.)
+        const dayMinutes: { [key: number]: number } = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 };
+        
+        weeklySessions.forEach(session => {
+            const sessionDate = new Date(session.start_time);
+            const dayOfWeek = sessionDate.getDay();
+            dayMinutes[dayOfWeek] += session.duration;
+        });
+        
+        // Convertir a array para el gráfico (Lunes a Domingo)
+        const weekDays = ['Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sá', 'Do'];
+        const dataPoints = [
+            dayMinutes[1], // Lunes
+            dayMinutes[2], // Martes
+            dayMinutes[3], // Miércoles
+            dayMinutes[4], // Jueves
+            dayMinutes[5], // Viernes
+            dayMinutes[6], // Sábado
+            dayMinutes[0]  // Domingo
+        ];
+        
+        // Encontrar máximo para escalar el gráfico
+        const maxMinutes = Math.max(...dataPoints, 1);
+        const maxHeight = 120; // Altura máxima del gráfico en píxeles
+        
+        // Actualizar SVG del gráfico
+        const chartContainer = document.getElementById('weekly-rhythm-chart');
+        const chartParent = chartContainer?.parentElement;
+        
+        if (chartContainer && chartParent) {
+            // Si no hay datos, mostrar empty state
+            if (weeklySessions.length === 0) {
+                chartParent.innerHTML = `
+                    <div class="flex flex-col items-center justify-center h-full py-8">
+                        <i data-lucide="bar-chart-2" class="w-12 h-12 text-gray-600 mb-3"></i>
+                        <p class="text-gray-500 text-sm text-center">Aún no hay sesiones de Pomodoro esta semana</p>
+                        <p class="text-gray-600 text-xs text-center mt-1">Completá algunas sesiones para ver tu ritmo de estudio</p>
+                    </div>
+                `;
+                if (typeof lucide !== 'undefined') lucide.createIcons();
+                return;
+            }
+            
+            const svg = chartContainer as unknown as SVGElement;
+            const width = 450;
+            const step = width / 6;
+            
+            // Generar path para el gráfico de línea
+            let pathD = '';
+            const points: { x: number; y: number }[] = [];
+            
+            dataPoints.forEach((minutes, index) => {
+                const x = index * step;
+                const y = maxHeight - (minutes / maxMinutes) * maxHeight;
+                points.push({ x, y });
+            });
+            
+            // Crear path suave con curvas
+            if (points.length > 1) {
+                let smoothPath = `M ${points[0].x} ${points[0].y}`;
+                for (let i = 1; i < points.length; i++) {
+                    const prev = points[i - 1];
+                    const curr = points[i];
+                    const cp1x = prev.x + (curr.x - prev.x) / 2;
+                    const cp1y = prev.y;
+                    const cp2x = curr.x - (curr.x - prev.x) / 2;
+                    const cp2y = curr.y;
+                    smoothPath += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${curr.x} ${curr.y}`;
+                }
+                pathD = smoothPath;
+            } else if (points.length === 1) {
+                pathD = `M ${points[0].x} ${points[0].y}`;
+            }
+            
+            const weekDays = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+            
+            svg.innerHTML = `
+                <path d="${pathD}" fill="none" stroke="#c084fc" stroke-width="3" />
+                ${points.map((p, index) => {
+                    const minutes = dataPoints[index];
+                    const hours = (minutes / 60).toFixed(1);
+                    return `
+                        <g>
+                            <circle cx="${p.x}" cy="${p.y}" r="4" fill="#1e212b" stroke="#c084fc" stroke-width="2" 
+                                    class="cursor-pointer hover:r-6 transition-all" 
+                                    data-day="${weekDays[index]}" 
+                                    data-hours="${hours}"
+                                    data-minutes="${minutes}"/>
+                            <title>${weekDays[index]}: ${hours}h (${minutes} min)</title>
+                        </g>
+                    `;
+                }).join('')}
+            `;
+            
+            // Agregar tooltips interactivos
+            const circles = svg.querySelectorAll('circle');
+            circles.forEach((circle, index) => {
+                const minutes = dataPoints[index];
+                const hours = (minutes / 60).toFixed(1);
+                const day = weekDays[index];
+                
+                circle.addEventListener('mouseenter', (e: MouseEvent) => {
+                    const tooltip = document.createElement('div');
+                    tooltip.id = 'rhythm-tooltip';
+                    tooltip.className = 'fixed bg-dark-card border border-purple-500/30 rounded-lg px-3 py-2 text-sm text-white shadow-lg z-50 pointer-events-none';
+                    tooltip.innerHTML = `
+                        <div class="font-bold text-purple-400">${day}</div>
+                        <div class="text-gray-300">${hours}h (${minutes} min)</div>
+                    `;
+                    document.body.appendChild(tooltip);
+                    
+                    // Posicionar cerca del cursor
+                    updateTooltipPosition(tooltip, e.clientX, e.clientY);
+                });
+                
+                circle.addEventListener('mouseleave', () => {
+                    const tooltip = document.getElementById('rhythm-tooltip');
+                    if (tooltip) tooltip.remove();
+                });
+                
+                circle.addEventListener('mousemove', (e: MouseEvent) => {
+                    const tooltip = document.getElementById('rhythm-tooltip');
+                    if (tooltip) {
+                        updateTooltipPosition(tooltip, e.clientX, e.clientY);
+                    }
+                });
+            });
+        }
+    } catch (error) {
+        console.error("Error loading weekly study rhythm:", error);
+    }
+}
+
+// Cargar distribución de enfoque por materia basado en Pomodoro
+async function loadFocusDistribution() {
+    try {
+        const sessions: PomodoroSession[] = await apiGet("/pomodoro/");
+        const subjects: Subject[] = await apiGet("/subjects/");
+        
+        console.log('All sessions:', sessions);
+        console.log('All subjects:', subjects);
+        
+        // Obtener sesiones de la última semana
+        const today = new Date();
+        const weekAgo = new Date(today);
+        weekAgo.setDate(weekAgo.getDate() - 7);
+        
+        const weeklySessions = sessions.filter(s => {
+            const sessionDate = new Date(s.start_time);
+            return sessionDate >= weekAgo;
+        });
+        
+        // Agrupar minutos por materia
+        const subjectMinutes: { [key: number]: number } = {};
+        let totalMinutes = 0;
+        
+        weeklySessions.forEach(session => {
+            // Debug: ver qué está llegando
+            console.log('Session:', session, 'Subject ID:', session.subject, 'Type:', typeof session.subject);
+            
+            // El subject puede venir como número o null/undefined
+            let subjectId: number | null = null;
+            if (session.subject !== null && session.subject !== undefined) {
+                // Convertir a número si es string
+                subjectId = typeof session.subject === 'string' ? parseInt(session.subject) : session.subject;
+            }
+            
+            // Usar una clave especial para "sin materia" que no colisione con IDs reales
+            const key = subjectId !== null && !isNaN(subjectId) ? subjectId : -1;
+            
+            if (!subjectMinutes[key]) {
+                subjectMinutes[key] = 0;
+            }
+            subjectMinutes[key] += session.duration;
+            totalMinutes += session.duration;
+        });
+        
+        console.log('Subject minutes:', subjectMinutes);
+        console.log('Total minutes:', totalMinutes);
+        
+        // Crear array de materias con minutos (solo las que tienen ID real)
+        const subjectData = subjects
+            .filter(s => subjectMinutes[s.id] && subjectMinutes[s.id] > 0)
+            .map(s => ({
+                id: s.id,
+                name: s.name,
+                minutes: subjectMinutes[s.id],
+                percentage: totalMinutes > 0 ? (subjectMinutes[s.id] / totalMinutes) * 100 : 0
+            }))
+            .sort((a, b) => b.minutes - a.minutes);
+        
+        // Si hay sesiones sin materia (key = -1), agregarlas al final
+        if (subjectMinutes[-1] && subjectMinutes[-1] > 0) {
+            subjectData.push({
+                id: -1,
+                name: 'Sin materia',
+                minutes: subjectMinutes[-1],
+                percentage: totalMinutes > 0 ? (subjectMinutes[-1] / totalMinutes) * 100 : 0
+            });
+        }
+        
+        // Colores para el gráfico
+        const colors = ['#a855f7', '#60a5fa', '#34d399', '#fbbf24', '#ec4899', '#8b5cf6'];
+        
+        // Generar gradiente cónico
+        let conicGradient = '';
+        let currentPercent = 0;
+        
+        subjectData.forEach((subject, index) => {
+            const color = colors[index % colors.length];
+            const startPercent = currentPercent;
+            const endPercent = currentPercent + subject.percentage;
+            conicGradient += `${color} ${startPercent}% ${endPercent}%, `;
+            currentPercent = endPercent;
+        });
+        
+        // Actualizar gráfico de distribución
+        const pieChart = document.getElementById('focus-distribution-chart');
+        const pieChartParent = pieChart?.parentElement;
+        
+        if (pieChart && pieChartParent) {
+            if (weeklySessions.length === 0 || subjectData.length === 0) {
+                // Mostrar empty state
+                pieChartParent.innerHTML = `
+                    <div class="flex flex-col items-center justify-center h-full py-8">
+                        <i data-lucide="pie-chart" class="w-12 h-12 text-gray-600 mb-3"></i>
+                        <p class="text-gray-500 text-sm text-center">Aún no hay sesiones de Pomodoro</p>
+                        <p class="text-gray-600 text-xs text-center mt-1">Completá sesiones para ver la distribución</p>
+                    </div>
+                `;
+                if (typeof lucide !== 'undefined') lucide.createIcons();
+                return;
+            }
+            
+            (pieChart as HTMLElement).style.background = `conic-gradient(${conicGradient.slice(0, -2)})`;
+            
+            // Actualizar total de horas (mostrar con decimales si es menos de 1 hora)
+            const totalHoursEl = document.getElementById('focus-total-hours');
+            if (totalHoursEl) {
+                if (totalMinutes < 60) {
+                    totalHoursEl.textContent = `${totalMinutes}m`;
+                } else {
+                    const hours = Math.floor(totalMinutes / 60);
+                    const mins = totalMinutes % 60;
+                    if (mins === 0) {
+                        totalHoursEl.textContent = `${hours}h`;
+                    } else {
+                        totalHoursEl.textContent = `${hours}h ${mins}m`;
+                    }
+                }
+            }
+            
+            // Actualizar leyenda
+            const legendContainer = document.getElementById('focus-legend');
+            if (legendContainer) {
+                legendContainer.innerHTML = subjectData.slice(0, 4).map((subject, index) => {
+                    const color = colors[index % colors.length];
+                    return `
+                        <div class="flex items-center gap-1">
+                            <span class="w-2 h-2 rounded-full" style="background-color: ${color}"></span>
+                            <span class="text-[10px] text-gray-400">${subject.name}</span>
+                        </div>
+                    `;
+                }).join('');
+            }
+        }
+    } catch (error) {
+        console.error("Error loading focus distribution:", error);
+    }
+}
+
+// Cargar momento peak de productividad basado en Pomodoro
+async function loadPeakProductivity() {
+    try {
+        const sessions: PomodoroSession[] = await apiGet("/pomodoro/");
+        
+        // Obtener sesiones de las últimas 4 semanas
+        const today = new Date();
+        const fourWeeksAgo = new Date(today);
+        fourWeeksAgo.setDate(fourWeeksAgo.getDate() - 28);
+        
+        const recentSessions = sessions.filter(s => {
+            const sessionDate = new Date(s.start_time);
+            return sessionDate >= fourWeeksAgo;
+        });
+        
+        // Si no hay suficientes sesiones, mostrar mensaje
+        if (recentSessions.length === 0) {
+            const peakEl = document.getElementById('peak-productivity-time');
+            if (peakEl) {
+                peakEl.textContent = 'No hay datos suficientes';
+            }
+            const descriptionEl = document.getElementById('peak-productivity-desc');
+            if (descriptionEl) {
+                descriptionEl.textContent = 'Completá algunas sesiones de Pomodoro para descubrir tu momento peak de productividad.';
+            }
+            return;
+        }
+        
+        // Agrupar por hora del día (0-23) y contar minutos totales por hora
+        const hourMinutes: { [key: number]: number } = {};
+        
+        recentSessions.forEach(session => {
+            const sessionDate = new Date(session.start_time);
+            const hour = sessionDate.getHours();
+            if (!hourMinutes[hour]) {
+                hourMinutes[hour] = 0;
+            }
+            hourMinutes[hour] += session.duration;
+        });
+        
+        // Encontrar la hora con más minutos
+        let peakHour = 14; // Default si no hay datos
+        let maxMinutes = 0;
+        
+        Object.keys(hourMinutes).forEach(hourStr => {
+            const hour = parseInt(hourStr);
+            const minutes = hourMinutes[hour];
+            if (minutes > maxMinutes) {
+                maxMinutes = minutes;
+                peakHour = hour;
+            }
+        });
+        
+        // Si no hay datos suficientes, usar default
+        if (maxMinutes === 0) {
+            peakHour = 14;
+        }
+        
+        // Calcular rango de 3 horas alrededor del peak (1 hora antes, peak, 1 hora después)
+        const startHour = Math.max(0, peakHour - 1);
+        const endHour = Math.min(23, peakHour + 1);
+        
+        // Formatear hora
+        const formatHour = (h: number) => {
+            return `${h.toString().padStart(2, '0')}:00`;
+        };
+        
+        const dayNames = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+        const todayName = dayNames[today.getDay()];
+        
+        // Actualizar UI
+        const peakEl = document.getElementById('peak-productivity-time');
+        if (peakEl) {
+            peakEl.textContent = `${todayName}, ${formatHour(startHour)} - ${formatHour(endHour)}`;
+        }
+        
+        const descriptionEl = document.getElementById('peak-productivity-desc');
+        if (descriptionEl) {
+            descriptionEl.innerHTML = `
+                Datos de las últimas 4 semanas indican que esta es tu franja de máxima concentración. 
+                <span class="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent font-medium">¡Aprovechala al máximo para tareas complejas!</span>
+            `;
+        }
+    } catch (error) {
+        console.error("Error loading peak productivity:", error);
+    }
+}
+
+// Cargar revisión de balance semanal basado en Pomodoro
+async function loadWeeklyBalance() {
+    try {
+        const sessions: PomodoroSession[] = await apiGet("/pomodoro/");
+        const subjects: Subject[] = await apiGet("/subjects/");
+        
+        // Obtener sesiones de la última semana
+        const today = new Date();
+        const weekAgo = new Date(today);
+        weekAgo.setDate(weekAgo.getDate() - 7);
+        
+        const weeklySessions = sessions.filter(s => {
+            const sessionDate = new Date(s.start_time);
+            return sessionDate >= weekAgo;
+        });
+        
+        // Agrupar minutos por materia
+        const subjectMinutes: { [key: number]: number } = {};
+        let totalMinutes = 0;
+        
+        weeklySessions.forEach(session => {
+            const subjectId = session.subject || 0;
+            if (!subjectMinutes[subjectId]) {
+                subjectMinutes[subjectId] = 0;
+            }
+            subjectMinutes[subjectId] += session.duration;
+            totalMinutes += session.duration;
+        });
+        
+        // Obtener top 3 materias
+        const topSubjects = subjects
+            .filter(s => subjectMinutes[s.id])
+            .map(s => ({
+                id: s.id,
+                name: s.name,
+                minutes: subjectMinutes[s.id],
+                percentage: (subjectMinutes[s.id] / totalMinutes) * 100
+            }))
+            .sort((a, b) => b.minutes - a.minutes)
+            .slice(0, 3);
+        
+        // Colores para el gráfico
+        const colors = ['#c084fc', '#fbbf24', '#34d399'];
+        
+        // Generar gradiente cónico
+        let conicGradient = '';
+        let currentPercent = 0;
+        
+        topSubjects.forEach((subject, index) => {
+            const color = colors[index % colors.length];
+            const startPercent = currentPercent;
+            const endPercent = currentPercent + subject.percentage;
+            conicGradient += `${color} ${startPercent}% ${endPercent}%, `;
+            currentPercent = endPercent;
+        });
+        
+        // Actualizar gráfico de balance
+        const balanceChart = document.getElementById('weekly-balance-chart');
+        const balanceChartParent = balanceChart?.parentElement;
+        
+        if (balanceChart && balanceChartParent) {
+            if (weeklySessions.length === 0 || topSubjects.length === 0) {
+                // Mostrar empty state
+                balanceChartParent.innerHTML = `
+                    <div class="flex flex-col items-center justify-center h-full py-8">
+                        <i data-lucide="pie-chart" class="w-10 h-10 text-gray-600 mb-3"></i>
+                        <p class="text-gray-500 text-xs text-center">Aún no hay sesiones esta semana</p>
+                        <p class="text-gray-600 text-[10px] text-center mt-1">Completá sesiones para ver el balance</p>
+                    </div>
+                `;
+                if (typeof lucide !== 'undefined') lucide.createIcons();
+                return;
+            }
+            
+            (balanceChart as HTMLElement).style.background = `conic-gradient(${conicGradient.slice(0, -2)})`;
+            
+            // Actualizar total de horas
+            const totalHoursEl = document.getElementById('weekly-balance-hours');
+            if (totalHoursEl) {
+                const totalHours = Math.round(totalMinutes / 60);
+                totalHoursEl.textContent = `${totalHours}h`;
+            }
+        }
+    } catch (error) {
+        console.error("Error loading weekly balance:", error);
+    }
+}
+
+// Función auxiliar para posicionar tooltip cerca del cursor
+function updateTooltipPosition(tooltip: HTMLElement, mouseX: number, mouseY: number) {
+    const tooltipRect = tooltip.getBoundingClientRect();
+    const offset = 15; // Distancia del cursor al tooltip
+    
+    // Posicionar a la derecha y arriba del cursor por defecto
+    let left = mouseX + offset;
+    let top = mouseY - tooltipRect.height - offset;
+    
+    // Ajustar si se sale de la pantalla horizontalmente
+    if (left + tooltipRect.width > window.innerWidth - 10) {
+        left = mouseX - tooltipRect.width - offset; // A la izquierda del cursor
+    }
+    if (left < 10) {
+        left = 10;
+    }
+    
+    // Ajustar si se sale de la pantalla verticalmente
+    if (top < 10) {
+        top = mouseY + offset; // Abajo del cursor
+    }
+    if (top + tooltipRect.height > window.innerHeight - 10) {
+        top = window.innerHeight - tooltipRect.height - 10;
+    }
+    
+    tooltip.style.left = `${left}px`;
+    tooltip.style.top = `${top}px`;
+}
+
+// Función para toggle de hábito (similar a habits.ts)
+async function toggleHabitCompletion(habitId: number, complete: boolean) {
+    const token = getToken();
+    if (!token) return;
+
+    try {
+        // Actualizar UI inmediatamente (optimistic update)
+        const habitElement = document.querySelector(`[data-habit-id="${habitId}"]`)?.closest('.flex.items-center.justify-between');
+        if (habitElement) {
+            const checkbox = habitElement.querySelector('.w-6.h-6.rounded') as HTMLElement;
+            const textElement = habitElement.querySelector('.flex.items-center.gap-2') as HTMLElement;
+            const streakElement = habitElement.querySelector('.text-xs')?.parentElement;
+            
+            if (checkbox && textElement) {
+                if (complete) {
+                    checkbox.className = 'w-6 h-6 rounded bg-gradient-to-br from-purple-500/20 via-pink-500/20 to-purple-500/20 flex items-center justify-center';
+                    checkbox.style.boxShadow = '0 0 0 1px rgba(168,85,247,0.3)';
+                    checkbox.innerHTML = '<i data-lucide="check" class="w-4 h-4 text-purple-400"></i>';
+                    textElement.className = 'flex items-center gap-2 text-gray-400 line-through';
+                } else {
+                    checkbox.className = 'w-6 h-6 rounded border border-gray-600 flex items-center justify-center group-hover:border-purple-500';
+                    checkbox.style.boxShadow = '';
+                    checkbox.innerHTML = '';
+                    textElement.className = 'flex items-center gap-2 text-gray-300 font-medium';
+                }
+                if (typeof lucide !== 'undefined') lucide.createIcons();
+            }
+        }
+
+        // Llamar a la API
+        const response = await fetch(
+            `http://127.0.0.1:8000/api/habits/${habitId}/complete/`,
+            {
+                method: complete ? "POST" : "DELETE",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Token ${token}`
+                }
+            }
+        );
+
+        if (!response.ok) throw new Error("Error API");
+
+        // Actualizar racha desde la respuesta
+        const data = await response.json();
+        if (data.streak !== undefined && habitElement) {
+            const streakText = habitElement.querySelector('.text-xs')?.textContent;
+            if (streakText) {
+                const streakMatch = streakText.match(/\d+/);
+                if (streakMatch) {
+                    const streakEl = habitElement.querySelector('.text-xs');
+                    if (streakEl) {
+                        streakEl.innerHTML = `<i data-lucide="trending-up" class="w-3 h-3"></i> ${data.streak}`;
+                        if (typeof lucide !== 'undefined') lucide.createIcons();
+                    }
+                }
+            }
+        }
+
+        // Recargar hábitos para actualizar el estado completo
+        loadKeyHabits();
+
+    } catch (err) {
+        console.error("Error toggling habit:", err);
+        alert("Error de conexión. No se guardó.");
+        // Recargar para revertir cambios
+        loadKeyHabits();
+    }
+}
+
+// Cargar hábitos clave
+async function loadKeyHabits() {
+    try {
+        const habits: Habit[] = await apiGet("/habits/");
+        
+        // Filtrar solo hábitos clave
+        const keyHabits = habits.filter(h => h.is_key);
+        
+        const keyHabitsContainer = document.getElementById('key-habits-container');
+        if (!keyHabitsContainer) return;
+        
+        if (keyHabits.length === 0) {
+            keyHabitsContainer.innerHTML = `
+                <div class="text-center py-8 text-gray-500">
+                    <i data-lucide="target" class="w-8 h-8 mx-auto mb-2 text-gray-600"></i>
+                    <p class="text-sm">No tenés hábitos clave configurados aún.</p>
+                    <p class="text-xs mt-1">Marcá algunos hábitos como clave en la página de hábitos.</p>
+                </div>
+            `;
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+            return;
+        }
+        
+        // Ordenar por racha descendente
+        const sortedHabits = [...keyHabits].sort((a, b) => b.streak - a.streak);
+        
+        // Calcular progreso diario general (hábitos completados hoy)
+        const completedToday = sortedHabits.filter(h => h.completed_today).length;
+        
+        const dailyProgress = sortedHabits.length > 0 
+            ? Math.round((completedToday / sortedHabits.length) * 100) 
+            : 0;
+        
+        // Renderizar hábitos
+        keyHabitsContainer.innerHTML = sortedHabits.map(habit => {
+            const isCompleted = habit.completed_today;
+            
+            return `
+                <div class="flex items-center justify-between bg-dark-input p-4 rounded-xl relative group transition-all duration-300" 
+                    style="box-shadow: 0 0 0 1px rgba(168,85,247,0.15), 0 0 15px rgba(168,85,247,0.08);"
+                    data-habit-id="${habit.id}">
+                    <div class="flex items-center gap-4 flex-1">
+                        <button class="habit-complete-btn w-6 h-6 rounded ${isCompleted ? 'bg-gradient-to-br from-purple-500/20 via-pink-500/20 to-purple-500/20 flex items-center justify-center cursor-pointer' : 'border border-gray-600 flex items-center justify-center group-hover:border-purple-500 cursor-pointer transition-all'}" 
+                            style="${isCompleted ? 'box-shadow: 0 0 0 1px rgba(168,85,247,0.3);' : ''}"
+                            data-habit-id="${habit.id}"
+                            data-completed="${isCompleted}"
+                            title="${isCompleted ? 'Marcar como no completado' : 'Marcar como completado'}">
+                            ${isCompleted ? '<i data-lucide="check" class="w-4 h-4 text-purple-400"></i>' : ''}
+                        </button>
+                        <div class="flex items-center gap-2 ${isCompleted ? 'text-gray-400 line-through' : 'text-gray-300 font-medium'}">
+                            <i data-lucide="target" class="w-4 h-4 text-purple-400"></i>
+                            ${habit.name}
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-1 text-xs bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+                        <i data-lucide="trending-up" class="w-3 h-3"></i>
+                        <p class="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent font-semibold">
+                            Racha: ${habit.streak}
+                        </p>
+                    </div>
+                </div>
+            `;
+        }).join('');
+        
+        // Agregar event listeners para los botones de completar
+        keyHabitsContainer.querySelectorAll('.habit-complete-btn').forEach(button => {
+            button.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                const btn = e.currentTarget as HTMLElement;
+                const id = Number(btn.getAttribute('data-habit-id'));
+                const completed = btn.getAttribute('data-completed') === 'true';
+                await toggleHabitCompletion(id, !completed);
+            });
+        });
+        
+        // Actualizar barra de progreso diario
+        const progressBar = document.getElementById('daily-progress-bar');
+        const progressText = document.getElementById('daily-progress-text');
+        
+        if (progressBar) {
+            progressBar.style.width = `${dailyProgress}%`;
+        }
+        if (progressText) {
+            progressText.textContent = `${dailyProgress}%`;
+        }
+        
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    } catch (error) {
+        console.error("Error loading key habits:", error);
+    }
+}
+
 // Función principal para cargar todo el dashboard
 async function loadDashboard() {
     const loadingEl = document.getElementById("dashboard-content");
@@ -592,7 +1247,12 @@ async function loadDashboard() {
             loadHabitsStats(),
             loadSubjectsStats(),
             loadPomodoroStats(),
-            loadWeeklyObjectives()
+            loadWeeklyObjectives(),
+            loadWeeklyStudyRhythm(),
+            loadFocusDistribution(),
+            loadPeakProductivity(),
+            loadWeeklyBalance(),
+            loadKeyHabits()
         ]);
         
         if (loadingEl) {
@@ -698,6 +1358,12 @@ if (document.readyState === 'loading') {
     let completedCycles = 0; // number of work sessions completed in current set
     let sessionStart: Date | null = null; // when current work started
     let defaultSubjectId: number | null = null;
+    let beforeUnloadHandler: ((e: BeforeUnloadEvent) => void) | null = null;
+    
+    // Variables para manejar el timer cuando la pestaña está en segundo plano
+    let timerStartTime: number | null = null; // Timestamp cuando se inició el timer
+    let timerStartRemaining: number = 0; // Segundos restantes cuando se inició el timer
+    let visibilityHandler: (() => void) | null = null; // Handler para visibilitychange
 
     const circle = document.getElementById('pomodoroProgressCircle') as SVGCircleElement | null;
     const timerDisplay = document.getElementById('pomodoroTimerDisplay');
@@ -784,29 +1450,92 @@ if (document.readyState === 'loading') {
         } catch (e) { console.warn('Audio not available', e); }
     }
 
+    // Función para sincronizar el timer basándose en timestamps (útil cuando la pestaña vuelve a estar visible)
+    function syncTimer() {
+        if (!isRunning || timerStartTime === null) return;
+        
+        const now = Date.now();
+        const elapsed = Math.floor((now - timerStartTime) / 1000); // Segundos transcurridos
+        const newRemaining = Math.max(0, timerStartRemaining - elapsed);
+        
+        if (newRemaining !== remainingSeconds) {
+            remainingSeconds = newRemaining;
+            updateDisplay();
+        }
+        
+        // Si el timer terminó mientras estaba en segundo plano
+        if (remainingSeconds <= 0) {
+            finishTimer();
+        }
+    }
+    
+    function finishTimer() {
+        playBeep();
+        if (timerInterval) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+        }
+        isRunning = false;
+        timerStartTime = null;
+        
+        // Remover advertencia cuando el timer se detiene
+        if (beforeUnloadHandler) {
+            window.removeEventListener('beforeunload', beforeUnloadHandler);
+            beforeUnloadHandler = null;
+        }
+        
+        // If work finished, save session
+        if (currentStage === 'work' && sessionStart) {
+            const end = new Date();
+            const durationMin = Math.round((end.getTime() - sessionStart.getTime()) / 60000);
+            saveWorkSession(sessionStart, end, durationMin, defaultSubjectId).catch(err => console.error('Error saving pomodoro session', err));
+            sessionStart = null;
+            completedCycles += 1;
+        }
+        // advance stage
+        advanceStage();
+    }
+
     function startTimer() {
         if (isRunning) return;
         isRunning = true;
         updatePlayButtonState();
         if (!sessionStart && currentStage === 'work') sessionStart = new Date();
-        timerInterval = window.setInterval(() => {
-            remainingSeconds -= 1;
-            if (remainingSeconds <= 0) {
-                // stage finished
-                playBeep();
-                clearInterval(timerInterval as number);
-                timerInterval = null;
-                isRunning = false;
-                // If work finished, save session
-                if (currentStage === 'work' && sessionStart) {
-                    const end = new Date();
-                    const durationMin = Math.round((end.getTime() - sessionStart.getTime()) / 60000);
-                    saveWorkSession(sessionStart, end, durationMin, defaultSubjectId).catch(err => console.error('Error saving pomodoro session', err));
-                    sessionStart = null;
-                    completedCycles += 1;
+        
+        // Guardar timestamp de inicio para sincronización
+        timerStartTime = Date.now();
+        timerStartRemaining = remainingSeconds;
+        
+        // Agregar advertencia de navegación cuando el timer está corriendo
+        beforeUnloadHandler = (e: BeforeUnloadEvent) => {
+            e.preventDefault();
+            e.returnValue = 'El Pomodoro se detendrá si abandonas esta página. ¿Estás seguro?';
+            return e.returnValue;
+        };
+        window.addEventListener('beforeunload', beforeUnloadHandler);
+        
+        // Agregar listener para detectar cuando la pestaña vuelve a estar visible (solo una vez)
+        if (!visibilityHandler) {
+            visibilityHandler = () => {
+                if (!document.hidden && isRunning) {
+                    // Sincronizar el timer cuando la pestaña vuelve a estar visible
+                    syncTimer();
                 }
-                // advance stage
-                advanceStage();
+            };
+            document.addEventListener('visibilitychange', visibilityHandler);
+        }
+        
+        timerInterval = window.setInterval(() => {
+            // Sincronizar periódicamente para compensar cualquier desviación
+            syncTimer();
+            
+            // También decrementar normalmente (por si acaso)
+            if (remainingSeconds > 0) {
+                remainingSeconds -= 1;
+            }
+            
+            if (remainingSeconds <= 0) {
+                finishTimer();
             }
             updateDisplay();
         }, 1000);
@@ -818,14 +1547,26 @@ if (document.readyState === 'loading') {
             timerInterval = null;
         }
         isRunning = false;
-        updatePlayButtonState();    
+        timerStartTime = null; // Limpiar timestamp
+        updatePlayButtonState();
+        
+        // Remover advertencia cuando se pausa
+        if (beforeUnloadHandler) {
+            window.removeEventListener('beforeunload', beforeUnloadHandler);
+            beforeUnloadHandler = null;
+        }
+        
+        // Nota: No removemos el visibilityHandler aquí porque puede ser útil mantenerlo
+        // para cuando se reinicie el timer
     }
 
     function resetTimer(toStage: Stage | null = null) {
-        pauseTimer();
+        pauseTimer(); // pauseTimer ya remueve el handler
         if (toStage) currentStage = toStage;
         remainingSeconds = (currentStage === 'work' ? settings.workMinutes : (currentStage === 'short_break' ? settings.shortBreakMinutes : settings.longBreakMinutes)) * 60;
         sessionStart = null;
+        timerStartTime = null; // Limpiar timestamp
+        timerStartRemaining = 0;
         updateDisplay();
     }
 
@@ -871,10 +1612,16 @@ if (document.readyState === 'loading') {
                 end_time: end.toISOString(),
                 duration: durationMin,
             };
-            if (subjectId) payload.subject = subjectId;
-            await apiPost('/pomodoro/', payload, true);
-            // refresh pomodoro stats
+            // Asegurar que subjectId sea un número válido o null
+            if (subjectId !== null && subjectId !== undefined && !isNaN(subjectId)) {
+                payload.subject = Number(subjectId);
+            }
+            console.log('Saving pomodoro session with payload:', payload);
+            const response = await apiPost('/pomodoro/', payload, true);
+            console.log('Pomodoro session saved:', response);
+            // refresh pomodoro stats y distribución
             loadPomodoroStats().catch(e => console.warn('refresh pomodoro stats failed', e));
+            loadFocusDistribution().catch(e => console.warn('refresh focus distribution failed', e));
         } catch (e) {
             console.error('Failed to save pomodoro session', e);
         }
@@ -905,8 +1652,8 @@ if (document.readyState === 'loading') {
             playBtn.innerHTML = '<i data-lucide="play" class="w-5 h-5 ml-1"></i>';
         }
         
-        // IMPORTANTE: Renderizar el nuevo icono
-        lucide.createIcons();
+        // IMPORTANTE: Renderizar el nuevo icono (si el lib está disponible)
+        if (typeof lucide !== 'undefined') lucide.createIcons();
     }
 
     // UI wiring
