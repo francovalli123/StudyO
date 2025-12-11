@@ -1,8 +1,20 @@
+// Import API functions for making HTTP requests and token management
 import { apiGet, apiPost, apiDelete, apiPut, getToken } from "./api.js";
 
+// Declare lucide icons library for dynamic icon rendering
 declare const lucide: any;
 
-// Interfaces del dashboard  
+/**
+ * ==========================================
+ * Dashboard Interfaces - Type Definitions
+ * ==========================================
+ * These interfaces define the structure of data objects
+ * used throughout the dashboard application
+ */
+
+/**
+ * Habit interface - Represents a user's daily/weekly habit
+ */
 
 interface Habit {
     id: number;
@@ -15,6 +27,9 @@ interface Habit {
     completed_today: boolean;
 }
 
+/**
+ * Subject interface - Represents an academic subject
+ */
 interface Subject {
     id: number;
     name: string;
@@ -25,6 +40,9 @@ interface Subject {
     professor_name: string | null;
 }
 
+/**
+ * PomodoroSession interface - Represents a Pomodoro work session
+ */
 interface PomodoroSession {
     id: number;
     subject: number | null;
@@ -34,21 +52,35 @@ interface PomodoroSession {
     notes: string;
 }
 
+/**
+ * WeeklyObjective interface - Represents a weekly strategic objective
+ */
 interface WeeklyObjective {
     id: number;
     title: string;
     detail: string;
     priority: number | null;
     notes: string;    
-    area?: string; 
-    icon?: string; 
+    area?: string;  // Category or area of focus
+    icon?: string;  // Emoji icon for visual representation
     subject: number | null;
     created_at: string;
 }
 
-// Función para formatear fechas
+/**
+ * ==========================================
+ * Utility Functions
+ * ==========================================
+ * Helper functions for date formatting, priority management, and data processing
+ */
+
+/**
+ * Formats a date string into Spanish relative format
+ * @param dateString - ISO date string to format
+ * @returns Formatted date string (e.g., "Pasado", "Hoy", "Mañana", "En 5 días")
+ */
 function formatDate(dateString: string | null): string {
-    if (!dateString) return "No programado"; // Caso de error: no se ha programado una fecha.
+    if (!dateString) return "No programado"; // Return default text if no date provided
     const date = new Date(dateString);
     const today = new Date();
     const diffTime = date.getTime() - today.getTime();
@@ -62,33 +94,47 @@ function formatDate(dateString: string | null): string {
     return date.toLocaleDateString('es-AR', { day: 'numeric', month: 'short' });
 }
 
-// Función para obtener el nombre de la prioridad
+/**
+ * Gets human-readable priority level name
+ * @param priority - Priority numeric level (1-3)
+ * @returns Priority name in Spanish
+ */
 function getPriorityName(priority: number | null): string {
-    if (!priority) return "Sin prioridad"; // Caso de error: no hay prioridad asignada.
+    if (!priority) return "Sin prioridad"; // Default text when no priority assigned
     const priorities: { [key: number]: string } = {
-        1: "Alta",
-        2: "Media",
-        3: "Baja"
+        1: "Alta",      // High priority
+        2: "Media",     // Medium priority
+        3: "Baja"       // Low priority
     };
     return priorities[priority] || "Sin prioridad";
 }
 
-// Función para obtener el color de la prioridad
+/**
+ * Gets color associated with priority level for UI visualization
+ * @param priority - Priority numeric level (1-3)
+ * @returns Hex color code for the priority
+ */
 function getPriorityColor(priority: number | null): string {
-    if (!priority) return "#71717a";    // Si no hay prioridad, se asigna un color por defecto.
+    if (!priority) return "#71717a";    // Default gray color when no priority set
     const colors: { [key: number]: string } = {
-        1: "#ef4444", // Rojo para alta
-        2: "#f59e0b", // Amarillo para media
-        3: "#10b981"  // Verde para baja
+        1: "#ef4444", // Red for high priority
+        2: "#f59e0b", // Yellow for medium priority
+        3: "#10b981"  // Green for low priority
     };
     return colors[priority] || "#71717a";
 }
 
-// Cargar y mostrar estadísticas de hábitos
+/**
+ * Loads and displays habit statistics on the dashboard
+ * Fetches all habits and calculates total count, maximum streak, and average streak
+ * Also displays top 5 habits sorted by streak
+ */
 async function loadHabitsStats() {
     try {
+        // Fetch all habits from API
         const habits: Habit[] = await apiGet("/habits/");
         
+        // Calculate aggregate statistics
         const totalHabits = habits.length;
         const maxStreak = habits.length > 0 
             ? Math.max(...habits.map(h => h.streak)) 
@@ -97,7 +143,7 @@ async function loadHabitsStats() {
             ? Math.round(habits.reduce((sum, h) => sum + h.streak, 0) / habits.length)
             : 0;
         
-        // Actualizar estadísticas
+        // Update statistics display elements
         const totalEl = document.getElementById("total-habits");
         const maxStreakEl = document.getElementById("max-streak");
         const avgStreakEl = document.getElementById("avg-streak");
@@ -106,16 +152,18 @@ async function loadHabitsStats() {
         if (maxStreakEl) maxStreakEl.textContent = maxStreak.toString();
         if (avgStreakEl) avgStreakEl.textContent = avgStreak.toString();
         
-        // Mostrar hábitos recientes (top 5 por racha)
+        // Display recent habits (top 5 sorted by streak)
         const recentHabitsEl = document.getElementById("recent-habits");
         if (recentHabitsEl) {
             const sortedHabits = [...habits]
                 .sort((a, b) => b.streak - a.streak)
                 .slice(0, 5);
             
+            // Show empty state if no habits exist
             if (sortedHabits.length === 0) {
                 recentHabitsEl.innerHTML = '<p class="empty-state">No tenés hábitos aún. <a href="habits.html">Creá tu primer hábito</a></p>';
             } else {
+                // Render habit items with name and current streak
                 recentHabitsEl.innerHTML = sortedHabits.map(habit => `
                     <div class="habit-item">
                         <div class="habit-info">
@@ -131,6 +179,7 @@ async function loadHabitsStats() {
         }
     } catch (error) {
         console.error("Error loading habits:", error);
+        // Show error state to user
         const recentHabitsEl = document.getElementById("recent-habits");
         if (recentHabitsEl) {
             recentHabitsEl.innerHTML = '<p class="error-state">Error al cargar hábitos</p>';
@@ -138,33 +187,40 @@ async function loadHabitsStats() {
     }
 }
 
-// Cargar y mostrar estadísticas de materias
+/**
+ * Loads and displays subject statistics on the dashboard
+ * Fetches all subjects and calculates total count and average progress
+ * Also displays upcoming exams and all subjects with their progress bars
+ */
 async function loadSubjectsStats() {
     try {
+        // Fetch all subjects from API
         const subjects: Subject[] = await apiGet("/subjects/");
         
+        // Calculate aggregate statistics
         const totalSubjects = subjects.length;
         const avgProgress = subjects.length > 0
             ? Math.round(subjects.reduce((sum, s) => sum + s.progress, 0) / subjects.length)
             : 0;
         
-        // Actualizar estadísticas
+        // Update statistics display elements
         const totalEl = document.getElementById("total-subjects");
         const avgProgressEl = document.getElementById("avg-progress");
         
         if (totalEl) totalEl.textContent = totalSubjects.toString();
         if (avgProgressEl) {
             avgProgressEl.textContent = `${avgProgress}%`;
-            // Actualizar barra de progreso
+            // Update progress bar visualization
             const progressBar = document.getElementById("avg-progress-bar");
             if (progressBar) {
                 progressBar.style.width = `${avgProgress}%`;
             }
         }
         
-        // Mostrar materias con próximos exámenes
+        // Display upcoming exams section (subjects with exam dates)
         const upcomingExamsEl = document.getElementById("upcoming-exams");
         if (upcomingExamsEl) {
+            // Filter subjects with exam dates and sort by nearest date
             const subjectsWithExams = subjects
                 .filter(s => s.next_exam_date)
                 .sort((a, b) => {
@@ -173,9 +229,11 @@ async function loadSubjectsStats() {
                 })
                 .slice(0, 5);
             
+            // Show empty state if no exams scheduled
             if (subjectsWithExams.length === 0) {
                 upcomingExamsEl.innerHTML = '<p class="empty-state">No tenés exámenes programados</p>';
             } else {
+                // Render exam items with date and priority
                 upcomingExamsEl.innerHTML = subjectsWithExams.map(subject => {
                     const examDate = formatDate(subject.next_exam_date);
                     const priorityColor = getPriorityColor(subject.priority);
@@ -199,12 +257,14 @@ async function loadSubjectsStats() {
             }
         }
         
-        // Mostrar todas las materias con progreso
+        // Display all subjects with progress tracking
         const allSubjectsEl = document.getElementById("all-subjects");
         if (allSubjectsEl) {
+            // Show empty state if no subjects exist
             if (subjects.length === 0) {
                 allSubjectsEl.innerHTML = '<p class="empty-state">No tenés materias aún. <a href="subjects.html">Agregá tu primera materia</a></p>';
             } else {
+                // Render subject cards with progress bars and priority badges
                 allSubjectsEl.innerHTML = subjects.map(subject => {
                     const priorityColor = getPriorityColor(subject.priority);
                     return `
@@ -234,20 +294,25 @@ async function loadSubjectsStats() {
     }
 }
 
-// Cargar y mostrar objetivos semanales
+/**
+ * Loads and displays weekly objectives/goals on the dashboard
+ * Fetches all objectives from API and renders them in a container
+ * Supports inline editing of icon and area, as well as delete functionality
+ */
 async function loadWeeklyObjectives() {
     try {
-        const objectives: WeeklyObjective[] = await apiGet("/weekly-objectives/");  // Espera a la respuesta de la API 
+        // Fetch weekly objectives from API
+        const objectives: WeeklyObjective[] = await apiGet("/weekly-objectives/");  // Wait for API response
         
         const container = document.getElementById("weeklyObjectivesContainer");
         
         if (!container) return; 
         
-        // Guardar en localStorage también para referencia local
+        // Store in localStorage for offline reference
         localStorage.setItem('weeklyObjectives', JSON.stringify(objectives));
         
-        // Cuando NO hay datos (Estado vacío)
-        if (objectives.length === 0) {  // Si el array de objetives tiene longitud vacía, entonces quiere decir que el usuario no tiene objetivos semanales definidos.
+        // Display empty state when no objectives exist
+        if (objectives.length === 0) {  // If objectives array is empty, user has no weekly objectives
             container.innerHTML = `
                 <div class="flex flex-col items-center justify-center py-12 text-center animate-fade animated">
                     
@@ -273,9 +338,9 @@ async function loadWeeklyObjectives() {
                 </div>
             `;
         } else {
-            // Esto es para cuando SI hay datos
+            // Render objectives when data exists
             container.innerHTML = objectives.map(obj => {
-                // Lógica de colores de prioridad 
+                // Priority color configuration for visual distinction
                 const priorityMap: Record<number, { name: string; color: string; bg: string; border: string }> = {
                     1: { name: 'MÁXIMA PRIORIDAD', color: '#ef4444', bg: 'rgba(239, 68, 68, 0.1)', border: 'rgba(239, 68, 68, 0.2)' },
                     2: { name: 'EXPLORACIÓN CLAVE', color: '#f59e0b', bg: 'rgba(245, 158, 11, 0.1)', border: 'rgba(245, 158, 11, 0.2)' },
@@ -284,9 +349,9 @@ async function loadWeeklyObjectives() {
 
                 const priorityConfig = priorityMap[obj.priority || 2] || priorityMap[2];
 
-                // Usamos los datos guardados o fallbacks
-                const displayIcon = obj.icon || '⚡'; // Ícono por defecto
-                const displayArea = obj.area || 'General';  // Label por defecto.
+                // Use stored data or fallback defaults
+                const displayIcon = obj.icon || '⚡'; // Default icon
+                const displayArea = obj.area || 'General';  // Default category label
 
                 return `
                         <div class="objective-item bg-dark-input rounded-2xl p-5 relative group transition-all duration-300 hover:bg-[#1f222e] hover:translate-y-[-2px]" 
@@ -337,7 +402,7 @@ async function loadWeeklyObjectives() {
                     `;
             }).join("");
             
-            // Attach edit handlers
+            // Attach edit event handlers
             container.querySelectorAll('.edit-objective').forEach(btn => {
                 btn.addEventListener('click', async (e) => {
                     e.stopPropagation();
@@ -347,7 +412,7 @@ async function loadWeeklyObjectives() {
                         const objId = Number(id);
                         const objective = objectives.find(o => o.id === objId);
                         if (objective) {
-                            // Llenar modal con datos
+                            // Populate modal with objective data
                             const titleEl = document.getElementById('objectiveTitle') as HTMLInputElement;
                             const detailEl = document.getElementById('objectiveDetail') as HTMLTextAreaElement;
                             const areaEl = document.getElementById('objectiveArea') as HTMLInputElement;
@@ -361,13 +426,14 @@ async function loadWeeklyObjectives() {
                             if (priorityEl) priorityEl.value = (objective.priority || 2).toString();
                             if (notesEl) notesEl.value = objective.notes || '';
                             
-                            // Cambiar botón a "Actualizar"
+                            // Change button text to "Update"
                             const submitBtn = document.getElementById('submitObjectiveBtn') as HTMLButtonElement;
                             if (submitBtn) submitBtn.textContent = 'Actualizar Objetivo';
                             
-                            // Guardar id para saber que estamos editando
+                            // Store objective ID for edit mode
                             (window as any).editingObjectiveId = objId;
                             
+                            // Show modal
                             const modal = document.getElementById('objectiveModal');
                             if (modal) modal.style.display = 'flex';
                         }
@@ -375,7 +441,7 @@ async function loadWeeklyObjectives() {
                 });
             });
             
-            // Attach delete handlers
+            // Attach delete event handlers
             container.querySelectorAll('.delete-objective').forEach(btn => {
                 btn.addEventListener('click', async (e) => {
                     e.stopPropagation();
@@ -385,7 +451,7 @@ async function loadWeeklyObjectives() {
                 });
             });
             
-            // Attach inline edit handlers para icon y area - abre el modal
+            // Attach inline edit handlers for icon and area (opens modal)
             container.querySelectorAll('.icon-display, .area-display').forEach(el => {
                 el.addEventListener('click', async (e) => {
                     const id = (el as HTMLElement).getAttribute('data-id');
@@ -393,7 +459,7 @@ async function loadWeeklyObjectives() {
                         const objId = Number(id);
                         const objective = objectives.find(o => o.id === objId);
                         if (objective) {
-                            // Llenar modal con datos
+                            // Populate modal with objective data
                             const titleEl = document.getElementById('objectiveTitle') as HTMLInputElement;
                             const detailEl = document.getElementById('objectiveDetail') as HTMLTextAreaElement;
                             const areaEl = document.getElementById('objectiveArea') as HTMLInputElement;
@@ -408,13 +474,14 @@ async function loadWeeklyObjectives() {
                             if (priorityEl) priorityEl.value = (objective.priority || 2).toString();
                             if (notesEl) notesEl.value = objective.notes || '';
                             
-                            // Cambiar botón a "Actualizar"
+                            // Change button text to "Update"
                             const submitBtn = document.getElementById('submitObjectiveBtn') as HTMLButtonElement;
                             if (submitBtn) submitBtn.textContent = 'Actualizar Objetivo';
                             
-                            // Guardar id para saber que estamos editando
+                            // Store objective ID for edit mode
                             (window as any).editingObjectiveId = objId;
                             
+                            // Show modal
                             const modal = document.getElementById('objectiveModal');
                             if (modal) modal.style.display = 'flex';
                         }
@@ -423,18 +490,24 @@ async function loadWeeklyObjectives() {
             });
         }
         
-        // IMPORTANTE: Recargar iconos para el nuevo contenido inyectado (si el lib está disponible)
+        // Important: Render icons for newly injected content (if library is available)
         if (typeof lucide !== 'undefined') lucide.createIcons();
         
     } catch (error) {
-        console.error("Error loading weekly objectives:", error);   // Manejo de errores: muestra el error al cargar los objetivos semanales.
+        console.error("Error loading weekly objectives:", error);   // Error handling: displays error when loading objectives
     }
 }
 
+/**
+ * Deletes a weekly objective after user confirmation
+ * @param id - The ID of the objective to delete
+ */
 async function deleteObjective(id: number) {
     if (!confirm('¿Eliminar este objetivo?')) return;
     try {
+        // Call API to delete objective
         await apiDelete(`/weekly-objectives/${id}/`);
+        // Reload objectives to reflect deletion
         loadWeeklyObjectives();
     } catch (error) {
         console.error("Error deleting objective:", error);
@@ -442,11 +515,14 @@ async function deleteObjective(id: number) {
     }
 }
 
+/**
+ * Opens the objective creation modal and loads available subjects
+ */
 async function addObjective() {
     const modal = document.getElementById('objectiveModal') as HTMLDivElement | null;
     if (!modal) return;
     
-    // Cargar materias en el select
+    // Load subjects for the select dropdown
     try {
         const subjects: Subject[] = await apiGet('/subjects/');
         const subjectSelect = document.getElementById('objectiveSubject') as HTMLSelectElement | null;
@@ -458,30 +534,38 @@ async function addObjective() {
         console.warn('Could not load subjects for objective modal', e);
     }
     
-    // Mostrar modal
+    // Show modal
     modal.style.display = 'flex';
 }
 
+/**
+ * Closes the objective modal and resets the form
+ */
 function closeObjectiveModal() {
     const modal = document.getElementById('objectiveModal') as HTMLDivElement | null;
     if (modal) {
         modal.style.display = 'none';
     }
-    // Limpiar formulario
+    // Reset form fields
     const form = document.getElementById('objectiveForm') as HTMLFormElement | null;
     if (form) {
         form.reset();
     }
-    // Resetear estado de edición
+    // Reset editing state
     (window as any).editingObjectiveId = null;
-    // Restaurar botón a "Guardar Objetivo"
+    // Restore button text to "Save"
     const submitBtn = document.getElementById('submitObjectiveBtn') as HTMLButtonElement;
     if (submitBtn) submitBtn.textContent = 'Guardar Objetivo';
 }
 
+/**
+ * Handles objective form submission (both create and update)
+ * @param e - Form submit event
+ */
 async function submitObjectiveForm(e: Event) {
     e.preventDefault();
     
+    // Get form elements
     const titleEl = document.getElementById('objectiveTitle') as HTMLInputElement;
     const detailEl = document.getElementById('objectiveDetail') as HTMLTextAreaElement;
     const areaEl = document.getElementById('objectiveArea') as HTMLInputElement;
@@ -489,12 +573,14 @@ async function submitObjectiveForm(e: Event) {
     const priorityEl = document.getElementById('objectivePriority') as HTMLSelectElement;
     const notesEl = document.getElementById('objectiveNotes') as HTMLInputElement;
     
+    // Validate required field
     if (!titleEl || !titleEl.value) {
         alert('Por favor ingresá un título');
         return;
     }
     
     try {
+        // Build objective data object
         const objectiveData = {
             title: titleEl.value,
             detail: detailEl?.value || '',
@@ -505,21 +591,22 @@ async function submitObjectiveForm(e: Event) {
             subject: null 
         };
         
-        console.log("Enviando datos del objetivo:", objectiveData);
+        console.log("Sending objective data:", objectiveData);
         
         const editingId = (window as any).editingObjectiveId;
         
         if (editingId) {
-            // Estamos editando - usar PUT
-            console.log(`Actualizando objetivo ${editingId}...`);
+            // Update existing objective
+            console.log(`Updating objective ${editingId}...`);
             await apiPut(`/weekly-objectives/${editingId}/`, objectiveData);
             (window as any).editingObjectiveId = null;
         } else {
-            // Estamos creando nuevo - usar POST
-            console.log("Creando nuevo objetivo...");
+            // Create new objective
+            console.log("Creating new objective...");
             await apiPost('/weekly-objectives/', objectiveData, true);
         }
         
+        // Close modal and reload objectives
         closeObjectiveModal();
         loadWeeklyObjectives();
     } catch (error) {
@@ -528,40 +615,50 @@ async function submitObjectiveForm(e: Event) {
     }
 }
 
-// Cargar y mostrar estadísticas de Pomodoro
+/**
+ * Loads and displays Pomodoro session statistics
+ * Fetches sessions and calculates today's totals and recent sessions
+ */
 async function loadPomodoroStats() {
     try {
+        // Fetch all Pomodoro sessions from API
         const sessions: PomodoroSession[] = await apiGet("/pomodoro/");
         
+        // Get today's date at midnight for filtering
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         
+        // Filter sessions from today
         const todaySessions = sessions.filter(s => {
             const sessionDate = new Date(s.start_time);
             sessionDate.setHours(0, 0, 0, 0);
             return sessionDate.getTime() === today.getTime();
         });
         
+        // Calculate today's statistics
         const totalMinutesToday = todaySessions.reduce((sum, s) => sum + s.duration, 0);
         const totalSessionsToday = todaySessions.length;
         
-        // Actualizar estadísticas
+        // Update statistics display
         const sessionsTodayEl = document.getElementById("sessions-today");
         const minutesTodayEl = document.getElementById("minutes-today");
         
         if (sessionsTodayEl) sessionsTodayEl.textContent = totalSessionsToday.toString();
         if (minutesTodayEl) minutesTodayEl.textContent = totalMinutesToday.toString();
         
-        // Mostrar sesiones recientes
+        // Display recent sessions (last 5)
         const recentSessionsEl = document.getElementById("recent-sessions");
         if (recentSessionsEl) {
+            // Sort by start time descending and take top 5
             const recentSessions = sessions
                 .sort((a, b) => new Date(b.start_time).getTime() - new Date(a.start_time).getTime())
                 .slice(0, 5);
             
+            // Show empty state if no sessions
             if (recentSessions.length === 0) {
                 recentSessionsEl.innerHTML = '<p class="empty-state">No tenés sesiones de Pomodoro aún</p>';
             } else {
+                // Render session items with duration and date
                 recentSessionsEl.innerHTML = recentSessions.map(session => {
                     const sessionDate = new Date(session.start_time);
                     const dateStr = sessionDate.toLocaleDateString('es-AR', { day: 'numeric', month: 'short' });
@@ -582,12 +679,16 @@ async function loadPomodoroStats() {
     }
 }
 
-// Cargar ritmo de estudio semanal basado en Pomodoro
+/**
+ * Loads and displays weekly study rhythm based on Pomodoro sessions
+ * Creates a line chart showing study time for each day of the week
+ */
 async function loadWeeklyStudyRhythm() {
     try {
+        // Fetch all Pomodoro sessions
         const sessions: PomodoroSession[] = await apiGet("/pomodoro/");
         
-        // Obtener sesiones de la última semana
+        // Get sessions from the past week
         const today = new Date();
         const weekAgo = new Date(today);
         weekAgo.setDate(weekAgo.getDate() - 7);
@@ -597,7 +698,7 @@ async function loadWeeklyStudyRhythm() {
             return sessionDate >= weekAgo;
         });
         
-        // Agrupar por día de la semana (0 = Domingo, 1 = Lunes, etc.)
+        // Group minutes by day of week (0 = Sunday, 1 = Monday, etc.)
         const dayMinutes: { [key: number]: number } = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 };
         
         weeklySessions.forEach(session => {
@@ -606,28 +707,28 @@ async function loadWeeklyStudyRhythm() {
             dayMinutes[dayOfWeek] += session.duration;
         });
         
-        // Convertir a array para el gráfico (Lunes a Domingo)
+        // Convert to array for chart (Monday to Sunday)
         const weekDays = ['Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sá', 'Do'];
         const dataPoints = [
-            dayMinutes[1], // Lunes
-            dayMinutes[2], // Martes
-            dayMinutes[3], // Miércoles
-            dayMinutes[4], // Jueves
-            dayMinutes[5], // Viernes
-            dayMinutes[6], // Sábado
-            dayMinutes[0]  // Domingo
+            dayMinutes[1], // Monday
+            dayMinutes[2], // Tuesday
+            dayMinutes[3], // Wednesday
+            dayMinutes[4], // Thursday
+            dayMinutes[5], // Friday
+            dayMinutes[6], // Saturday
+            dayMinutes[0]  // Sunday
         ];
         
-        // Encontrar máximo para escalar el gráfico
+        // Find maximum value for scaling
         const maxMinutes = Math.max(...dataPoints, 1);
-        const maxHeight = 120; // Altura máxima del gráfico en píxeles
+        const maxHeight = 120; // Maximum chart height in pixels
         
-        // Actualizar SVG del gráfico
+        // Update chart SVG
         const chartContainer = document.getElementById('weekly-rhythm-chart');
         const chartParent = chartContainer?.parentElement;
         
         if (chartContainer && chartParent) {
-            // Si no hay datos, mostrar empty state
+            // Show empty state if no sessions this week
             if (weeklySessions.length === 0) {
                 chartParent.innerHTML = `
                     <div class="flex flex-col items-center justify-center h-full py-8">
@@ -644,7 +745,7 @@ async function loadWeeklyStudyRhythm() {
             const width = 450;
             const step = width / 6;
             
-            // Generar path para el gráfico de línea
+            // Generate smooth curve path for line chart
             let pathD = '';
             const points: { x: number; y: number }[] = [];
             
@@ -654,7 +755,7 @@ async function loadWeeklyStudyRhythm() {
                 points.push({ x, y });
             });
             
-            // Crear path suave con curvas
+            // Create smooth path with curves
             if (points.length > 1) {
                 let smoothPath = `M ${points[0].x} ${points[0].y}`;
                 for (let i = 1; i < points.length; i++) {
@@ -673,6 +774,7 @@ async function loadWeeklyStudyRhythm() {
             
             const weekDays = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
             
+            // Render SVG with path and data points
             svg.innerHTML = `
                 <path d="${pathD}" fill="none" stroke="#c084fc" stroke-width="3" />
                 ${points.map((p, index) => {
@@ -691,7 +793,7 @@ async function loadWeeklyStudyRhythm() {
                 }).join('')}
             `;
             
-            // Agregar tooltips interactivos
+            // Add interactive tooltips
             const circles = svg.querySelectorAll('circle');
             circles.forEach((circle, index) => {
                 const minutes = dataPoints[index];
@@ -708,7 +810,7 @@ async function loadWeeklyStudyRhythm() {
                     `;
                     document.body.appendChild(tooltip);
                     
-                    // Posicionar cerca del cursor
+                    // Position near cursor
                     updateTooltipPosition(tooltip, e.clientX, e.clientY);
                 });
                 
@@ -730,16 +832,20 @@ async function loadWeeklyStudyRhythm() {
     }
 }
 
-// Cargar distribución de enfoque por materia basado en Pomodoro
+/**
+ * Loads and displays focus distribution among subjects
+ * Creates a pie chart showing percentage of study time per subject
+ */
 async function loadFocusDistribution() {
     try {
+        // Fetch sessions and subjects
         const sessions: PomodoroSession[] = await apiGet("/pomodoro/");
         const subjects: Subject[] = await apiGet("/subjects/");
         
         console.log('All sessions:', sessions);
         console.log('All subjects:', subjects);
         
-        // Obtener sesiones de la última semana
+        // Get sessions from the past week
         const today = new Date();
         const weekAgo = new Date(today);
         weekAgo.setDate(weekAgo.getDate() - 7);
@@ -749,22 +855,22 @@ async function loadFocusDistribution() {
             return sessionDate >= weekAgo;
         });
         
-        // Agrupar minutos por materia
+        // Group minutes by subject
         const subjectMinutes: { [key: number]: number } = {};
         let totalMinutes = 0;
         
         weeklySessions.forEach(session => {
-            // Debug: ver qué está llegando
+            // Debug: see what's incoming
             console.log('Session:', session, 'Subject ID:', session.subject, 'Type:', typeof session.subject);
             
-            // El subject puede venir como número o null/undefined
+            // Subject may be number, null, or undefined
             let subjectId: number | null = null;
             if (session.subject !== null && session.subject !== undefined) {
-                // Convertir a número si es string
+                // Convert to number if string
                 subjectId = typeof session.subject === 'string' ? parseInt(session.subject) : session.subject;
             }
             
-            // Usar una clave especial para "sin materia" que no colisione con IDs reales
+            // Use special key for "no subject" that won't collide with real IDs
             const key = subjectId !== null && !isNaN(subjectId) ? subjectId : -1;
             
             if (!subjectMinutes[key]) {
@@ -777,7 +883,7 @@ async function loadFocusDistribution() {
         console.log('Subject minutes:', subjectMinutes);
         console.log('Total minutes:', totalMinutes);
         
-        // Crear array de materias con minutos (solo las que tienen ID real)
+        // Create array of subjects with minutes (only those with real ID and study time)
         const subjectData = subjects
             .filter(s => subjectMinutes[s.id] && subjectMinutes[s.id] > 0)
             .map(s => ({
@@ -788,7 +894,7 @@ async function loadFocusDistribution() {
             }))
             .sort((a, b) => b.minutes - a.minutes);
         
-        // Si hay sesiones sin materia (key = -1), agregarlas al final
+        // Add "no subject" sessions if any
         if (subjectMinutes[-1] && subjectMinutes[-1] > 0) {
             subjectData.push({
                 id: -1,
@@ -798,10 +904,10 @@ async function loadFocusDistribution() {
             });
         }
         
-        // Colores para el gráfico
+        // Colors for the chart
         const colors = ['#a855f7', '#60a5fa', '#34d399', '#fbbf24', '#ec4899', '#8b5cf6'];
         
-        // Generar gradiente cónico
+        // Generate conic gradient
         let conicGradient = '';
         let currentPercent = 0;
         
@@ -813,13 +919,13 @@ async function loadFocusDistribution() {
             currentPercent = endPercent;
         });
         
-        // Actualizar gráfico de distribución
+        // Update distribution chart
         const pieChart = document.getElementById('focus-distribution-chart');
         const pieChartParent = pieChart?.parentElement;
         
         if (pieChart && pieChartParent) {
+            // Show empty state if no data
             if (weeklySessions.length === 0 || subjectData.length === 0) {
-                // Mostrar empty state
                 pieChartParent.innerHTML = `
                     <div class="flex flex-col items-center justify-center h-full py-8">
                         <i data-lucide="pie-chart" class="w-12 h-12 text-gray-600 mb-3"></i>
@@ -831,9 +937,10 @@ async function loadFocusDistribution() {
                 return;
             }
             
+            // Apply conic gradient to pie chart
             (pieChart as HTMLElement).style.background = `conic-gradient(${conicGradient.slice(0, -2)})`;
             
-            // Actualizar total de horas (mostrar con decimales si es menos de 1 hora)
+            // Update total hours display
             const totalHoursEl = document.getElementById('focus-total-hours');
             if (totalHoursEl) {
                 if (totalMinutes < 60) {
@@ -849,7 +956,7 @@ async function loadFocusDistribution() {
                 }
             }
             
-            // Actualizar leyenda
+            // Update legend
             const legendContainer = document.getElementById('focus-legend');
             if (legendContainer) {
                 legendContainer.innerHTML = subjectData.slice(0, 4).map((subject, index) => {
@@ -868,12 +975,16 @@ async function loadFocusDistribution() {
     }
 }
 
-// Cargar momento peak de productividad basado en Pomodoro
+/**
+ * Loads and displays peak productivity time
+ * Analyzes 4 weeks of Pomodoro data to determine best time for focus
+ */
 async function loadPeakProductivity() {
     try {
+        // Fetch all Pomodoro sessions
         const sessions: PomodoroSession[] = await apiGet("/pomodoro/");
         
-        // Obtener sesiones de las últimas 4 semanas
+        // Get sessions from past 4 weeks
         const today = new Date();
         const fourWeeksAgo = new Date(today);
         fourWeeksAgo.setDate(fourWeeksAgo.getDate() - 28);
@@ -883,7 +994,7 @@ async function loadPeakProductivity() {
             return sessionDate >= fourWeeksAgo;
         });
         
-        // Si no hay suficientes sesiones, mostrar mensaje
+        // Show message if insufficient data
         if (recentSessions.length === 0) {
             const peakEl = document.getElementById('peak-productivity-time');
             if (peakEl) {
@@ -896,7 +1007,7 @@ async function loadPeakProductivity() {
             return;
         }
         
-        // Agrupar por hora del día (0-23) y contar minutos totales por hora
+        // Group sessions by hour of day (0-23) and sum minutes
         const hourMinutes: { [key: number]: number } = {};
         
         recentSessions.forEach(session => {
@@ -908,8 +1019,8 @@ async function loadPeakProductivity() {
             hourMinutes[hour] += session.duration;
         });
         
-        // Encontrar la hora con más minutos
-        let peakHour = 14; // Default si no hay datos
+        // Find hour with most minutes
+        let peakHour = 14; // Default if no data
         let maxMinutes = 0;
         
         Object.keys(hourMinutes).forEach(hourStr => {
@@ -921,16 +1032,16 @@ async function loadPeakProductivity() {
             }
         });
         
-        // Si no hay datos suficientes, usar default
+        // Use default if no data found
         if (maxMinutes === 0) {
             peakHour = 14;
         }
         
-        // Calcular rango de 3 horas alrededor del peak (1 hora antes, peak, 1 hora después)
+        // Calculate 3-hour window around peak (1 hour before, peak, 1 hour after)
         const startHour = Math.max(0, peakHour - 1);
         const endHour = Math.min(23, peakHour + 1);
         
-        // Formatear hora
+        // Format hour for display
         const formatHour = (h: number) => {
             return `${h.toString().padStart(2, '0')}:00`;
         };
@@ -938,7 +1049,7 @@ async function loadPeakProductivity() {
         const dayNames = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
         const todayName = dayNames[today.getDay()];
         
-        // Actualizar UI
+        // Update UI with peak productivity info
         const peakEl = document.getElementById('peak-productivity-time');
         if (peakEl) {
             peakEl.textContent = `${todayName}, ${formatHour(startHour)} - ${formatHour(endHour)}`;
@@ -956,13 +1067,17 @@ async function loadPeakProductivity() {
     }
 }
 
-// Cargar revisión de balance semanal basado en Pomodoro
+/**
+ * Loads and displays weekly balance review
+ * Shows distribution of study time among top 3 subjects
+ */
 async function loadWeeklyBalance() {
     try {
+        // Fetch sessions and subjects
         const sessions: PomodoroSession[] = await apiGet("/pomodoro/");
         const subjects: Subject[] = await apiGet("/subjects/");
         
-        // Obtener sesiones de la última semana
+        // Get sessions from the past week
         const today = new Date();
         const weekAgo = new Date(today);
         weekAgo.setDate(weekAgo.getDate() - 7);
@@ -972,7 +1087,7 @@ async function loadWeeklyBalance() {
             return sessionDate >= weekAgo;
         });
         
-        // Agrupar minutos por materia
+        // Group minutes by subject
         const subjectMinutes: { [key: number]: number } = {};
         let totalMinutes = 0;
         
@@ -985,7 +1100,7 @@ async function loadWeeklyBalance() {
             totalMinutes += session.duration;
         });
         
-        // Obtener top 3 materias
+        // Get top 3 subjects by study time
         const topSubjects = subjects
             .filter(s => subjectMinutes[s.id])
             .map(s => ({
@@ -997,10 +1112,10 @@ async function loadWeeklyBalance() {
             .sort((a, b) => b.minutes - a.minutes)
             .slice(0, 3);
         
-        // Colores para el gráfico
+        // Colors for the chart
         const colors = ['#c084fc', '#fbbf24', '#34d399'];
         
-        // Generar gradiente cónico
+        // Generate conic gradient
         let conicGradient = '';
         let currentPercent = 0;
         
@@ -1012,13 +1127,13 @@ async function loadWeeklyBalance() {
             currentPercent = endPercent;
         });
         
-        // Actualizar gráfico de balance
+        // Update balance chart
         const balanceChart = document.getElementById('weekly-balance-chart');
         const balanceChartParent = balanceChart?.parentElement;
         
         if (balanceChart && balanceChartParent) {
+            // Show empty state if no data
             if (weeklySessions.length === 0 || topSubjects.length === 0) {
-                // Mostrar empty state
                 balanceChartParent.innerHTML = `
                     <div class="flex flex-col items-center justify-center h-full py-8">
                         <i data-lucide="pie-chart" class="w-10 h-10 text-gray-600 mb-3"></i>
@@ -1030,9 +1145,10 @@ async function loadWeeklyBalance() {
                 return;
             }
             
+            // Apply conic gradient
             (balanceChart as HTMLElement).style.background = `conic-gradient(${conicGradient.slice(0, -2)})`;
             
-            // Actualizar total de horas
+            // Update total hours display
             const totalHoursEl = document.getElementById('weekly-balance-hours');
             if (totalHoursEl) {
                 const totalHours = Math.round(totalMinutes / 60);
@@ -1044,26 +1160,31 @@ async function loadWeeklyBalance() {
     }
 }
 
-// Función auxiliar para posicionar tooltip cerca del cursor
+/**
+ * Helper function to position tooltip near the cursor
+ * @param tooltip - The tooltip element to position
+ * @param mouseX - Mouse X coordinate
+ * @param mouseY - Mouse Y coordinate
+ */
 function updateTooltipPosition(tooltip: HTMLElement, mouseX: number, mouseY: number) {
     const tooltipRect = tooltip.getBoundingClientRect();
-    const offset = 15; // Distancia del cursor al tooltip
+    const offset = 15; // Distance from cursor to tooltip
     
-    // Posicionar a la derecha y arriba del cursor por defecto
+    // Position to the right and above cursor by default
     let left = mouseX + offset;
     let top = mouseY - tooltipRect.height - offset;
     
-    // Ajustar si se sale de la pantalla horizontalmente
+    // Adjust if tooltip goes off-screen horizontally
     if (left + tooltipRect.width > window.innerWidth - 10) {
-        left = mouseX - tooltipRect.width - offset; // A la izquierda del cursor
+        left = mouseX - tooltipRect.width - offset; // Position to the left
     }
     if (left < 10) {
         left = 10;
     }
     
-    // Ajustar si se sale de la pantalla verticalmente
+    // Adjust if tooltip goes off-screen vertically
     if (top < 10) {
-        top = mouseY + offset; // Abajo del cursor
+        top = mouseY + offset; // Position below cursor
     }
     if (top + tooltipRect.height > window.innerHeight - 10) {
         top = window.innerHeight - tooltipRect.height - 10;
@@ -1073,13 +1194,18 @@ function updateTooltipPosition(tooltip: HTMLElement, mouseX: number, mouseY: num
     tooltip.style.top = `${top}px`;
 }
 
-// Función para toggle de hábito (similar a habits.ts)
+/**
+ * Toggles habit completion status (marks as complete or incomplete for today)
+ * Updates UI optimistically and calls API to persist changes
+ * @param habitId - ID of the habit to toggle
+ * @param complete - Whether to mark complete (true) or incomplete (false)
+ */
 async function toggleHabitCompletion(habitId: number, complete: boolean) {
     const token = getToken();
     if (!token) return;
 
     try {
-        // Actualizar UI inmediatamente (optimistic update)
+        // Optimistic UI update (updates immediately before API response)
         const habitElement = document.querySelector(`[data-habit-id="${habitId}"]`)?.closest('.flex.items-center.justify-between');
         if (habitElement) {
             const checkbox = habitElement.querySelector('.w-6.h-6.rounded') as HTMLElement;
@@ -1088,11 +1214,13 @@ async function toggleHabitCompletion(habitId: number, complete: boolean) {
             
             if (checkbox && textElement) {
                 if (complete) {
+                    // Style checkbox for completed state
                     checkbox.className = 'w-6 h-6 rounded bg-gradient-to-br from-purple-500/20 via-pink-500/20 to-purple-500/20 flex items-center justify-center';
                     checkbox.style.boxShadow = '0 0 0 1px rgba(168,85,247,0.3)';
                     checkbox.innerHTML = '<i data-lucide="check" class="w-4 h-4 text-purple-400"></i>';
                     textElement.className = 'flex items-center gap-2 text-gray-400 line-through';
                 } else {
+                    // Style checkbox for incomplete state
                     checkbox.className = 'w-6 h-6 rounded border border-gray-600 flex items-center justify-center group-hover:border-purple-500';
                     checkbox.style.boxShadow = '';
                     checkbox.innerHTML = '';
@@ -1102,7 +1230,7 @@ async function toggleHabitCompletion(habitId: number, complete: boolean) {
             }
         }
 
-        // Llamar a la API
+        // Call API to persist change
         const response = await fetch(
             `http://127.0.0.1:8000/api/habits/${habitId}/complete/`,
             {
@@ -1114,9 +1242,9 @@ async function toggleHabitCompletion(habitId: number, complete: boolean) {
             }
         );
 
-        if (!response.ok) throw new Error("Error API");
+        if (!response.ok) throw new Error("API Error");
 
-        // Actualizar racha desde la respuesta
+        // Update streak from response data
         const data = await response.json();
         if (data.streak !== undefined && habitElement) {
             const streakText = habitElement.querySelector('.text-xs')?.textContent;
@@ -1132,28 +1260,33 @@ async function toggleHabitCompletion(habitId: number, complete: boolean) {
             }
         }
 
-        // Recargar hábitos para actualizar el estado completo
+        // Reload habits to update full state
         loadKeyHabits();
 
     } catch (err) {
         console.error("Error toggling habit:", err);
         alert("Error de conexión. No se guardó.");
-        // Recargar para revertir cambios
+        // Reload to revert changes on error
         loadKeyHabits();
     }
 }
 
-// Cargar hábitos clave
+/**
+ * Loads and displays key (important) habits on the dashboard
+ * Shows daily completion progress for key habits only
+ */
 async function loadKeyHabits() {
     try {
+        // Fetch all habits
         const habits: Habit[] = await apiGet("/habits/");
         
-        // Filtrar solo hábitos clave
+        // Filter only key habits
         const keyHabits = habits.filter(h => h.is_key);
         
         const keyHabitsContainer = document.getElementById('key-habits-container');
         if (!keyHabitsContainer) return;
         
+        // Show empty state if no key habits
         if (keyHabits.length === 0) {
             keyHabitsContainer.innerHTML = `
                 <div class="text-center py-8 text-gray-500">
@@ -1166,17 +1299,17 @@ async function loadKeyHabits() {
             return;
         }
         
-        // Ordenar por racha descendente
+        // Sort by streak descending
         const sortedHabits = [...keyHabits].sort((a, b) => b.streak - a.streak);
         
-        // Calcular progreso diario general (hábitos completados hoy)
+        // Calculate daily progress (percentage of habits completed today)
         const completedToday = sortedHabits.filter(h => h.completed_today).length;
         
         const dailyProgress = sortedHabits.length > 0 
             ? Math.round((completedToday / sortedHabits.length) * 100) 
             : 0;
         
-        // Renderizar hábitos
+        // Render habit items
         keyHabitsContainer.innerHTML = sortedHabits.map(habit => {
             const isCompleted = habit.completed_today;
             
@@ -1207,7 +1340,7 @@ async function loadKeyHabits() {
             `;
         }).join('');
         
-        // Agregar event listeners para los botones de completar
+        // Attach click handlers to completion buttons
         keyHabitsContainer.querySelectorAll('.habit-complete-btn').forEach(button => {
             button.addEventListener('click', async (e) => {
                 e.stopPropagation();
@@ -1218,7 +1351,7 @@ async function loadKeyHabits() {
             });
         });
         
-        // Actualizar barra de progreso diario
+        // Update daily progress bar
         const progressBar = document.getElementById('daily-progress-bar');
         const progressText = document.getElementById('daily-progress-text');
         
@@ -1235,7 +1368,10 @@ async function loadKeyHabits() {
     }
 }
 
-// Función principal para cargar todo el dashboard
+/**
+ * Main function to load all dashboard data
+ * Loads habits, subjects, pomodoro, objectives, and analytics in parallel
+ */
 async function loadDashboard() {
     const loadingEl = document.getElementById("dashboard-content");
     if (loadingEl) {
@@ -1243,6 +1379,7 @@ async function loadDashboard() {
     }
     
     try {
+        // Load all data in parallel
         await Promise.all([
             loadHabitsStats(),
             loadSubjectsStats(),
@@ -1255,22 +1392,27 @@ async function loadDashboard() {
             loadKeyHabits()
         ]);
         
+        // Hide loading state on success
         if (loadingEl) {
             loadingEl.style.display = "none";
         }
     } catch (error) {
         console.error("Error loading dashboard:", error);
+        // Show error message to user
         if (loadingEl) {
             loadingEl.innerHTML = '<p class="error-state">Error al cargar el dashboard. Por favor, recargá la página.</p>';
         }
     }
 }
-
-
-// Cargar el dashboard cuando se carga la página
+/**
+ * Initialize dashboard when DOM is ready
+ * Loads initial data and binds event listeners for all UI interactions
+ */
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
+        // Load dashboard data
         loadDashboard();
+        
         // Bind add objective button
         const addBtn = document.getElementById('addObjectiveBtn');
         if (addBtn) {
@@ -1305,6 +1447,7 @@ if (document.readyState === 'loading') {
         }
     });
 } else {
+    // DOM already loaded, execute immediately
     loadDashboard();
     const addBtn = document.getElementById('addObjectiveBtn');
     if (addBtn) {
@@ -1336,10 +1479,18 @@ if (document.readyState === 'loading') {
     }
 }
 
-// ---------------- Pomodoro functionality ----------------
+/**
+ * ==========================================
+ * Pomodoro Timer Functionality
+ * ==========================================
+ * Complete Pomodoro implementation with configurable timers,
+ * session tracking, and productivity analytics
+ */
 (() => {
+    // Type definition for timer stages
     type Stage = 'work' | 'short_break' | 'long_break';
 
+    // Default timer configuration
     const DEFAULTS = {
         workMinutes: 25,
         shortBreakMinutes: 5,
@@ -1347,24 +1498,27 @@ if (document.readyState === 'loading') {
         cyclesBeforeLongBreak: 4,
     };
 
+    // User settings (can be customized)
     let settings = {
         ...DEFAULTS
     };
 
+    // Timer state variables
     let timerInterval: number | null = null;
     let remainingSeconds = settings.workMinutes * 60;
     let currentStage: Stage = 'work';
     let isRunning = false;
-    let completedCycles = 0; // number of work sessions completed in current set
-    let sessionStart: Date | null = null; // when current work started
-    let defaultSubjectId: number | null = null;
+    let completedCycles = 0; // Number of work sessions completed in current set
+    let sessionStart: Date | null = null; // When current work session started
+    let defaultSubjectId: number | null = null; // Default subject for sessions
     let beforeUnloadHandler: ((e: BeforeUnloadEvent) => void) | null = null;
     
-    // Variables para manejar el timer cuando la pestaña está en segundo plano
-    let timerStartTime: number | null = null; // Timestamp cuando se inició el timer
-    let timerStartRemaining: number = 0; // Segundos restantes cuando se inició el timer
-    let visibilityHandler: (() => void) | null = null; // Handler para visibilitychange
+    // Variables for handling timer when tab is in background
+    let timerStartTime: number | null = null; // Timestamp when timer started
+    let timerStartRemaining: number = 0; // Remaining seconds when timer started
+    let visibilityHandler: (() => void) | null = null; // Handler for visibility changes
 
+    // DOM elements
     const circle = document.getElementById('pomodoroProgressCircle') as SVGCircleElement | null;
     const timerDisplay = document.getElementById('pomodoroTimerDisplay');
     const stageLabel = document.getElementById('pomodoroStageLabel');
@@ -1384,8 +1538,12 @@ if (document.readyState === 'loading') {
     const subjectSelect = document.getElementById('pomodoroDefaultSubjectSelect') as HTMLSelectElement | null;
     const modalCancel = document.getElementById('pomodoroSettingsCancel');
 
-    const CIRCLE_LENGTH = 552; // matches SVG stroke-dasharray
+    // SVG circle circumference for progress calculation
+    const CIRCLE_LENGTH = 552;
 
+    /**
+     * Load user settings from localStorage
+     */
     function loadSettings() {
         try {
             const raw = localStorage.getItem('pomodoroSettings');
@@ -1393,33 +1551,50 @@ if (document.readyState === 'loading') {
                 const parsed = JSON.parse(raw);
                 settings = { ...settings, ...parsed };
             }
-        } catch (e) { /* ignore */ }
+        } catch (e) { /* ignore parsing errors */ }
     }
 
+    /**
+     * Save current settings to localStorage
+     */
     function saveSettings() {
         localStorage.setItem('pomodoroSettings', JSON.stringify(settings));
     }
 
+    /**
+     * Format seconds into MM:SS format
+     * @param seconds - Number of seconds to format
+     * @returns Formatted time string
+     */
     function formatTime(seconds: number) {
         const m = Math.floor(seconds / 60).toString().padStart(2, '0');
         const s = Math.floor(seconds % 60).toString().padStart(2, '0');
         return `${m}:${s}`;
     }
 
+    /**
+     * Update timer display and progress circle
+     */
     function updateDisplay() {
+        // Update time display
         if (timerDisplay) timerDisplay.textContent = formatTime(remainingSeconds);
+        
+        // Update stage label
         if (stageLabel) {
             if (currentStage === 'work') stageLabel.textContent = 'Enfoque';
             else if (currentStage === 'short_break') stageLabel.textContent = 'Descanso corto';
             else stageLabel.textContent = 'Descanso largo';
         }
+        
+        // Update progress circle
         if (circle) {
             const total = (currentStage === 'work' ? settings.workMinutes : (currentStage === 'short_break' ? settings.shortBreakMinutes : settings.longBreakMinutes)) * 60;
             const progress = Math.max(0, Math.min(1, 1 - remainingSeconds / total));
             const offset = Math.round(CIRCLE_LENGTH * (1 - progress));
             circle.style.strokeDashoffset = `${offset}`;
         }
-        // Update pomodoro counters (pomodoros completed and set progress)
+        
+        // Update pomodoro counters
         try {
             if (pomodorosCountEl) pomodorosCountEl.textContent = `Pomodoros: ${completedCycles}`;
             if (pomodoroSetLabelEl) {
@@ -1431,6 +1606,9 @@ if (document.readyState === 'loading') {
         } catch (e) { /* ignore DOM issues */ }
     }
 
+    /**
+     * Play beep sound on timer completion
+     */
     function playBeep() {
         try {
             const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
@@ -1450,12 +1628,14 @@ if (document.readyState === 'loading') {
         } catch (e) { console.warn('Audio not available', e); }
     }
 
-    // Función para sincronizar el timer basándose en timestamps (útil cuando la pestaña vuelve a estar visible)
+    /**
+     * Sync timer based on timestamps (useful when tab comes back into focus)
+     */
     function syncTimer() {
         if (!isRunning || timerStartTime === null) return;
         
         const now = Date.now();
-        const elapsed = Math.floor((now - timerStartTime) / 1000); // Segundos transcurridos
+        const elapsed = Math.floor((now - timerStartTime) / 1000); // Elapsed seconds
         const newRemaining = Math.max(0, timerStartRemaining - elapsed);
         
         if (newRemaining !== remainingSeconds) {
@@ -1463,12 +1643,15 @@ if (document.readyState === 'loading') {
             updateDisplay();
         }
         
-        // Si el timer terminó mientras estaba en segundo plano
+        // If timer finished while tab was inactive
         if (remainingSeconds <= 0) {
             finishTimer();
         }
     }
     
+    /**
+     * Handle timer completion
+     */
     function finishTimer() {
         playBeep();
         if (timerInterval) {
@@ -1478,13 +1661,13 @@ if (document.readyState === 'loading') {
         isRunning = false;
         timerStartTime = null;
         
-        // Remover advertencia cuando el timer se detiene
+        // Remove navigation warning when timer stops
         if (beforeUnloadHandler) {
             window.removeEventListener('beforeunload', beforeUnloadHandler);
             beforeUnloadHandler = null;
         }
         
-        // If work finished, save session
+        // Save session if work stage finished
         if (currentStage === 'work' && sessionStart) {
             const end = new Date();
             const durationMin = Math.round((end.getTime() - sessionStart.getTime()) / 60000);
@@ -1492,21 +1675,24 @@ if (document.readyState === 'loading') {
             sessionStart = null;
             completedCycles += 1;
         }
-        // advance stage
+        // Advance to next stage
         advanceStage();
     }
 
+    /**
+     * Start the timer
+     */
     function startTimer() {
         if (isRunning) return;
         isRunning = true;
         updatePlayButtonState();
         if (!sessionStart && currentStage === 'work') sessionStart = new Date();
         
-        // Guardar timestamp de inicio para sincronización
+        // Save start timestamp for sync
         timerStartTime = Date.now();
         timerStartRemaining = remainingSeconds;
         
-        // Agregar advertencia de navegación cuando el timer está corriendo
+        // Add navigation warning
         beforeUnloadHandler = (e: BeforeUnloadEvent) => {
             e.preventDefault();
             e.returnValue = 'El Pomodoro se detendrá si abandonas esta página. ¿Estás seguro?';
@@ -1514,22 +1700,23 @@ if (document.readyState === 'loading') {
         };
         window.addEventListener('beforeunload', beforeUnloadHandler);
         
-        // Agregar listener para detectar cuando la pestaña vuelve a estar visible (solo una vez)
+        // Add listener for tab visibility changes
         if (!visibilityHandler) {
             visibilityHandler = () => {
                 if (!document.hidden && isRunning) {
-                    // Sincronizar el timer cuando la pestaña vuelve a estar visible
+                    // Sync timer when tab comes back into focus
                     syncTimer();
                 }
             };
             document.addEventListener('visibilitychange', visibilityHandler);
         }
         
+        // Start timer loop
         timerInterval = window.setInterval(() => {
-            // Sincronizar periódicamente para compensar cualquier desviación
+            // Periodic sync
             syncTimer();
             
-            // También decrementar normalmente (por si acaso)
+            // Also decrement normally
             if (remainingSeconds > 0) {
                 remainingSeconds -= 1;
             }
@@ -1541,41 +1728,48 @@ if (document.readyState === 'loading') {
         }, 1000);
     }
 
+    /**
+     * Pause the timer
+     */
     function pauseTimer() {
         if (timerInterval) {
             clearInterval(timerInterval);
             timerInterval = null;
         }
         isRunning = false;
-        timerStartTime = null; // Limpiar timestamp
+        timerStartTime = null;
         updatePlayButtonState();
         
-        // Remover advertencia cuando se pausa
+        // Remove navigation warning
         if (beforeUnloadHandler) {
             window.removeEventListener('beforeunload', beforeUnloadHandler);
             beforeUnloadHandler = null;
         }
-        
-        // Nota: No removemos el visibilityHandler aquí porque puede ser útil mantenerlo
-        // para cuando se reinicie el timer
     }
 
+    /**
+     * Reset timer to initial value for current stage
+     * @param toStage - Optional stage to reset to
+     */
     function resetTimer(toStage: Stage | null = null) {
-        pauseTimer(); // pauseTimer ya remueve el handler
+        pauseTimer();
         if (toStage) currentStage = toStage;
         remainingSeconds = (currentStage === 'work' ? settings.workMinutes : (currentStage === 'short_break' ? settings.shortBreakMinutes : settings.longBreakMinutes)) * 60;
         sessionStart = null;
-        timerStartTime = null; // Limpiar timestamp
+        timerStartTime = null;
         timerStartRemaining = 0;
         updateDisplay();
     }
 
+    /**
+     * Skip to next stage immediately
+     */
     function skipStage() {
-        // finish current stage immediately
         if (timerInterval) {
             clearInterval(timerInterval);
             timerInterval = null;
         }
+        // Save incomplete work session if in work stage
         if (currentStage === 'work' && sessionStart) {
             const end = new Date();
             const durationMin = Math.max(1, Math.round((end.getTime() - sessionStart.getTime()) / 60000));
@@ -1589,22 +1783,32 @@ if (document.readyState === 'loading') {
         advanceStage();
     }
 
+    /**
+     * Advance to next stage (work -> break -> work, etc.)
+     */
     function advanceStage() {
         if (currentStage === 'work') {
-            // decide break type
+            // Decide break type based on completed cycles
             if (completedCycles > 0 && completedCycles % settings.cyclesBeforeLongBreak === 0) {
                 currentStage = 'long_break';
             } else {
                 currentStage = 'short_break';
             }
         } else {
-            // from break go to work
+            // From break return to work
             currentStage = 'work';
         }
         remainingSeconds = (currentStage === 'work' ? settings.workMinutes : (currentStage === 'short_break' ? settings.shortBreakMinutes : settings.longBreakMinutes)) * 60;
         updateDisplay();
     }
 
+    /**
+     * Save completed work session to API
+     * @param start - Session start time
+     * @param end - Session end time
+     * @param durationMin - Duration in minutes
+     * @param subjectId - Optional subject ID for session
+     */
     async function saveWorkSession(start: Date, end: Date, durationMin: number, subjectId: number | null) {
         try {
             const payload: any = {
@@ -1612,14 +1816,14 @@ if (document.readyState === 'loading') {
                 end_time: end.toISOString(),
                 duration: durationMin,
             };
-            // Asegurar que subjectId sea un número válido o null
+            // Ensure valid subject ID
             if (subjectId !== null && subjectId !== undefined && !isNaN(subjectId)) {
                 payload.subject = Number(subjectId);
             }
             console.log('Saving pomodoro session with payload:', payload);
             const response = await apiPost('/pomodoro/', payload, true);
             console.log('Pomodoro session saved:', response);
-            // refresh pomodoro stats y distribución
+            // Refresh stats
             loadPomodoroStats().catch(e => console.warn('refresh pomodoro stats failed', e));
             loadFocusDistribution().catch(e => console.warn('refresh focus distribution failed', e));
         } catch (e) {
@@ -1627,6 +1831,9 @@ if (document.readyState === 'loading') {
         }
     }
 
+    /**
+     * Load available subjects into select dropdown
+     */
     async function loadSubjectsToSelect() {
         if (!subjectSelect) return;
         try {
@@ -1638,31 +1845,34 @@ if (document.readyState === 'loading') {
         }
     }
     
-    // Función auxiliar para cambiar el icono del botón
+    /**
+     * Update play button icon based on timer state
+     */
     function updatePlayButtonState() {
         if (!playBtn) return;
         
         if (isRunning) {
-            // Si está corriendo -> Mostrar PAUSA
-            // Quitamos ml-1 porque el icono de pausa ya se ve centrado
+            // Show pause icon when running
             playBtn.innerHTML = '<i data-lucide="pause" class="w-5 h-5"></i>';
         } else {
-            // Si está detenido -> Mostrar PLAY
-            // Agregamos ml-1 para compensación óptica visual
+            // Show play icon when stopped
             playBtn.innerHTML = '<i data-lucide="play" class="w-5 h-5 ml-1"></i>';
         }
         
-        // IMPORTANTE: Renderizar el nuevo icono (si el lib está disponible)
+        // Render icons
         if (typeof lucide !== 'undefined') lucide.createIcons();
     }
 
-    // UI wiring
+    /**
+     * Initialize Pomodoro timer when DOM is ready
+     */
     document.addEventListener('DOMContentLoaded', () => {
         loadSettings();
-        // apply settings initial
+        // Apply initial settings
         remainingSeconds = settings.workMinutes * 60;
         updateDisplay();
-        // bind buttons
+        
+        // Bind control buttons
         if (playBtn) playBtn.addEventListener('click', () => {
             if (isRunning) pauseTimer(); else startTimer();
         });
@@ -1673,10 +1883,10 @@ if (document.readyState === 'loading') {
             updateDisplay();
         });
 
-        // settings modal
+        // Settings modal
         if (settingsBtn && modal) {
             settingsBtn.addEventListener('click', async () => {
-                // populate fields
+                // Populate form fields with current settings
                 if (workInput) workInput.value = String(settings.workMinutes);
                 if (shortInput) shortInput.value = String(settings.shortBreakMinutes);
                 if (longInput) longInput.value = String(settings.longBreakMinutes);
@@ -1686,30 +1896,37 @@ if (document.readyState === 'loading') {
             });
         }
 
+        // Close modal button
         if (modalCancel && modal) modalCancel.addEventListener('click', () => { if (modal) modal.style.display = 'none'; });
 
+        // Settings form submission
         if (settingsForm && modal) settingsForm.addEventListener('submit', (e) => {
             e.preventDefault();
-            // read values
+            // Read form values
             const wm = Number((workInput && workInput.value) || settings.workMinutes);
             const sb = Number((shortInput && shortInput.value) || settings.shortBreakMinutes);
             const lb = Number((longInput && longInput.value) || settings.longBreakMinutes);
             const cb = Number((cyclesInput && cyclesInput.value) || settings.cyclesBeforeLongBreak);
+            
+            // Validate and update settings
             settings.workMinutes = Math.max(1, wm);
             settings.shortBreakMinutes = Math.max(1, sb);
             settings.longBreakMinutes = Math.max(1, lb);
             settings.cyclesBeforeLongBreak = Math.max(1, cb);
+            
+            // Get selected subject
             const sel = subjectSelect ? subjectSelect.value : '';
             defaultSubjectId = sel ? Number(sel) : null;
+            
             saveSettings();
-            // update timer if stopped
+            // Update timer if not running
             if (!isRunning) resetTimer('work');
             if (modal) modal.style.display = 'none';
-            // Refresh counters/UI to reflect new settings
+            // Refresh display
             updateDisplay();
         });
 
-        // initialize subject select load in background
+        // Load subjects in background
         loadSubjectsToSelect();
     });
 

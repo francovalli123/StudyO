@@ -1,35 +1,51 @@
+// Import API utility functions and authentication helper
 import { apiGet, apiPost, apiDelete, getToken, apiPut } from "./api.js";
 
-// Declare lucide as global (loaded via CDN)
+/**
+ * Declare lucide icons library as global variable (loaded via CDN)
+ * Provides icon rendering functionality throughout the application
+ */
 declare const lucide: {
     createIcons: () => void;
 };
 
+/**
+ * Subject interface - Represents an academic subject with metadata
+ * Used for CRUD operations and display of subject information
+ */
 interface Subject {
-    id: number;
-    name: string;
-    professor_name?: string;
-    priority?: number;
-    progress?: number;
-    next_exam_date?: string;
-    color?: string; // Agregado para consistencia con el payload de guardado
-    study_minutes_week?: number;
-    weekly_target_minutes?: number;
+    id: number; // Unique identifier for the subject
+    name: string; // Subject name/title
+    professor_name?: string; // Professor teaching this subject
+    priority?: number; // Subject priority level
+    progress?: number; // Learning progress percentage
+    next_exam_date?: string; // Date of next exam for this subject
+    color?: string; // Color code for UI display consistency
+    study_minutes_week?: number; // Total study minutes in current week
+    weekly_target_minutes?: number; // Target minutes to study per week
 }
 
+// Global state: stores all subjects fetched from API
 let subjects: Subject[] = [];
-let currentSubjectId: number | null = null; // Variable para almacenar el ID en edición
+// Global state: stores the ID of the subject being edited (null if creating new)
+let currentSubjectId: number | null = null;
 
+/**
+ * Load all subjects from API and render them in the UI
+ * Displays empty state if no subjects exist, otherwise renders subject cards
+ */
 async function loadSubjects() {
     try {
+        // Fetch subjects from backend API
         subjects = await apiGet("/subjects/");
-        // Debug: mostrar token y objetos recibidos para comprobar ownership/permits
+        // Debug log: show loaded subjects and auth token for permission verification
         console.debug('Loaded subjects:', subjects, 'authToken:', getToken());
         const container = document.getElementById("subjects-container");
         const emptyState = document.getElementById("emptyState");
 
         if (!container || !emptyState) return;
 
+        // Show empty state if no subjects exist
         if (subjects.length === 0) {
             container.innerHTML = "";
             container.classList.add("hidden");
@@ -37,9 +53,11 @@ async function loadSubjects() {
             return;
         }
 
+        // Show subjects container and hide empty state
         emptyState.classList.add("hidden");
         container.classList.remove("hidden");
 
+        // Render subject cards using template literals
         container.innerHTML = subjects
             .map((s: Subject) => `
                 <div class="bg-dark-card rounded-2xl p-6 relative group" style="box-shadow: 0 0 0 1px rgba(168,85,247,0.2), 0 0 30px rgba(168,85,247,0.15), inset 0 0 20px rgba(168,85,247,0.03);">
@@ -57,51 +75,58 @@ async function loadSubjects() {
 
                     <div class="mb-4">
                         <div class="flex items-center justify-between mb-2">
-                            <span class="text-xs text-gray-400">Avance Clave</span>
+                            <span class="text-xs text-gray-400">Progress</span>
                             <span class="text-sm font-bold text-purple-400">${s.progress || 0}%</span>
                         </div>
-                        <div class="text-xs text-gray-400 mb-2">${s.study_minutes_week || 0} / ${s.weekly_target_minutes || 0} min esta semana</div>
+                        <div class="text-xs text-gray-400 mb-2">${s.study_minutes_week || 0} / ${s.weekly_target_minutes || 0} min this week</div>
                         <div class="w-full h-2 rounded-full bg-gray-700/50" style="box-shadow: inset 0 0 10px rgba(0,0,0,0.3);">
                             <div class="h-full rounded-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all duration-300" style="width: ${s.progress || 0}%; box-shadow: 0 0 15px rgba(168,85,247,0.6);"></div>
                         </div>
                     </div>
 
-                    ${s.next_exam_date ? `<div class="mb-4 text-xs text-gray-400"><i data-lucide="calendar" class="w-3 h-3 inline mr-1"></i> Próximo examen: ${s.next_exam_date}</div>` : ''}
+                    ${s.next_exam_date ? `<div class="mb-4 text-xs text-gray-400"><i data-lucide="calendar" class="w-3 h-3 inline mr-1"></i> Next exam: ${s.next_exam_date}</div>` : ''}
 
                     <div class="flex gap-3 pt-4 border-t border-gray-700/50">
                         <button class="edit-subject-btn flex-1 px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 border border-gray-700 text-gray-300 hover:text-white text-sm font-medium transition-all duration-300 flex items-center justify-center gap-2" data-subject-id="${s.id}">
                             <i data-lucide="edit-2" class="w-4 h-4"></i>
-                            <span>Editar</span>
+                            <span>Edit</span>
                         </button>
                         <button class="delete-subject-btn flex-1 px-4 py-2 rounded-lg bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 hover:text-red-300 text-sm font-medium transition-all duration-300 flex items-center justify-center gap-2" data-subject-id="${s.id}">
                             <i data-lucide="trash-2" class="w-4 h-4"></i>
-                            <span>Eliminar</span>
+                            <span>Delete</span>
                         </button>
                     </div>
                 </div>
             `)
             .join("");
 
+        // Initialize lucide icons for newly rendered elements
         if (typeof lucide !== 'undefined') lucide.createIcons();
+        // Attach event listeners to edit and delete buttons
         attachSubjectEventListeners();
 
     } catch (error) {
-        console.error("Error al cargar materias:", error);
+        console.error("Error loading subjects:", error);
         const container = document.getElementById("subjects-container");
         if (container) {
-            container.innerHTML = `<p class="text-red-400 col-span-full">Error al cargar las materias</p>`;
+            container.innerHTML = `<p class="text-red-400 col-span-full">Error loading subjects</p>`;
         }
     }
 }
 
+/**
+ * Attach event listeners to subject edit and delete buttons
+ * Uses event delegation pattern for efficient event handling
+ */
 function attachSubjectEventListeners() {
     const container = document.getElementById('subjects-container');
     if (!container) return;
 
-    // Use event delegation: single listener on the container handles edit/delete clicks
+    // Event delegation: single listener handles all edit/delete button clicks
     container.addEventListener('click', async (e) => {
         const target = e.target as HTMLElement;
 
+        // Handle edit button clicks
         const editBtn = target.closest('.edit-subject-btn') as HTMLButtonElement | null;
         if (editBtn) {
             const idStr = editBtn.dataset.subjectId;
@@ -109,6 +134,7 @@ function attachSubjectEventListeners() {
             return;
         }
 
+        // Handle delete button clicks
         const deleteBtn = target.closest('.delete-subject-btn') as HTMLButtonElement | null;
         if (deleteBtn) {
             const idStr = deleteBtn.dataset.subjectId;
@@ -118,15 +144,22 @@ function attachSubjectEventListeners() {
     });
 }
 
+/**
+ * Delete a subject after user confirmation
+ * Makes API call to remove subject and reloads the list
+ * @param subjectId - ID of the subject to delete
+ */
 async function deleteSubject(subjectId: number) {
     if (!confirm('¿Estás seguro de que quieres eliminar esta materia?')) return;
 
     try {
+        // Call API to delete the subject
         await apiDelete(`/subjects/${subjectId}/`);
+        // Reload subjects list after deletion
         loadSubjects();
     } catch (error) {
-        console.error("Error al eliminar materia:", error);
-        // Intentamos parsear el error devuelto por la API para dar feedback más claro
+        console.error("Error deleting subject:", error);
+        // Attempt to parse error from API for better user feedback
         try {
             const errAny: any = error;
             let parsed: any = null;
@@ -143,16 +176,21 @@ async function deleteSubject(subjectId: number) {
             }
 
             if (parsed && parsed.detail && String(parsed.detail).includes('No Subject matches')) {
-                alert('No se encontró la asignatura o no tienes permiso para eliminarla.');
+                alert('Subject not found or you don\'t have permission to delete it.');
             } else {
-                alert('Error al eliminar la materia');
+                alert('Error deleting subject.');
             }
         } catch (e) {
-            alert('Error al eliminar la materia');
+            alert('Error deleting subject');
         }
     }
 }
 
+/**
+ * Handle subject form submission for create or update operations
+ * Validates form data and makes appropriate API call (POST for create, PUT for update)
+ * @param e - Form submit event
+ */
 async function handleSaveSubject(e: Event) {
     e.preventDefault();
 
@@ -160,21 +198,22 @@ async function handleSaveSubject(e: Event) {
     const submitBtn = form.querySelector('button[type="submit"]') as HTMLButtonElement;
     const originalText = submitBtn.innerText;
     
-    // El ID se obtiene de la variable global establecida por openSubjectModal
+    // Check if editing or creating (ID set by openSubjectModal)
     const isEditing = currentSubjectId !== null; 
 
-    submitBtn.innerText = isEditing ? "Actualizando..." : "Guardando...";
+    submitBtn.innerText = isEditing ? "Updating..." : "Saving...";
     submitBtn.disabled = true;
 
     try {
         const formData = new FormData(form);
         
-        // Convertir formData a un objeto para el payload
+        // Convert form data to payload object
         const payload: Partial<Subject> = {
             name: formData.get('name') as string,
             professor_name: formData.get('professor_name') as string || undefined,
             color: formData.get('color') as string || undefined,
             next_exam_date: formData.get('next_exam_date') as string || undefined,
+            // Parse weekly target minutes as safe number
             weekly_target_minutes: (() => {
                 const raw = formData.get('weekly_target_minutes');
                 if (!raw) return undefined;
@@ -183,49 +222,56 @@ async function handleSaveSubject(e: Event) {
             })()
         };
         
+        // Parse priority value from form
         const priorityValue = formData.get('priority');
         payload.priority = priorityValue ? parseInt(priorityValue as string) : undefined;
         
         if (isEditing) {
-            // Lógica de EDICIÓN (PUT/PATCH)
+            // Update existing subject with PUT request
             await apiPut(`/subjects/${currentSubjectId}/`, payload); 
-            console.log("Materia actualizada exitosamente!");
+            console.log("Subject updated successfully!");
         } else {
-            // Lógica de CREACIÓN (POST)
-            // Mantenemos 3 argumentos en apiPost asumiendo que es la firma correcta para POST
+            // Create new subject with POST request
             await apiPost('/subjects/', payload, true);
-            console.log("Materia creada exitosamente!");
+            console.log("Subject created successfully!");
         }
         
+        // Close modal and reload subjects list
         closeSubjectModal();
         loadSubjects();
 
     } catch (error) {
-        console.error(`Error al ${isEditing ? 'actualizar' : 'guardar'} materia:`, error);
-        alert(`Hubo un error al ${isEditing ? 'actualizar' : 'crear'} la materia. Revisa la consola.`);
+        console.error(`Error ${isEditing ? 'updating' : 'saving'} subject:`, error);
+        alert(`Error ${isEditing ? 'updating' : 'creating'} subject. Check console.`);
     } finally {
         submitBtn.innerText = originalText;
         submitBtn.disabled = false;
-        currentSubjectId = null; // Limpiar el ID después de la operación
+        currentSubjectId = null; // Clear editing ID after operation
     }
 }
 
+/**
+ * Open subject modal for creating a new subject or editing an existing one
+ * Pre-populates form with existing data if editing
+ * @param subjectId - ID to edit, or null to create new subject
+ */
 function openSubjectModal(subjectId: number | null = null): void {
     const modal = document.getElementById('subjectModal');
     const form = document.getElementById('subjectForm') as HTMLFormElement;
 
     if (!modal || !form) return;
 
-    currentSubjectId = subjectId; // Establecer el ID (null para crear, id para editar)
+    currentSubjectId = subjectId; // Set ID (null for create, id for edit)
     form.reset();
 
-    const title = modal.querySelector('h2'); // Asumiendo que tienes un h2 en el modal
+    const title = modal.querySelector('h2');
     const submitBtn = form.querySelector('button[type="submit"]') as HTMLButtonElement;
 
     if (subjectId !== null) {
-        // Encontrar la materia y rellenar el formulario (EDITAR)
+        // Edit mode: find subject and populate form with existing data
         const subject = subjects.find(s => s.id === subjectId);
         if (subject) {
+            // Populate form fields with subject data
             const nameInput = form.querySelector<HTMLInputElement>('[name="name"]');
             const profInput = form.querySelector<HTMLInputElement>('[name="professor_name"]');
             const priorityInput = form.querySelector<HTMLSelectElement>('[name="priority"]');
@@ -240,22 +286,25 @@ function openSubjectModal(subjectId: number | null = null): void {
             if (targetInput) targetInput.value = subject.weekly_target_minutes ? String(subject.weekly_target_minutes) : '';
 
             if (subject.next_exam_date && examInput) {
-                // Asumiendo que `next_exam_date` ya viene en formato compatible con input[type=date]
+                // Assuming `next_exam_date` comes in a compatible format for input[type=date]
                 examInput.value = subject.next_exam_date;
             }
 
-            if (title) title.innerText = 'Editar Materia';
-            if (submitBtn) submitBtn.innerText = 'Guardar Cambios';
+            if (title) title.innerText = 'Edit Subject';
+            if (submitBtn) submitBtn.innerText = 'Save Changes';
         }
     } else {
-        // Modo CREAR
-        if (title) title.innerText = 'Crear Nueva Materia';
-        if (submitBtn) submitBtn.innerText = 'Crear Materia';
+        // Create mode: show empty form
+        if (title) title.innerText = 'Create New Subject';
+        if (submitBtn) submitBtn.innerText = 'Create Subject';
     }
 
     modal.classList.add('active');
 }
 
+/**
+ * Close the subject modal
+ */
 function closeSubjectModal(): void {
     const modal = document.getElementById('subjectModal');
     if (modal) {
@@ -263,6 +312,10 @@ function closeSubjectModal(): void {
     }
 }
 
+/**
+ * Attach global event listeners for subject management buttons and modal
+ * Handles add subject, close modal, form submission, and background click events
+ */
 function attachGlobalListeners(): void {
     const addBtn = document.getElementById('addSubjectBtn') as HTMLButtonElement | null;
     const closeModalBtn = document.getElementById('closeSubjectModalBtn') as HTMLButtonElement | null;
@@ -271,16 +324,17 @@ function attachGlobalListeners(): void {
     const emptyStateBtn = document.getElementById('emptyStateSubjectBtn') as HTMLButtonElement | null;
     const modal = document.getElementById('subjectModal');
 
-    // FIX para ERROR 2769: Usar función anónima para que el listener no pase el objeto Event 
-    // a la función openSubjectModal, que espera un 'number | null'.
+    // Bind add subject button (use arrow function to avoid passing Event object)
     if (addBtn) addBtn.addEventListener('click', () => openSubjectModal(null));
     if (emptyStateBtn) emptyStateBtn.addEventListener('click', () => openSubjectModal(null));
     
+    // Bind modal close buttons
     if (closeModalBtn) closeModalBtn.addEventListener('click', closeSubjectModal);
     if (cancelBtn) cancelBtn.addEventListener('click', closeSubjectModal);
+    // Bind form submission
     if (subjectForm) subjectForm.addEventListener('submit', handleSaveSubject);
 
-    // Cerrar modal al hacer click fuera
+    // Close modal on background click
     if (modal) {
         modal.addEventListener('click', (e) => {
             if (e.target === modal) closeSubjectModal();
@@ -288,6 +342,7 @@ function attachGlobalListeners(): void {
     }
 }
 
+// Initialize when DOM is ready
 window.addEventListener('DOMContentLoaded', () => {
     attachGlobalListeners();
     loadSubjects();

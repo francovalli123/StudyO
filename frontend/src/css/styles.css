@@ -1,28 +1,40 @@
 /* =========================================
    1. RESET & GLOBALES
    ========================================= */
+/* =========================================
+   1. RESET & GLOBAL STYLES
+   ========================================= */
+
+/* Universal reset: removes default margins, padding, and applies border-box sizing */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
+/* Enable smooth scrolling for all scroll actions (anchor links, etc.) */
 html {
     scroll-behavior: smooth;
 }
 
+/* Global body styles: Dark background theme with white text */
 body {
     font-family: 'Inter', sans-serif;
     background: #0B0B0D;
     color: white;
     overflow-x: hidden;
-    /* Aseguramos que el body ocupe todo para centrar bien */
+    /* Ensure body takes full height for proper vertical centering */
     min-height: 100vh;
 }
 
 /* =========================================
    2. NAVBAR
    ========================================= */
+/* =========================================
+   2. NAVIGATION BAR
+   ========================================= */
+
+/* Main navigation container: flexbox layout with space between content */
 nav {
     width: 100%;
     padding: 25px 8%;
@@ -31,6 +43,7 @@ nav {
     align-items: center;
 }
 
+/* Logo/brand styling: flexbox for icon and text alignment */
 nav .logo {
     font-size: 22px;
     font-weight: 600;
@@ -39,11 +52,13 @@ nav .logo {
     align-items: center;
 }
 
+/* Navigation menu: horizontal list with flex layout */
 nav .menu {
     display: flex;
     gap: 30px;
 }
 
+/* Navigation menu links: gray text with smooth hover transition */
 nav .menu a {
     text-decoration: none;
     color: #aaa;
@@ -51,10 +66,12 @@ nav .menu a {
     transition: 0.2s;
 }
 
+/* Menu link hover state: transitions to white */
 nav .menu a:hover {
     color: white;
 }
 
+/* Navigation button: gradient background with scale animation on hover */
 .btn-nav {
     padding: 10px 22px;
     border-radius: 8px;
@@ -67,6 +84,7 @@ nav .menu a:hover {
     transition: transform 0.3s ease;
 }
 
+/* Navigation button hover: enlarge with scale transform */
 .btn-nav:hover {
     transform: scale(1.08);
 }
@@ -74,6 +92,11 @@ nav .menu a:hover {
 /* =========================================
    3. HERO SECTION
    ========================================= */
+/* =========================================
+   3. HERO SECTION
+   ========================================= */
+
+/* Main hero container: centered content with top margin and horizontal padding */
 .hero {
     width: 100%;
     text-align: center;
@@ -81,22 +104,26 @@ nav .menu a:hover {
     padding: 0 10vw;
 }
 
+/* Hero headline: extra-large bold text */
 .hero h1 {
     font-size: 70px;
     font-weight: 800;
     line-height: 1.1;
 }
 
+/* Purple accent text within hero: applies purple color to highlighted words */
 .hero .purple {
     color: #B67AFF;
 }
 
+/* Hero description text: gray color below headline */
 .hero p {
     margin-top: 25px;
     color: #bbb;
     font-size: 18px;
 }
 
+/* Hero button container: flexbox with centered alignment */
 .hero-buttons {
     margin-top: 35px;
     display: flex;
@@ -104,7 +131,7 @@ nav .menu a:hover {
     gap: 20px;
 }
 
-/* Botones Generales */
+/* Primary button styling: solid purple background with dark text */
 .btn-primary {
     padding: 14px 32px;
     border-radius: 20px;
@@ -116,7 +143,7 @@ nav .menu a:hover {
     font-size: 17px;
     min-width: 158px;
     display: inline-flex;
-    /* Mejor que inline-block para centrar texto */
+    /* inline-flex preferred over inline-block for better text centering */
     justify-content: center;
     align-items: center;
     text-decoration: none !important;
@@ -124,6 +151,7 @@ nav .menu a:hover {
     transition: transform 0.3s ease;
 }
 
+/* Secondary button styling: transparent background with purple border/text */
 .btn-secondary {
     padding: 14px 32px;
     border-radius: 10px;
@@ -141,16 +169,18 @@ nav .menu a:hover {
     transition: transform 0.3s ease;
 }
 
+/* Button hover state: both primary and secondary buttons scale up */
 .btn-primary:hover,
 .btn-secondary:hover {
     transform: scale(1.05);
 }
 
-/* Sombras */
+/* Drop shadow with purple glow: standard intensity */
 .shadow-purple {
     filter: drop-shadow(0px 10px 15px rgba(168, 85, 247, 0.45));
 }
 
+/* Drop shadow with purple glow: reduced intensity */
 .shadow-purple-low {
     filter: drop-shadow(0px 5px 10px rgba(168, 85, 247, 0.45));
 }
@@ -158,6 +188,11 @@ nav .menu a:hover {
 /* =========================================
    4. PROGRESS CARD (CAROUSEL)
    ========================================= */
+/* =========================================
+   4. PROGRESS CARD (CAROUSEL)
+   ========================================= */
+
+/* Main progress card container: translucent frosted glass effect with fixed height for carousel */
 .progress-card {
     width: 60%;
     margin: 120px auto;
@@ -167,7 +202,7 @@ nav .menu a:hover {
     backdrop-filter: blur(6px);
     box-shadow: 0 0 25px rgba(155, 89, 182, 0.25);
 
-    /* Altura fija necesaria para el carrusel */
+    /* Fixed height required for carousel/slide layout */
     height: 350px;
     position: relative;
     overflow: hidden;
@@ -177,6 +212,7 @@ nav .menu a:hover {
     animation-delay: 1.2s;
 }
 
+/* Progress card title: centered text that smoothly transitions when content changes */
 .progress-card h2 {
     text-align: center;
     margin-bottom: 25px;
@@ -184,16 +220,19 @@ nav .menu a:hover {
     font-weight: 700;
     color: white;
     transition: opacity 0.3s ease;
-    /* Suavizar cambio de texto */
+    /* Smooth transition when text changes */
 }
 
-/* --- ESTRUCTURA DEL CARRUSEL --- */
+/* CAROUSEL STRUCTURE */
+
+/* Carousel container: absolute positioning for slide overlay */
 .carousel-container {
     position: relative;
     width: 100%;
     height: 100%;
 }
 
+/* Individual slide: positioned absolutely, starts hidden with right offset */
 .slide {
     position: absolute;
     top: 0;
@@ -202,28 +241,33 @@ nav .menu a:hover {
     height: 100%;
     opacity: 0;
     transform: translateX(30px);
-    /* Desplazamiento inicial */
+    /* Initial right offset for entrance animation */
     transition: all 0.6s cubic-bezier(0.25, 1, 0.5, 1);
     pointer-events: none;
 }
 
+/* Active slide: visible and positioned at normal x position */
 .slide.active {
     opacity: 1;
     transform: translateX(0);
     pointer-events: all;
 }
 
-/* --- ESTILOS SLIDE 1 (Progreso) --- */
+/* SLIDE 1 STYLES (Progress Display) */
+
+/* Progress metric row: contains label and progress bar */
 .progress-row {
     margin: 25px 0;
 }
 
+/* Progress metric label: displays progress type name */
 .progress-title {
     font-size: 14px;
     margin-bottom: 8px;
     color: #d4d4d8;
 }
 
+/* Progress bar background: dark container for progress fill */
 .progress-bar {
     height: 8px;
     width: 100%;
@@ -232,12 +276,14 @@ nav .menu a:hover {
     overflow: hidden;
 }
 
+/* Progress bar fill: gradient indicator of completion percentage */
 .progress-fill {
     height: 100%;
     background: linear-gradient(90deg, #A770EF, #CF8BF3);
     border-radius: 10px;
 }
 
+/* Streak display: golden color text highlighting current streak count */
 .streak {
     text-align: center;
     margin-top: 25px;
@@ -246,7 +292,9 @@ nav .menu a:hover {
     font-weight: 600;
 }
 
-/* --- ESTILOS SLIDES 2 y 3 (Centrados) --- */
+/* SLIDES 2 & 3 STYLES (Centered Content) */
+
+/* Centered slide layout: flexbox for vertical center alignment */
 .slide-center {
     display: flex;
     flex-direction: column;
@@ -254,21 +302,23 @@ nav .menu a:hover {
     justify-content: center;
     text-align: center;
     padding-bottom: 40px;
-    /* Compensa el título de arriba */
+    /* Compensates for title spacing above */
 }
 
-/* Reutilizamos clases de iconos pero los hacemos más grandes aquí */
+/* Large icon container: scaled up version of standard icon sizing */
 .icon-large {
     width: 80px;
     height: 80px;
     margin-bottom: 20px;
 }
 
+/* Large icon inner SVG: sized for prominent display */
 .icon-large svg {
     width: 40px;
     height: 40px;
 }
 
+/* Slide heading: large bold text for slide titles */
 .slide h3 {
     font-size: 1.4rem;
     color: white;
@@ -276,6 +326,7 @@ nav .menu a:hover {
     font-weight: 700;
 }
 
+/* Slide paragraph: descriptive text for slide content */
 .slide p {
     color: #a1a1aa;
     font-size: 1rem;
@@ -283,12 +334,13 @@ nav .menu a:hover {
     max-width: 80%;
 }
 
-/* Colores de iconos (Asegúrate de tener esto si no lo copiaste de Benefits) */
+/* Purple icon theme: light purple background with darker text */
 .icon-purple {
     background: rgba(168, 85, 247, 0.15);
     color: #a855f7;
 }
 
+/* Pink icon theme: light pink background with darker text */
 .icon-pink {
     background: rgba(236, 72, 153, 0.15);
     color: #ec4899;
@@ -299,19 +351,25 @@ nav .menu a:hover {
    ========================================= */
 
 /* 1. Contenedor*/
+/* =========================================
+   5. BENEFITS SECTION
+   ========================================= */
+
+/* Benefits section container: vertical padding and full width */
 #beneficios,
 .benefits-section {
     padding: 120px 0;
     width: 100%;
 }
 
-/* 2. Bloque de Título */
+/* Benefits header block: centered title and subtitle */
 .benefits {
     text-align: center;
     margin-bottom: 50px;
     padding: 0 20px;
 }
 
+/* Benefits section heading: large bold title */
 .benefits h2 {
     font-size: 2.5rem;
     font-weight: 700;
@@ -319,6 +377,7 @@ nav .menu a:hover {
     color: white;
 }
 
+/* Benefits subtitle: descriptive text below heading */
 .benefits-subtitle {
     font-size: 1.1rem;
     color: #a1a1aa;
@@ -327,20 +386,19 @@ nav .menu a:hover {
     line-height: 1.6;
 }
 
-/* 3. Cards: Volvemos a un tamaño mínimo de 250px para que se estiren mejor 
-      y ocupen el ancho completo como en la Imagen 2 */
+/* Benefits cards grid: responsive layout with minimum 250px columns */
 .benefits-cards {
     display: grid;
-    /* Usamos 250px en vez de 280px para asegurar que quepan 4 en línea en más pantallas */
+    /* 250px minimum ensures 4 cards fit on wider screens */
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
     gap: 24px;
-    /* Un espacio un poco más cerrado y cohesivo */
+    /* Cohesive spacing between cards */
     max-width: 1200px;
     margin: 0 auto;
     padding: 0 20px;
 }
 
-/* El resto de estilos de la tarjeta se mantienen igual */
+/* Benefit card: raised dark background with hover animation */
 .card {
     background-color: #18181b;
     border: 1px solid rgba(255, 255, 255, 0.08);
@@ -356,12 +414,14 @@ nav .menu a:hover {
     animation: fadeInUp 0.8s ease-out forwards;
 }
 
+/* Card hover state: elevates card and adds purple glow */
 .card:hover {
     transform: translateY(-8px);
     box-shadow: 0 10px 30px rgba(168, 85, 247, 0.3);
     border-color: rgba(255, 255, 255, 0.15);
 }
 
+/* Card heading: white text with left alignment */
 .card h3 {
     color: #ffffff;
     font-size: 1.25rem;
@@ -369,17 +429,21 @@ nav .menu a:hover {
     margin-bottom: 12px;
 }
 
+/* Card heading hover: transitions to light purple on card hover */
 .card:hover h3 {
     color: #CF8BF3;
 }
 
+/* Card description text: gray color with line spacing */
 .card p {
     color: #a1a1aa;
     font-size: 0.95rem;
     line-height: 1.6;
 }
 
-/* Iconos */
+/* ICON STYLES */
+
+/* Icon box container: circular background for icons */
 .icon-box {
     width: 56px;
     height: 56px;
@@ -390,45 +454,55 @@ nav .menu a:hover {
     margin-bottom: 24px;
 }
 
+/* Icon SVG sizing */
 .icon-box svg {
     width: 28px;
     height: 28px;
     stroke-width: 2;
 }
 
+/* Icon theme - purple: light purple background with darker purple text */
 .icon-purple {
     background: rgba(168, 85, 247, 0.15);
     color: #a855f7;
 }
 
+/* Icon theme - pink: light pink background with darker pink text */
 .icon-pink {
     background: rgba(236, 72, 153, 0.15);
     color: #ec4899;
 }
 
+/* Icon theme - blue: light blue background with darker blue text */
 .icon-blue {
     background: rgba(59, 130, 246, 0.15);
     color: #3b82f6;
 }
 
+/* Icon theme - yellow: light yellow background with darker yellow text */
 .icon-yellow {
     background: rgba(234, 179, 8, 0.15);
     color: #eab308;
 }
 
-/* Animation Delays Cards */
+/* CARD ANIMATION DELAYS - Staggered entrance animation */
+
+/* First card: enters at 1.4 seconds */
 .benefits-cards .card:nth-child(1) {
     animation-delay: 1.4s;
 }
 
+/* Second card: enters at 1.6 seconds */
 .benefits-cards .card:nth-child(2) {
     animation-delay: 1.6s;
 }
 
+/* Third card: enters at 1.8 seconds */
 .benefits-cards .card:nth-child(3) {
     animation-delay: 1.8s;
 }
 
+/* Fourth card: enters at 2.0 seconds */
 .benefits-cards .card:nth-child(4) {
     animation-delay: 2.0s;
 }
@@ -436,29 +510,35 @@ nav .menu a:hover {
 /* =========================================
    6. PHILOSOPHY SECTION
    ========================================= */
+/* =========================================
+   6. PHILOSOPHY SECTION
+   ========================================= */
+
+/* Philosophy section container: centered content with flexbox */
 .philosophy-section {
     width: 100%;
     max-width: 900px;
     margin: 0 auto;
     padding: 100px 20px;
 
-    /* FLEXBOX CRUCIAL PARA CENTRADO */
+    /* FLEXBOX ESSENTIAL FOR CENTERING */
     display: flex;
     flex-direction: column;
     align-items: center;
-    /* Centra horizontalmente */
+    /* Horizontal center alignment */
     text-align: center;
-    /* Centra el texto */
+    /* Text center alignment */
 
     opacity: 0;
     animation: fadeInUp 0.8s ease-out forwards;
     animation-delay: 2.2s;
 }
 
+/* Brain icon container: centered flex with purple drop shadow */
 .brain-icon {
     margin-bottom: 30px;
     display: flex;
-    /* Asegura que el div no ocupe 100% ancho bloqueando centrado */
+    /* Prevents div from taking full width, allowing proper centering */
     justify-content: center;
     opacity: 0;
     animation: fadeInUp 0.8s ease-out forwards;
@@ -466,6 +546,7 @@ nav .menu a:hover {
     filter: drop-shadow(0 0 10px rgba(168, 85, 247, 0.4));
 }
 
+/* Philosophy section heading: large bold centered title */
 .philosophy-section h2 {
     font-size: 2.5rem;
     font-weight: 800;
@@ -477,6 +558,7 @@ nav .menu a:hover {
     animation-delay: 2.4s;
 }
 
+/* Purple gradient text: applies animated purple gradient to text */
 .text-purple-gradient {
     color: #a855f7;
     background: linear-gradient(90deg, #a855f7, #c084fc);
@@ -485,6 +567,7 @@ nav .menu a:hover {
     display: inline-block;
 }
 
+/* Philosophy paragraph text: gray centered text with line spacing */
 .philosophy-text {
     font-size: 1.15rem;
     line-height: 1.7;
@@ -496,11 +579,13 @@ nav .menu a:hover {
     animation-delay: 2.5s;
 }
 
+/* White emphasis text: highlights key words with white color */
 .text-white {
     color: #ffffff;
     font-weight: 600;
 }
 
+/* Philosophy quote: italic secondary text with subtle color */
 .philosophy-quote {
     font-size: 0.95rem;
     font-style: italic;
@@ -513,6 +598,11 @@ nav .menu a:hover {
 /* =========================================
    7. AUTH PAGES
    ========================================= */
+/* =========================================
+   7. AUTHENTICATION PAGES (LOGIN/REGISTER)
+   ========================================= */
+
+/* Auth page body: centered flexbox layout with gradient background */
 .auth-body {
     display: flex;
     align-items: center;
@@ -522,6 +612,7 @@ nav .menu a:hover {
     background: linear-gradient(180deg, #08080A 0%, #0B0B0D 100%);
 }
 
+/* Auth form container: frosted glass card with centered content */
 .auth-container {
     width: 100%;
     max-width: 420px;
@@ -533,16 +624,19 @@ nav .menu a:hover {
     backdrop-filter: blur(10px);
 }
 
+/* Auth container heading: page title (Login/Register) */
 .auth-container h1 {
     font-size: 26px;
     margin-bottom: 6px;
 }
 
+/* Auth subtitle: helper text below the heading */
 .auth-subtitle {
     color: #bbb;
     margin-bottom: 18px;
 }
 
+/* Auth form: vertical flex layout with consistent spacing */
 .auth-form {
     display: flex;
     flex-direction: column;
@@ -550,6 +644,7 @@ nav .menu a:hover {
     margin-top: 6px;
 }
 
+/* Auth input fields: dark background with subtle border */
 .auth-form input {
     width: 100%;
     padding: 12px 14px;
@@ -560,23 +655,27 @@ nav .menu a:hover {
     font-size: 15px;
 }
 
+/* Auth input focus state: purple border with subtle glow */
 .auth-form input:focus {
     border-color: #9573ff;
     box-shadow: 0 8px 20px rgba(149, 115, 255, 0.12);
     outline: none;
 }
 
+/* Auth footer: links area below form (login/register links) */
 .auth-footer {
     margin-top: 14px;
     color: #bbb;
 }
 
+/* Auth footer link: purple color with bold weight */
 .auth-footer a {
     color: #A370FF;
     text-decoration: none;
     font-weight: 700;
 }
 
+/* Auth footer link hover: underline on hover */
 .auth-footer a:hover {
     text-decoration: underline;
 }
@@ -584,6 +683,11 @@ nav .menu a:hover {
 /* =========================================
    8. ANIMACIONES
    ========================================= */
+/* =========================================
+   8. ANIMATIONS & TRANSITIONS
+   ========================================= */
+
+/* Fade in and slide up animation: elements appear with upward movement */
 @keyframes fadeInUp {
     from {
         opacity: 0;
@@ -596,7 +700,8 @@ nav .menu a:hover {
     }
 }
 
-/* Delays iniciales (Landing) */
+/* LANDING PAGE ELEMENT ANIMATION DELAYS */
+/* Staggered entrance animations for navbar and hero elements */
 nav .logo {
     animation-delay: 0s;
 }
@@ -705,44 +810,54 @@ nav .btn-nav,
     9. BACKGROUND COLORS
    ========================================
 */
-/* Fondo Base (El que ya tienes en el body) */
-.bg-base {
-    background-color: #0B0B0D;
-}
+    /* =========================================
+       9. BACKGROUND COLORS
+       ========================================= */
 
-/* Fondo "Zinc" (El mismo de tus tarjetas, bueno para resaltar una sección entera) */
-.bg-surface {
-    background-color: #121214;
-}
+    /* Base background color: primary dark background used in body */
+    .bg-base {
+        background-color: #0B0B0D;
+    }
 
-/* Fondo con tinte Púrpura muy oscuro (Para secciones especiales) */
-.bg-purple-dark {
-    background-color: #0f0b14;
-    /* Casi negro, pero con un toque violeta */
-}
+    /* Surface background: slightly lighter than base, used for cards and sections */
+    .bg-surface {
+        background-color: #121214;
+    }
+
+    /* Purple dark background: almost black with subtle purple tint for special sections */
+    .bg-purple-dark {
+        background-color: #0f0b14;
+        /* Nearly black with a hint of purple */
+    }
 
 /* =========================================
    10. SECCIÓN TESTIMONIOS
    ========================================= */
+/* =========================================
+   10. TESTIMONIALS SECTION
+   ========================================= */
 
+/* Testimonials section wrapper: dark background with full width and padding */
 .testimonials-section {
     padding: 100px 20px;
     width: 100%;
     background-color: #121214;
-    /* Fondo base */
+    /* Base dark background */
 }
 
+/* Testimonials container: max width wrapper for content centering */
 .testimonials-container {
     max-width: 1200px;
     margin: 0 auto;
 }
 
-/* Encabezado centrado */
+/* Section header: centered title and subtitle block */
 .section-header {
     text-align: center;
     margin-bottom: 60px;
 }
 
+/* Section header heading: large section title */
 .section-header h2 {
     font-size: 2.5rem;
     font-weight: 700;
@@ -750,46 +865,47 @@ nav .btn-nav,
     margin-bottom: 10px;
 }
 
+/* Section header subtitle: gray descriptive text */
 .section-header p {
     color: #a1a1aa;
     font-size: 1.1rem;
 }
 
-/* Grid de Tarjetas */
+/* Testimonials grid: responsive 3-column layout with responsive columns */
 .testimonials-grid {
     display: grid;
-    /* Responsive: columnas de mínimo 320px */
+    /* Responsive: minimum 320px wide columns */
     grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
     gap: 32px;
 }
 
-/* Tarjeta Individual */
+/* Individual testimonial card: dark background with hover lift effect */
 .testimonial-card {
     background: #18181b;
-    /* Zinc-900 */
     border: 1px solid rgba(255, 255, 255, 0.05);
     border-radius: 24px;
     padding: 40px 32px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    /* Empuja el footer hacia abajo */
+    /* Pushes footer to bottom */
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     position: relative;
     overflow: hidden;
 }
 
+/* Card hover state: elevates card and adds purple shadow */
 .testimonial-card:hover {
     transform: translateY(-5px);
     box-shadow: 0 10px 30px rgba(168, 85, 247, 0.3);
     border-color: rgba(168, 85, 247, 0.2);
 }
 
-/* Icono de Comillas Decorativo */
+/* Decorative quote icon: subtle background quotation mark */
 .quote-icon {
     font-size: 4rem;
     color: rgba(255, 255, 255, 0.05);
-    /* Muy sutil en el fondo */
+    /* Very subtle background element */
     font-family: serif;
     line-height: 1;
     position: absolute;
@@ -798,10 +914,9 @@ nav .btn-nav,
     pointer-events: none;
 }
 
-/* Texto del testimonio */
+/* Testimonial text: main quote or review content */
 .testimonial-text {
     color: #d4d4d8;
-    /* Gris claro */
     font-size: 1.05rem;
     line-height: 1.6;
     margin-bottom: 30px;
@@ -809,7 +924,7 @@ nav .btn-nav,
     z-index: 1;
 }
 
-/* Resaltar parte del texto (El resultado) */
+/* Highlight text: emphasized portion of testimonial (results/achievement) */
 .highlight {
     color: white;
     font-weight: 600;
@@ -820,7 +935,7 @@ nav .btn-nav,
     -webkit-text-fill-color: transparent;
 }
 
-/* Info del Usuario (Footer de la card) */
+/* User information section: footer of testimonial card with author details */
 .user-info {
     display: flex;
     align-items: center;
@@ -829,7 +944,7 @@ nav .btn-nav,
     padding-top: 20px;
 }
 
-/* Círculo con iniciales (Avatar) */
+/* Avatar circle: initials display in circular background */
 .avatar-circle {
     width: 48px;
     height: 48px;
@@ -842,19 +957,22 @@ nav .btn-nav,
     font-size: 18px;
 }
 
-/* Colores para los avatares */
+/* Avatar color theme - purple: gradient purple background */
 .avatar-circle.purple {
     background: linear-gradient(135deg, #a855f7, #7c3aed);
 }
 
+/* Avatar color theme - pink: gradient pink background */
 .avatar-circle.pink {
     background: linear-gradient(135deg, #ec4899, #db2777);
 }
 
+/* Avatar color theme - blue: gradient blue background */
 .avatar-circle.blue {
     background: linear-gradient(135deg, #3b82f6, #2563eb);
 }
 
+/* User name heading: author name in testimonial footer */
 .user-details h4 {
     color: white;
     font-size: 1rem;
@@ -862,9 +980,9 @@ nav .btn-nav,
     margin-bottom: 2px;
 }
 
+/* User role/title: subtitle under author name */
 .user-details span {
     color: #71717a;
-    /* Zinc-500 */
     font-size: 0.85rem;
 }
 
@@ -882,21 +1000,26 @@ nav .btn-nav,
 /* =========================================
    11. SECCIÓN FAQ
    ========================================= */
+/* =========================================
+   11. FAQ SECTION
+   ========================================= */
 
+/* FAQ section wrapper: gradient background for visual distinction */
 .faq-section {
     padding: 100px 20px;
     width: 100%;
-    /* Un fondo sutilmente distinto para separar visualmente */
+    /* Subtly different background to separate section visually */
     background: linear-gradient(180deg, #0B0B0D 0%, #101012 100%);
 }
 
+/* FAQ container: narrower max-width for better readability */
 .faq-container {
     max-width: 800px;
-    /* Un poco más angosto para facilitar la lectura */
+    /* Narrower width improves readability */
     margin: 0 auto;
 }
 
-/* Estilo del Item (Caja cerrada) */
+/* FAQ item: expandable/collapsible question container */
 .faq-item {
     background: #18181b;
     border: 1px solid rgba(255, 255, 255, 0.05);
@@ -907,25 +1030,25 @@ nav .btn-nav,
     opacity: 0;
     animation: fadeInUp 0.8s ease-out forwards;
     animation-delay: 3.00s;
-    /* base, se sobreescribe por nth-child */
+    /* Base delay, overridden by nth-child */
 }
 
-/* Efecto al abrir o pasar el mouse */
+/* FAQ item hover and open states: adds purple border */
 .faq-item:hover,
 .faq-item[open] {
     border-color: rgba(168, 85, 247, 0.4);
-    /* Borde violeta */
+    /* Purple border highlight */
 }
 
+/* FAQ item open state: slightly lighter background when expanded */
 .faq-item[open] {
     background: #1c1c20;
-    /* Fondo un pelín más claro al abrir */
 }
 
-/* El encabezado de la pregunta (Summary) */
+/* FAQ question header (summary): clickable question area */
 summary {
     list-style: none;
-    /* Quita el triángulo por defecto */
+    /* Removes default disclosure triangle */
     padding: 24px;
     display: flex;
     justify-content: space-between;
@@ -933,50 +1056,51 @@ summary {
     cursor: pointer;
 }
 
-/* Hack para quitar el triángulo en Chrome/Safari */
+/* Browser-specific disclosure marker removal */
 summary::-webkit-details-marker {
     display: none;
 }
 
+/* FAQ question text: bold white heading */
 .faq-question {
     font-weight: 600;
     font-size: 1.1rem;
     color: white;
 }
 
-/* El icono + */
+/* FAQ toggle icon: plus sign that rotates to X when open */
 .faq-icon {
     font-size: 1.5rem;
     color: #a855f7;
-    /* Violeta */
+    /* Purple */
     transition: transform 0.3s ease;
     line-height: 1;
 }
 
-/* Rotación del icono al abrir */
+/* FAQ icon open state: rotates 45 degrees to form X, changes to pink */
 details[open] .faq-icon {
     transform: rotate(45deg);
-    /* Se convierte en una X */
+    /* Becomes an X */
     color: #ec4899;
-    /* Cambia a rosa */
+    /* Changes to pink */
 }
 
-/* La respuesta (contenido oculto) */
+/* FAQ answer: expanded content with gray text */
 .faq-answer {
     padding: 0 24px 24px 24px;
     color: #a1a1aa;
-    /* Gris claro */
+    /* Light gray */
     line-height: 1.6;
     font-size: 1rem;
     border-top: 1px solid rgba(255, 255, 255, 0.02);
-    /* Línea separadora sutil */
+    /* Subtle separator line */
     margin-top: -10px;
-    /* Ajuste visual */
+    /* Visual adjustment */
     padding-top: 20px;
     animation: fadeIn 0.4s ease;
 }
 
-/* Animación simple de aparición */
+/* Fade in animation for answer content */
 @keyframes fadeIn {
     from {
         opacity: 0;
@@ -1075,32 +1199,37 @@ details[open] .faq-icon {
 /* =========================================
    12. FOOTER
    ========================================= */
+/* =========================================
+   12. FOOTER
+   ========================================= */
 
+/* Footer wrapper: very dark background darker than body */
 .site-footer {
     width: 100%;
     background-color: #050507;
-    /* Un negro casi puro, más oscuro que el body */
+    /* Almost pure black, darker than body */
     border-top: 1px solid rgba(255, 255, 255, 0.05);
-    /* Línea divisoria sutil */
+    /* Subtle divider line */
     padding: 80px 20px 40px;
     font-size: 0.95rem;
 }
 
+/* Footer container: centered max-width wrapper */
 .footer-container {
     max-width: 1200px;
     margin: 0 auto;
 }
 
-/* Parte Superior (Grid) */
+/* Footer top section: grid with brand column and 3 link columns */
 .footer-top {
     display: grid;
-    /* Layout: Logo ancho + 3 columnas de links */
+    /* Layout: 2-width brand column + 3 equal link columns */
     grid-template-columns: 2fr 1fr 1fr 1fr;
     gap: 40px;
     margin-bottom: 60px;
 }
 
-/* Marca y Redes */
+/* Brand section heading: logo/brand name */
 .footer-brand .logo {
     font-size: 1.5rem;
     font-weight: 700;
@@ -1109,6 +1238,7 @@ details[open] .faq-icon {
     display: inline-block;
 }
 
+/* Brand description text: company information */
 .footer-brand p {
     color: #a1a1aa;
     line-height: 1.6;
@@ -1116,28 +1246,32 @@ details[open] .faq-icon {
     max-width: 300px;
 }
 
+/* Social links container: horizontal flex layout for social icons */
 .social-links {
     display: flex;
     gap: 16px;
 }
 
+/* Social icon: links to social media with hover effects */
 .social-icon {
     color: #a1a1aa;
     transition: color 0.3s ease, transform 0.3s ease;
 }
 
+/* Social icon hover: purple color and lift effect */
 .social-icon:hover {
     color: #a855f7;
-    /* Violeta al pasar el mouse */
+    /* Purple on hover */
     transform: translateY(-2px);
 }
 
+/* Social icon SVG sizing */
 .social-icon svg {
     width: 20px;
     height: 20px;
 }
 
-/* Columnas de Links */
+/* Footer link column heading: section titles in footer */
 .footer-links h4 {
     color: white;
     font-size: 1rem;
@@ -1145,34 +1279,37 @@ details[open] .faq-icon {
     margin-bottom: 20px;
 }
 
+/* Footer links list: removes default list styling */
 .footer-links ul {
     list-style: none;
     padding: 0;
 }
 
+/* Footer link item: spacing between links */
 .footer-links li {
     margin-bottom: 12px;
 }
 
+/* Footer links: gray text with white hover */
 .footer-links a {
     color: #71717a;
-    /* Gris más oscuro (Zinc-500) */
+    /* Darker gray */
     text-decoration: none;
     transition: color 0.2s ease;
 }
 
+/* Footer links hover: transitions to white */
 .footer-links a:hover {
     color: white;
-    /* Blanco al pasar el mouse */
 }
 
-/* Parte Inferior (Copyright) */
+/* Footer bottom section: copyright and legal information */
 .footer-bottom {
     border-top: 1px solid rgba(255, 255, 255, 0.05);
     padding-top: 30px;
     text-align: center;
     color: #52525b;
-    /* Gris muy oscuro para info secundaria */
+    /* Very dark gray for secondary info */
     font-size: 0.85rem;
 }
 

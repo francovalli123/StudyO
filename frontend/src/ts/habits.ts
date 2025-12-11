@@ -1,33 +1,48 @@
 import { apiGet, apiPost, apiPut, apiDelete, getToken } from './api.js';
 
-// Declare lucide as global (loaded via CDN)
+/**
+ * Declare lucide icons library as global (loaded via CDN)
+ * Provides icon rendering functionality throughout the application
+ */
 declare const lucide: {
     createIcons: () => void;
 };
 
+/**
+ * Habit interface - Represents a daily habit with tracking data
+ */
 interface Habit {
-    id: number;
-    name: string;
-    frequency: number;
-    streak: number;
-    subject: number | null;
-    completed_today?: boolean;
-    is_key?: boolean;
-    created_at?: string;
+    id: number; // Unique habit identifier
+    name: string; // Habit name/description
+    frequency: number; // How often the habit should be done
+    streak: number; // Current consecutive completion count
+    subject: number | null; // Associated subject ID, if any
+    completed_today?: boolean; // Whether completed in current day
+    is_key?: boolean; // Whether this is a priority habit
+    created_at?: string; // Creation timestamp
 }
 
+/**
+ * Subject interface - Links habits to academic subjects
+ */
 interface Subject {
-    id: number;
-    name: string;
+    id: number; // Unique subject identifier
+    name: string; // Subject name
 }
 
+/**
+ * HabitWithStatus interface - Extended habit with UI state
+ */
 interface HabitWithStatus extends Habit {
-    completedToday: boolean;
-    icon: string;
-    color: string;
+    completedToday: boolean; // UI state for completion
+    icon: string; // Lucide icon name
+    color: string; // Color theme for UI
 }
 
-// Icon configurations with colors
+/**
+ * Icon and color configuration for habit display
+ * Each configuration includes icon name, color, and display name
+ */
 const ICON_CONFIGS = [
     { icon: 'zap', color: 'orange', name: 'Rayo' },
     { icon: 'book-open', color: 'green', name: 'Libro' },
@@ -39,6 +54,10 @@ const ICON_CONFIGS = [
     { icon: 'trophy', color: 'gold', name: 'Trofeo' },
 ];
 
+/**
+ * Color classes mapping - Defines Tailwind classes for each color theme
+ * Includes card background, text color, icon color, and checkbox styling
+ */
 const COLOR_CLASSES: { [key: string]: { card: string; text: string; icon: string; check: string } } = {
     orange: {
         card: 'bg-orange-950/40 border-orange-500/30 hover:bg-orange-900/40',
@@ -84,11 +103,15 @@ const COLOR_CLASSES: { [key: string]: { card: string; text: string; icon: string
     }
 };
 
-// En habits.ts
-
+/**
+ * Get today's date key for local storage
+ * Returns date in YYYY-MM-DD format
+ * Automatically updates when midnight passes (local timezone)
+ * @returns Date string for today in YYYY-MM-DD format
+ */
 function getTodayKey(): string {
-    // Esto devuelve fecha local del navegador "YYYY-MM-DD"
-    // Al pasar las 00:00 local, esto cambia automáticamente.
+    // Returns browser's local date "YYYY-MM-DD"
+    // Automatically changes after local midnight
     const localDate = new Date();
     const year = localDate.getFullYear();
     const month = String(localDate.getMonth() + 1).padStart(2, '0');
@@ -96,23 +119,32 @@ function getTodayKey(): string {
     return `${year}-${month}-${day}`;
 }
 
+/**
+ * Get today's completed habits from local storage
+ * Cleans up old day entries to prevent localStorage bloat
+ * @returns Set of habit IDs completed today
+ */
 function getTodayCompletions(): Set<number> {
     const currentKey = `habit_completions_${getTodayKey()}`;
     
-    // 1. Buscamos todas las claves en localStorage
-    // Si encontramos claves de días viejos, las borramos para no acumular basura
+    // 1. Search all local storage keys
+    // If old day keys found, delete them to prevent accumulation
     for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
         if (key && key.startsWith('habit_completions_') && key !== currentKey) {
-            localStorage.removeItem(key); // Borra caché de ayer
+            localStorage.removeItem(key); // Delete yesterday's cache
         }
     }
 
-    // 2. Obtenemos la de hoy
+    // 2. Get today's completions
     const stored = localStorage.getItem(currentKey);
     return stored ? new Set(JSON.parse(stored)) : new Set();
 }
 
+/**
+ * Save today's completed habits to local storage
+ * @param completions - Set of habit IDs completed today
+ */
 function saveTodayCompletions(completions: Set<number>) {
     const key = `habit_completions_${getTodayKey()}`;
     localStorage.setItem(key, JSON.stringify([...completions]));
@@ -120,29 +152,43 @@ function saveTodayCompletions(completions: Set<number>) {
 
 let todayCompletions = getTodayCompletions();
 
+// Global state variables
 let habits: HabitWithStatus[] = [];
 let subjects: Subject[] = [];
-let editingHabitId: number | null = null;
-let selectedIcon = 'zap';
-let selectedColor = 'orange';
+let editingHabitId: number | null = null; // ID of habit being edited
+let selectedIcon = 'zap'; // Selected icon for new habit
+let selectedColor = 'orange'; // Selected color for new habit
 
-/* Función que actualiza el progreso diario */
+/**
+ * Update daily progress bar with completion percentage
+ * @param completed - Number of habits completed today
+ * @param total - Total number of habits
+ */
 function updateDailyProgress(completed: number, total: number) {
+    // Calculate percentage of daily completion
     const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
 
     const bar = document.getElementById("dailyProgressBar") as HTMLElement;
     const text = document.getElementById("dailyProgressText") as HTMLElement;
 
+    // Update progress bar width and data attribute
     if (bar) {
         bar.style.width = `${percent}%`;
         bar.setAttribute("data-progress", `${percent}`);
     }
 
+    // Update progress text display
     if (text) {
         text.textContent = `${percent}%`;
     }
 }
 
+/**
+ * Load habits from the backend API and synchronize with local completion status
+ * Ensures that server data takes precedence over local storage
+ * Updates the global habits array with UI-ready data including icons and colors
+ * @returns Promise<void> - Fetches habits and renders them to the DOM
+ */
 async function loadHabits() {
     try {
         const token = getToken();
@@ -151,36 +197,39 @@ async function loadHabits() {
             return;
         }
 
-        // 1. Obtenemos datos frescos del servidor
+        // 1. Fetch fresh habit data from the backend API
         const habitsData: Habit[] = await apiGet('/habits/');
 
-        // 2. Obtenemos el set local actual (y limpiamos claves viejas si cambió el día)
+        // 2. Get the current local completion set (cleaning old date keys if day changed)
         todayCompletions = getTodayCompletions();
 
+        // 3. Map API habits to display format with icon/color configuration
         habits = habitsData.map(h => {
-            // La "Verdad" es lo que dice el servidor (h.completed_today).
-            // Si el servidor dice False, es False, no importa qué diga el localStorage.
+            // Server truth: h.completed_today from backend is the single source of truth
+            // Local storage is always synchronized to match server state
             
             const serverSaysCompleted = h.completed_today || false;
 
-            // Sincronizamos: Si el servidor dice una cosa y el local otra, corregimos el local.
+            // Sync local storage with server: Correct local state if it differs from server
             if (serverSaysCompleted) {
                 todayCompletions.add(h.id);
             } else {
                 todayCompletions.delete(h.id);
             }
 
+            // Get the configured icon and color for this habit (stored in localStorage)
             const iconConfig = getIconForHabit(h);
             
+            // Return habit with UI-friendly data: completion status from server, icon/color config
             return {
                 ...h,
-                completedToday: serverSaysCompleted, // Usamos el valor del servidor
+                completedToday: serverSaysCompleted, // Use server value for completion status
                 icon: iconConfig.icon,
                 color: iconConfig.color
             };
         });
 
-        // 3. Guardamos el estado corregido en localStorage para mantenerlos sincronizados
+        // 4. Save the synchronized completion state back to localStorage
         saveTodayCompletions(todayCompletions);
 
         renderHabits();
@@ -195,13 +244,20 @@ async function loadHabits() {
     }
 }
 
+/**
+ * Load all available subjects from the backend and populate the subject dropdown
+ * Used in the habit creation/edit modal to associate habits with subjects
+ * @returns Promise<void> - Fetches subjects and updates the form dropdown
+ */
 async function loadSubjects() {
     try {
+        // Fetch all subjects from the backend API
         subjects = await apiGet('/subjects/');
         const sel = document.getElementById('habitSubject') as HTMLSelectElement;
         if (sel) {
+            // Populate dropdown with default "None" option plus all available subjects
             sel.innerHTML =
-                `<option value="">Ninguna</option>` +
+                `<option value="">None</option>` +
                 subjects.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
         }
     } catch (e) {
@@ -209,50 +265,77 @@ async function loadSubjects() {
     }
 }
 
+/**
+ * Retrieve the icon and color configuration for a habit
+ * First checks localStorage for user-saved preference, then falls back to name-based defaults
+ * @param habit - The habit object to get icon configuration for
+ * @returns Object with icon and color properties
+ */
 function getIconForHabit(habit: Habit) {
+    // Check if user has previously saved an icon/color preference for this habit
     const stored = localStorage.getItem(`habit_${habit.id}_icon`);
     if (stored) return JSON.parse(stored);
 
+    // Fallback: Auto-assign icon based on habit name patterns
     const name = habit.name.toLowerCase();
 
+    // Spanish keywords for study-related habits
     if (name.includes("estudiar") || name.includes("pomodoro"))
         return { icon: "zap", color: "orange" };
+    // Spanish keywords for reading/review habits
     if (name.includes("leer") || name.includes("repasar"))
         return { icon: "book-open", color: "green" };
 
+    // Default to lightning bolt icon with orange color
     return { icon: "zap", color: "orange" };
 }
 
+/**
+ * Save the user's chosen icon and color preference for a habit to localStorage
+ * Persists visual customization across browser sessions
+ * @param habitId - The ID of the habit to customize
+ * @param icon - Lucide icon name to use for this habit
+ * @param color - Color theme name (orange, green, red, blue, purple, yellow, gold)
+ */
 function saveIconForHabit(habitId: number, icon: string, color: string) {
+    // Store icon and color preference in localStorage for persistence
     localStorage.setItem(`habit_${habitId}_icon`, JSON.stringify({ icon, color }));
 }
 
+/**
+ * Render all habits to the DOM as interactive cards
+ * Shows empty state if no habits exist, otherwise displays grid of habit cards
+ * Each card includes habit name, streak count, and completion toggle button
+ */
 function renderHabits() {
+    // Get references to the grid container and empty state message
     const grid = document.getElementById("habitsGrid");
-    const emptyState = document.getElementById("emptyState"); // 1. Referencia al estado vacío
+    const emptyState = document.getElementById("emptyState");
     
     if (!grid || !emptyState) return;
 
-    // 2. Comprobamos si hay hábitos
+    // Check if there are any habits to display
     if (habits.length === 0) {
-        // SI NO HAY HÁBITOS:
-        grid.innerHTML = "";                // Limpiamos la grilla por si acaso
-        grid.classList.add("hidden");       // Ocultamos la grilla
-        emptyState.classList.remove("hidden"); // Mostramos el estado vacío
-        emptyState.classList.add("flex");   // Aseguramos que se vea bien (flexbox)
+        // No habits: Show empty state message and hide the grid
+        grid.innerHTML = "";                // Clear grid HTML
+        grid.classList.add("hidden");       // Hide habits grid
+        emptyState.classList.remove("hidden"); // Show empty state
+        emptyState.classList.add("flex");   // Enable flexbox display for centering
         return; 
     }
 
-    // SI SÍ HAY HÁBITOS:
-    emptyState.classList.add("hidden");     // Ocultamos el estado vacío
+    // Habits exist: Show grid and hide empty state
+    emptyState.classList.add("hidden");     // Hide empty state message
     emptyState.classList.remove("flex");
-    grid.classList.remove("hidden");        // Mostramos la grilla
+    grid.classList.remove("hidden");        // Show habits grid
 
-    // 3. Renderizamos las tarjetas (tu código original)
+    // Render habit cards with dynamic styling based on color theme and completion status
     grid.innerHTML = habits.map(habit => {
+        // Get color theme configuration for this habit
         const color = COLOR_CLASSES[habit.color] || COLOR_CLASSES.orange;
         const completed = habit.completedToday;
 
+        // Return HTML card with dynamic styling classes based on habit's color theme
         return `
         <div class="relative group rounded-2xl p-6 border transition-all duration-300 ${color.card}">
             <div class="flex items-start gap-4">
@@ -283,24 +366,35 @@ function renderHabits() {
     attachHabitEventListeners();
 }
 
+/**
+ * Handle the submission of the habit creation/edit form
+ * Sends habit data to the backend API and updates the habits list
+ * @param e - The form submission event
+ * @returns Promise<void> - Creates habit and refreshes the display
+ */
 async function handleSaveHabit(e: Event) {
-    e.preventDefault(); // Evita que la página se recargue
+    // Prevent default form submission (page reload)
+    e.preventDefault();
 
+    // Show loading state on submit button
     const submitBtn = document.querySelector('#habitForm button[type="submit"]') as HTMLButtonElement;
     const originalText = submitBtn.innerText;
-    submitBtn.innerText = "Guardando...";
+    submitBtn.innerText = "Saving...";
     submitBtn.disabled = true;
 
     try {
+        // Extract form data
         const form = e.target as HTMLFormElement;
         const formData = new FormData(form);
 
+        // Parse form fields into appropriate types
         const name = formData.get('name') as string;
         const frequency = parseInt(formData.get('frequency') as string);
         const subjectValue = formData.get('subject') as string;
         const subject = subjectValue ? parseInt(subjectValue) : null;
         const isKey = formData.get('is_key') === 'on' || formData.get('is_key') === 'true';
 
+        // Build API payload
         const payload = {
             name,
             frequency,
@@ -308,68 +402,89 @@ async function handleSaveHabit(e: Event) {
             is_key: isKey
         };
 
-        // Enviamos a la API
+        // Send habit data to backend API
         const newHabit = await apiPost('/habits/', payload, true);
 
-        // Guardamos la preferencia de icono/color localmente (ya que tu backend parece no guardarlo)
+        // Save the user's selected icon/color preference locally (backend doesn't store this)
         saveIconForHabit(newHabit.id, selectedIcon, selectedColor);
 
-        // Limpiamos y recargamos
+        // Close modal and refresh habits list to show the new habit
         closeCreateModal();
-        loadHabits(); // Recarga la lista para ver el nuevo hábito
-        
-        // Opcional: Mostrar mensaje de éxito
-        // alert("Hábito creado con éxito");
+        loadHabits(); // Reload habits to see newly created habit
 
     } catch (error) {
-        console.error("Error al guardar hábito:", error);
-        alert("Hubo un error al crear el hábito. Revisa la consola.");
+        // Handle and report error to user
+        console.error("Error saving habit:", error);
+        alert("Error creating habit. Check the console for details.");
     } finally {
+        // Restore submit button to original state
         submitBtn.innerText = originalText;
         submitBtn.disabled = false;
     }
 }
 
+/**
+ * Attach click event listeners to all habit completion toggle buttons
+ * Called after rendering habits to enable completion status toggling
+ */
 function attachHabitEventListeners() {
+    // Find all completion buttons and attach click handlers
     document.querySelectorAll('.habit-complete-btn').forEach(button => {
         button.addEventListener('click', async (e) => {
+            // Extract habit ID and current completion status from button attributes
             const btn = e.currentTarget as HTMLButtonElement;
             const id = Number(btn.dataset.habitId);
             const completed = btn.dataset.completed === "true";
+            // Toggle completion status: if completed, mark incomplete, and vice versa
             await toggleHabitCompletion(id, !completed);
         });
     });
 }
 
+/**
+ * Toggle a habit's completion status for today
+ * Updates both local state and backend via API
+ * Handles streak calculation and UI updates with optimistic rendering
+ * @param habitId - ID of the habit to toggle
+ * @param complete - True to mark as complete, false to mark as incomplete
+ * @returns Promise<void> - Updates backend and refreshes UI
+ */
 async function toggleHabitCompletion(habitId: number, complete: boolean) {
+    // Verify user is authenticated
     const token = getToken();
     if (!token) return;
 
+    // Find the habit in the global habits array
     const index = habits.findIndex(h => h.id === habitId);
     if (index === -1) return;
 
+    // Save previous state for rollback on error
     const previousState = habits[index].completedToday;
     const previousStreak = habits[index].streak;
 
     try {
-        // Actualizo el estado local
+        // Update local state optimistically (for instant UI feedback)
         habits[index].completedToday = complete;
-        // La idea es que no adivine la racha, sino que deje que se calcule mediante la llamada a la API
-        // Se actualiza la racha a partir de la respuesta de la llamada a la API
+        // Don't guess the streak here - let the API calculate it correctly
+        // Streak will be updated from the API response
 
+        // Update local completion tracking
         if (complete) todayCompletions.add(habitId);
         else todayCompletions.delete(habitId);
 
+        // Persist updated completion set to localStorage
         saveTodayCompletions(todayCompletions);
 
-        // progreso actualizado al instante
+        // Update progress bar immediately for responsive UX
         updateDailyProgress(
             habits.filter(h => h.completedToday).length,
             habits.length
         );
 
+        // Refresh habit display with updated UI state
         renderHabits();
 
+        // Send completion toggle to backend API
         const response = await fetch(
             `http://127.0.0.1:8000/api/habits/${habitId}/complete/`,
             {
@@ -381,9 +496,10 @@ async function toggleHabitCompletion(habitId: number, complete: boolean) {
             }
         );
 
+        // Handle API errors
         if (!response.ok) throw new Error("Error API");
 
-        // Update the streak with the correct value from the server
+        // Update the streak with the correct value calculated by the server
         const data = await response.json();
         if (data.streak !== undefined) {
             habits[index].streak = data.streak;
@@ -391,12 +507,14 @@ async function toggleHabitCompletion(habitId: number, complete: boolean) {
         }
 
     } catch (err) {
+        // Rollback optimistic update on error
         habits[index].completedToday = previousState;
         habits[index].streak = previousStreak;
 
-        alert("Error de conexión. No se guardó.");
+        // Notify user of connection error
+        alert("Connection error. Changes were not saved.");
 
-        // revertir
+        // Refresh UI with reverted state
         renderHabits();
         updateDailyProgress(
             habits.filter(h => h.completedToday).length,
@@ -412,17 +530,22 @@ window.addEventListener("DOMContentLoaded", () => {
 });
 
 
+/**
+ * Attach global event listeners to modal controls and form elements
+ * Sets up click handlers for add habit buttons and form submission
+ * Called on page load and ensures listeners are properly attached
+ */
 function attachGlobalListeners(): void {
-    // ... (Tus constantes de botones existentes: createBtn, emptyStateBtn, etc.) ...
+    // Get references to all modal control buttons
     const createBtn = document.getElementById('addHabitBtn') as HTMLButtonElement | null;
     const emptyStateBtn = document.getElementById('emptyStateAddBtn') as HTMLButtonElement | null;
     const cancelBtn = document.getElementById('cancelBtn') as HTMLButtonElement | null;
     const closeModalBtn = document.getElementById('closeModalBtn') as HTMLButtonElement | null;
 
-    // 👇 AGREGA ESTO: Referencia al formulario
+    // Get reference to the habit creation form
     const habitForm = document.getElementById('habitForm') as HTMLFormElement | null;
 
-    // Listeners existentes...
+    // Attach click handler to primary "Add Habit" button
     if (createBtn) {
         createBtn.addEventListener('click', () => {
             prepareCreateModal();
@@ -430,6 +553,7 @@ function attachGlobalListeners(): void {
         });
     }
 
+    // Attach click handler to "Add" button in empty state message
     if (emptyStateBtn) {
         emptyStateBtn.addEventListener('click', () => {
             prepareCreateModal();
@@ -437,58 +561,87 @@ function attachGlobalListeners(): void {
         });
     }
 
+    // Attach click handlers for modal dismissal (Cancel button and close button)
     if (cancelBtn) cancelBtn.addEventListener('click', closeCreateModal);
     if (closeModalBtn) closeModalBtn.addEventListener('click', closeCreateModal);
 
-    // 👇 AGREGA ESTO: El listener del submit
+    // Attach form submission handler to create/update habit
     if (habitForm) {
-        // Primero removemos listeners anteriores para evitar duplicados si esta función se llama varias veces
+        // Remove any existing listeners to prevent duplicate submissions
         habitForm.removeEventListener('submit', handleSaveHabit); 
         habitForm.addEventListener('submit', handleSaveHabit);
     }
 }
 
-// Función auxiliar para resetear el formulario antes de abrir
+/**
+ * Prepare the habit creation modal for opening
+ * Resets form data and UI state to default values
+ * @returns void - Resets form and icon selection UI
+ */
 function prepareCreateModal() {
+    // Clear any existing habit being edited
     editingHabitId = null;
+    // Reset icon and color to default values
     selectedIcon = 'zap';
     selectedColor = 'orange';
     
+    // Clear all form input values
     const form = document.getElementById('habitForm') as HTMLFormElement | null;
     if (form) form.reset();
     
-    // Aquí deberías llamar a una función que renderice los iconos si no lo has hecho
+    // Render the icon selection grid with default selections
     renderIconsSelection(); 
 }
 
+/**
+ * Open the habit creation modal with fade-in animation
+ * Shows the modal overlay and animates the modal content
+ * @returns void - Displays modal to user
+ */
 function openCreateModal(): void {
+    // Get the modal overlay element
     const modal = document.getElementById('habitModal');
     if (modal) {
-        // CORRECCIÓN: Usamos 'active' porque tu CSS define .modal-overlay.active { display: flex }
+        // Add 'active' class which CSS uses to display the modal
         modal.classList.add('active'); 
         
-        // Animación de entrada
+        // Apply fade-in animation to modal content
         const content = modal.querySelector('.modal-content');
         if(content) {
+            // Remove any fade-out animation from previous close
             content.classList.remove('animate-fade-out');
+            // Add fade-in animation for entrance
             content.classList.add('animate-fade-in');
         }
     }
 }
 
+/**
+ * Close the habit creation modal with fade-out animation
+ * Hides the modal overlay and resets form state
+ * @returns void - Hides modal from user
+ */
 function closeCreateModal(): void {
+    // Get the modal overlay element
     const modal = document.getElementById('habitModal');
     if (modal) {
-        // CORRECCIÓN: Quitamos la clase 'active' para ocultarlo según tu CSS
+        // Remove 'active' class which CSS uses to hide the modal
         modal.classList.remove('active');
     }
 }
 
-// Función extra para renderizar los iconos en el modal (que faltaba en tu TS)
+/**
+ * Render the icon selection grid in the habit creation modal
+ * Displays all available icon/color combinations for user selection
+ * Highlights the currently selected icon with visual styling
+ * @returns void - Updates DOM with icon selection interface
+ */
 function renderIconsSelection() {
+    // Find the grid container in the habit form
     const container = document.querySelector('#habitForm .grid');
     if (!container) return;
 
+    // Generate HTML for each icon/color option with dynamic styling
     container.innerHTML = ICON_CONFIGS.map(config => `
         <div class="icon-option cursor-pointer p-3 rounded-xl border border-gray-700 bg-dark-input hover:border-${config.color}-500 flex items-center justify-center transition-all ${selectedIcon === config.icon ? `border-${config.color}-500 bg-${config.color}-500/10 ring-2 ring-${config.color}-500/50` : ''}"
              onclick="selectIcon('${config.icon}', '${config.color}')">
@@ -496,13 +649,15 @@ function renderIconsSelection() {
         </div>
     `).join('');
     
-    // Necesario porque lucide se carga via CDN global
+    // Initialize lucide icons for the newly rendered icons
     if (typeof lucide !== 'undefined') lucide.createIcons();
     
-    // Exponemos la función de selección al window para que el string HTML funcione
+    // Expose selectIcon function globally so inline onclick handlers work
     (window as any).selectIcon = (icon: string, color: string) => {
+        // Update global selection state
         selectedIcon = icon;
         selectedColor = color;
-        renderIconsSelection(); // Re-render para mostrar la selección visual
+        // Re-render to show visual selection feedback
+        renderIconsSelection();
     };
 }
