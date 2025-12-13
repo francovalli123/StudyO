@@ -15,7 +15,6 @@ declare const lucide: any;
 /**
  * Habit interface - Represents a user's daily/weekly habit
  */
-
 interface Habit {
     id: number;
     name: string;
