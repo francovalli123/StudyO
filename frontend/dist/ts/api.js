@@ -66,14 +66,22 @@ function handleRequest(response) {
         // Handle standard errors
         if (!response.ok) {
             let errorMessage = `HTTP Error ${response.status}`;
+            // Clone the response to read it multiple times if needed
+            const clonedResponse = response.clone();
             try {
-                const errorBody = yield response.json();
+                const errorBody = yield clonedResponse.json();
                 // Stringify solely for the Error object message
                 errorMessage = JSON.stringify(errorBody);
             }
             catch (e) {
                 // Fallback if response isn't JSON
-                errorMessage = (yield response.text()) || errorMessage;
+                try {
+                    errorMessage = (yield response.text()) || errorMessage;
+                }
+                catch (textError) {
+                    // If we can't read text either, use default message
+                    errorMessage = `HTTP Error ${response.status}`;
+                }
             }
             throw new Error(errorMessage);
         }
@@ -218,5 +226,30 @@ export function logout() {
 export function getCurrentUser() {
     return __awaiter(this, void 0, void 0, function* () {
         return apiGet("/user/me/");
+    });
+}
+export function getEvents() {
+    return __awaiter(this, void 0, void 0, function* () {
+        return apiGet("/events/");
+    });
+}
+export function createEvent(event) {
+    return __awaiter(this, void 0, void 0, function* () {
+        return apiPost("/events/", event, true);
+    });
+}
+export function getEvent(id) {
+    return __awaiter(this, void 0, void 0, function* () {
+        return apiGet(`/events/${id}/`);
+    });
+}
+export function updateEvent(id, event) {
+    return __awaiter(this, void 0, void 0, function* () {
+        return apiPut(`/events/${id}/`, event);
+    });
+}
+export function deleteEvent(id) {
+    return __awaiter(this, void 0, void 0, function* () {
+        yield apiDelete(`/events/${id}/`);
     });
 }

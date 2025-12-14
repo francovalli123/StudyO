@@ -68,13 +68,20 @@ async function handleRequest<T>(response: Response): Promise<T> {
     // Handle standard errors
     if (!response.ok) {
         let errorMessage = `HTTP Error ${response.status}`;
+        // Clone the response to read it multiple times if needed
+        const clonedResponse = response.clone();
         try {
-            const errorBody = await response.json();
+            const errorBody = await clonedResponse.json();
             // Stringify solely for the Error object message
             errorMessage = JSON.stringify(errorBody);
         } catch (e) {
             // Fallback if response isn't JSON
-            errorMessage = await response.text() || errorMessage;
+            try {
+                errorMessage = await response.text() || errorMessage;
+            } catch (textError) {
+                // If we can't read text either, use default message
+                errorMessage = `HTTP Error ${response.status}`;
+            }
         }
         throw new Error(errorMessage);
     }
@@ -210,4 +217,60 @@ export async function logout(): Promise<void> {
 
 export async function getCurrentUser(): Promise<{ id: number; username: string; email: string }> {
     return apiGet<{ id: number; username: string; email: string }>("/user/me/");
+}
+
+/**
+ * ==========================================
+ * Subject Interface
+ * ==========================================
+ */
+
+export interface Subject {
+    id: number;
+    name: string;
+    priority?: number | null;
+    color?: string | null;
+    progress?: number;
+    next_exam_date?: string | null;
+    professor_name?: string | null;
+}
+
+/**
+ * ==========================================
+ * Events API Functions
+ * ==========================================
+ */
+
+export interface Event {
+    id?: number;
+    title: string;
+    date: string;
+    type: number;
+    type_display?: string;
+    start_time: string;
+    end_time: string;
+    subject: number | null;
+    notes?: string | null;
+    created_at?: string;
+    updated_at?: string;
+}
+
+export async function getEvents(): Promise<Event[]> {
+    return apiGet<Event[]>("/events/");
+}
+
+export async function createEvent(event: Omit<Event, 'id' | 'created_at' | 'updated_at' | 'type_display'>): Promise<Event> {
+    return apiPost<Event>("/events/", event, true);
+}
+
+export async function getEvent(id: number): Promise<Event> {
+    return apiGet<Event>(`/events/${id}/`);
+}
+
+export async function updateEvent(id: number, event: Partial<Event>): Promise<Event> {
+    return apiPut<Event>(`/events/${id}/`, event);
+}
+
+export async function deleteEvent(id: number): Promise<void> {
+    await apiDelete(`/events/${id}/`);
 }

@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Progreso - StudyO</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        dark: {
+                            bg: '#0a0a0c',
+                            card: '#11131a',
+                            sidebar: '#0a0a0c',
+                            input: '#1a1d26'
+                        },
+                        brand: {
+                            primary: '#a855f7',
+                            glow: '#d946ef',
+                            text: '#e2e8f0'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0a0a0c; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+        
+        /* Animaciones de entrada suaves */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes fadeInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+        
+        /* Clases de animación inicial - elementos ocultos */
+        .animate-on-load {
+            opacity: 0;
+        }
+        
+        .animate-on-load.animated {
+            animation: fadeInUp 0.6s ease-out forwards;
+        }
+        
+        .animate-sidebar {
+            opacity: 0;
+        }
+        
+        .animate-sidebar.animated {
+            animation: fadeInLeft 0.5s ease-out forwards;
+        }
+        
+        .animate-fade {
+            opacity: 0;
+        }
+        
+        .animate-fade.animated {
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+        
+        /* Delays escalonados para efecto cascada */
+        .delay-100 { animation-delay: 0.1s; }
+        .delay-200 { animation-delay: 0.2s; }
+        .delay-300 { animation-delay: 0.3s; }
+        .delay-400 { animation-delay: 0.4s; }
+        .delay-500 { animation-delay: 0.5s; }
+        .delay-600 { animation-delay: 0.6s; }
+        
+        /* Heatmap styles */
+        .heatmap-cell {
+            width: 9px;
+            height: 9px;
+            border-radius: 2px;
+            transition: all 0.2s ease;
+            margin: 1px;
+        }
+        
+        .heatmap-cell:hover {
+            outline: 2px solid rgba(168, 85, 247, 0.5);
+            outline-offset: 2px;
+            z-index: 10;
+        }
+        
+        .heatmap-week {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        
+        .heatmap-day-label {
+            font-size: 10px;
+            color: #6b7280;
+            text-align: right;
+            padding-right: 8px;
+            width: 20px;
+        }
+        
+        .heatmap-month-label {
+            font-size: 10px;
+            color: #6b7280;
+            text-align: center;
+            margin-bottom: 4px;
+        }
+        
+        #heatmap-wrapper {
+            width: 100%;
+            overflow-x: visible;
+        }
+        
+        #heatmap-grid {
+            width: 100%;
+            flex-wrap: nowrap;
+            justify-content: flex-start;
+        }
+        
+        @media (min-width: 1024px) {
+            .heatmap-cell {
+                width: 8px;
+                height: 8px;
+            }
+        }
+    </style>
+</head>
+<body class="bg-dark-bg text-gray-300 h-screen flex overflow-hidden selection:bg-purple-500 selection:text-white">
+
+    <aside class="w-64 bg-dark-sidebar flex flex-col border-r border-gray-800/50 h-full flex-shrink-0 animate-sidebar">
+        <div class="p-6 flex items-center gap-3">
+            <i data-lucide="book-open" class="text-white w-6 h-6"></i>
+            <span class="text-xl font-bold text-white tracking-wide">StudyO</span>
+            <i data-lucide="chevron-left" class="ml-auto text-gray-500 w-4 h-4 cursor-pointer"></i>
+        </div>
+
+        <nav class="flex-1 px-4 space-y-2 mt-2">
+            <a href="dashboard.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gradient-to-r hover:from-purple-500/10 hover:via-fuchsia-500/10 hover:to-purple-500/10 text-gray-400 hover:text-purple-300 transition-all duration-300">
+                <i data-lucide="home" class="w-5 h-5"></i>
+                <span>Inicio</span>
+            </a>
+            <a href="planner.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gradient-to-r hover:from-purple-500/10 hover:via-fuchsia-500/10 hover:to-purple-500/10 text-gray-400 hover:text-purple-300 transition-all duration-300">
+                <i data-lucide="calendar" class="w-5 h-5"></i>
+                <span>Planificador</span>
+            </a>
+            <a href="subjects.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gradient-to-r hover:from-purple-500/10 hover:via-fuchsia-500/10 hover:to-purple-500/10 text-gray-400 hover:text-purple-300 transition-all duration-300">
+                <i data-lucide="monitor" class="w-5 h-5"></i>
+                <span>Mi Sistema Académico</span>
+            </a>
+            <a href="habits.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gradient-to-r hover:from-purple-500/10 hover:via-fuchsia-500/10 hover:to-purple-500/10 text-gray-400 hover:text-purple-300 transition-all duration-300">
+                <i data-lucide="target" class="w-5 h-5"></i>
+                <span>Hábitos</span>
+            </a>
+            <a href="progress.html" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-gradient-to-r from-purple-600 via-fuchsia-500 to-purple-600 text-white shadow-[0_0_15px_rgba(168,85,247,0.5)] font-medium">
+                <i data-lucide="trending-up" class="w-5 h-5"></i>
+                <span>Progreso</span>
+            </a>
+        </nav>
+
+        <div class="p-4 border-t border-gray-800/50 space-y-2">
+            <div class="text-xs font-semibold text-gray-500 uppercase px-4 mb-2">Ajustes</div>
+            <a href="#" class="flex items-center gap-3 px-4 py-2 rounded-xl hover:bg-gradient-to-r hover:from-yellow-500/10 hover:via-orange-500/10 hover:to-yellow-500/10 text-yellow-500 hover:text-yellow-400 transition-all duration-300">
+                <i data-lucide="sparkles" class="w-4 h-4"></i>
+                <span>Tema Premium</span>
+            </a>
+            <a href="#" id="logoutBtn" class="flex items-center gap-3 px-4 py-2 rounded-xl hover:bg-gradient-to-r hover:from-red-500/10 hover:via-pink-500/10 hover:to-red-500/10 text-red-400 hover:text-red-300 transition-all duration-300">
+                <i data-lucide="log-out" class="w-4 h-4"></i>
+                <span>Cerrar Sesión</span>
+            </a>
+        </div>
+    </aside>
+
+    <main class="flex-1 overflow-y-auto relative">
+        <div class="p-8 max-w-7xl mx-auto space-y-8">
+            
+            <!-- Header -->
+            <header class="animate-on-load delay-200">
+                <h1 class="text-4xl font-bold text-white mb-2">
+                    Tu Evolución en StudyO
+                </h1>
+                <p class="text-gray-400 text-lg">
+                    Cada sesión de estudio es un paso más hacia tu <span class="text-purple-400 font-medium">dominio académico</span>.
+                </p>
+            </header>
+
+            <!-- Sección Superior: Gráfico de Línea Mensual + Card Constancia Semanal -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Gráfico de Línea Mensual (Columna Grande) -->
+                <div class="lg:col-span-2 bg-dark-card rounded-3xl p-6 relative animate-on-load delay-300" style="box-shadow: 0 0 0 1px rgba(168,85,247,0.2), 0 0 30px rgba(168,85,247,0.15), inset 0 0 20px rgba(168,85,247,0.03);">
+                    <div class="flex justify-between items-start mb-6">
+                        <div>
+                            <h2 class="text-xl font-bold text-white">Ritmo de Estudio Mensual</h2>
+                            <p class="text-gray-500 text-sm mt-1">Horas totales de estudio por mes.</p>
+                        </div>
+                        <i data-lucide="trending-up" class="w-5 h-5 text-purple-400"></i>
+                    </div>
+
+                    <div class="h-64 w-full relative" id="monthly-rhythm-chart-container">
+                        <svg id="monthly-rhythm-chart" class="w-full h-full overflow-visible">
+                            <!-- Chart will be rendered here -->
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- Card Constancia Semanal (Columna Pequeña) -->
+                <div class="bg-dark-card rounded-3xl p-6 flex flex-col items-center justify-center relative animate-on-load delay-400" style="box-shadow: 0 0 0 1px rgba(168,85,247,0.2), 0 0 30px rgba(168,85,247,0.15), inset 0 0 20px rgba(168,85,247,0.03);">
+                    <div class="w-full flex justify-between items-start mb-4">
+                        <h2 class="text-lg font-bold text-white">Constancia Semanal</h2>
+                        <i data-lucide="target" class="w-5 h-5 text-purple-400"></i>
+                    </div>
+
+                    <p class="text-gray-500 text-xs mb-4 text-center w-full">Días con al menos una sesión de estudio en la última semana.</p>
+
+                    <div class="relative w-40 h-40 flex items-center justify-center my-4">
+                        <svg class="absolute inset-0 w-full h-full transform -rotate-90">
+                            <circle cx="80" cy="80" r="70" stroke="#1e212b" stroke-width="10" fill="transparent" />
+                            <circle id="consistency-progress-circle" cx="80" cy="80" r="70" stroke="url(#consistencyGradient)" stroke-width="10" stroke-linecap="round" fill="transparent" stroke-dasharray="440" stroke-dashoffset="440" />
+                            <defs>
+                                <linearGradient id="consistencyGradient" x1="0" y1="0" x2="1" y2="1">
+                                    <stop offset="0%" stop-color="#a855f7"/>
+                                    <stop offset="100%" stop-color="#ec4899"/>
+                                </linearGradient>
+                            </defs>
+                        </svg>
+                        
+                        <div class="text-center z-10">
+                            <div id="consistency-percentage" class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">0%</div>
+                        </div>
+                    </div>
+
+                    <div class="text-center">
+                        <p id="consistency-feedback" class="text-sm text-gray-400">Cargando...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Heatmap de Estudio (Ancho Completo) -->
+            <div class="bg-dark-card rounded-3xl p-6 relative animate-on-load delay-500" style="box-shadow: 0 0 0 1px rgba(168,85,247,0.2), 0 0 30px rgba(168,85,247,0.15), inset 0 0 20px rgba(168,85,247,0.03);">
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <h2 class="text-xl font-bold text-white">Mapa de Calor de Estudio</h2>
+                        <p class="text-gray-500 text-sm mt-1">Actividad de estudio en los últimos meses.</p>
+                    </div>
+                    <i data-lucide="calendar" class="w-5 h-5 text-purple-400"></i>
+                </div>
+
+                <div id="heatmap-container" class="flex flex-col">
+                    <div id="heatmap-header" class="flex items-center justify-between mb-2">
+                        <span id="heatmap-total" class="text-sm text-gray-400"></span>
+                    </div>
+                    <div id="heatmap-wrapper" class="w-full">
+                        <div id="heatmap-grid" class="flex items-start">
+                            <!-- Heatmap will be generated here -->
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center justify-end gap-4 text-xs text-gray-500 mt-4">
+                        <span>Menos</span>
+                        <div class="flex gap-1">
+                            <div class="w-3 h-3 rounded bg-gray-800"></div>
+                            <div class="w-3 h-3 rounded bg-purple-900"></div>
+                            <div class="w-3 h-3 rounded bg-purple-700"></div>
+                            <div class="w-3 h-3 rounded bg-purple-500"></div>
+                            <div class="w-3 h-3 rounded bg-purple-400"></div>
+                        </div>
+                        <span>Más</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gráfico Donut: Distribución de Enfoque Mensual -->
+            <div class="bg-dark-card rounded-3xl p-6 flex flex-col relative animate-on-load delay-600" style="box-shadow: 0 0 0 1px rgba(168,85,247,0.2), 0 0 30px rgba(168,85,247,0.15), inset 0 0 20px rgba(168,85,247,0.03);">
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <h2 class="text-xl font-bold text-white">Distribución de Enfoque Mensual</h2>
+                        <p class="text-gray-500 text-sm mt-1">Tiempo dedicado por materia.</p>
+                    </div>
+                    <i data-lucide="pie-chart" class="w-5 h-5 text-purple-400"></i>
+                </div>
+
+                <div class="flex-1 flex flex-col items-center justify-center relative">
+                    <div id="focus-distribution-donut" class="w-48 h-48 rounded-full relative flex items-center justify-center">
+                        <div class="w-36 h-36 bg-dark-card rounded-full flex items-center justify-center z-10">
+                            <span id="focus-total-hours-month" class="text-2xl font-bold text-white">0h</span>
+                        </div>
+                    </div>
+                    
+                    <div id="focus-legend-month" class="mt-6 flex flex-wrap justify-center gap-x-4 gap-y-2 text-xs text-gray-400">
+                        <div class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-purple-500"></span> Cargando...</div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+        
+        // Activar animaciones al cargar la página
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animar sidebar
+            const sidebar = document.querySelector('.animate-sidebar');
+            if (sidebar) {
+                setTimeout(() => {
+                    sidebar.classList.add('animated');
+                }, 50);
+            }
+            
+            // Animar elementos principales con delays escalonados
+            const animatedElements = document.querySelectorAll('.animate-on-load');
+            animatedElements.forEach((element, index) => {
+                setTimeout(() => {
+                    element.classList.add('animated');
+                }, 100 + (index * 50));
+            });
+        });
+    </script>
+    <script type="module">
+        import { logout, getCurrentUser } from './dist/ts/api.js';
+
+        document.addEventListener('DOMContentLoaded', async function() {
+            try {
+                await getCurrentUser();
+            } catch (error) {
+                console.error('Error al cargar información del usuario:', error);
+                if (error.message === "No autenticado" || error.message === "Sesión expirada") {
+                    window.location.href = 'login.html';
+                }
+            }
+
+            const logoutBtn = document.getElementById('logoutBtn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    try {
+                        await logout();
+                        window.location.href = 'index.html';
+                    } catch (error) {
+                        console.error('Error al cerrar sesión:', error);
+                        window.location.href = 'index.html';
+                    }
+                });
+            }
+        });
+    </script>
+    <script type="module" src="dist/ts/progress.js"></script>
+</body>
+</html>

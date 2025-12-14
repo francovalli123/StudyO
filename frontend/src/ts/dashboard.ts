@@ -1,5 +1,6 @@
 // Import API functions for making HTTP requests and token management
-import { apiGet, apiPost, apiDelete, apiPut, getToken } from "./api.js";
+import { apiGet, apiPost, apiDelete, apiPut, getToken, getEvents, Event } from "./api.js";
+import { initConfirmModal, showConfirmModal, showAlertModal } from "./confirmModal.js";
 
 // Declare lucide icons library for dynamic icon rendering
 declare const lucide: any;
@@ -502,7 +503,12 @@ async function loadWeeklyObjectives() {
  * @param id - The ID of the objective to delete
  */
 async function deleteObjective(id: number) {
-    if (!confirm('¿Eliminar este objetivo?')) return;
+    const confirmed = await showConfirmModal(
+        '¿Estás seguro de que deseas eliminar este objetivo? Esta acción no se puede deshacer.',
+        'Eliminar Objetivo'
+    );
+    if (!confirmed) return;
+    
     try {
         // Call API to delete objective
         await apiDelete(`/weekly-objectives/${id}/`);
@@ -510,7 +516,10 @@ async function deleteObjective(id: number) {
         loadWeeklyObjectives();
     } catch (error) {
         console.error("Error deleting objective:", error);
-        alert('Error al eliminar el objetivo');
+        await showAlertModal(
+            'Error al eliminar el objetivo. Por favor, intenta nuevamente.',
+            'Error'
+        );
     }
 }
 
@@ -561,7 +570,7 @@ function closeObjectiveModal() {
  * Handles objective form submission (both create and update)
  * @param e - Form submit event
  */
-async function submitObjectiveForm(e: Event) {
+async function submitObjectiveForm(e: SubmitEvent) {
     e.preventDefault();
     
     // Get form elements
@@ -1368,6 +1377,113 @@ async function loadKeyHabits() {
 }
 
 /**
+ * Load and display the next upcoming event
+ */
+async function loadNextEvent() {
+    const container = document.getElementById('nextEventContainer');
+    if (!container) return;
+    
+    try {
+        const events = await getEvents();
+        
+        // Filter events that are today or in the future
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        const upcomingEvents = events
+            .filter(event => {
+                const eventDate = new Date(event.date);
+                eventDate.setHours(0, 0, 0, 0);
+                return eventDate >= today;
+            })
+            .sort((a, b) => {
+                // Sort by date, then by start time
+                const dateA = new Date(`${a.date}T${a.start_time}`);
+                const dateB = new Date(`${b.date}T${b.start_time}`);
+                return dateA.getTime() - dateB.getTime();
+            });
+        
+        if (upcomingEvents.length === 0) {
+            // Show empty state
+            container.innerHTML = `
+                <div class="flex flex-col items-center justify-center py-8">
+                    <div class="w-16 h-16 rounded-full bg-gradient-to-br from-purple-500/20 via-fuchsia-500/20 to-purple-500/20 flex items-center justify-center mb-4" style="box-shadow: 0 0 0 1px rgba(168,85,247,0.3);">
+                        <i data-lucide="calendar-x" class="w-8 h-8 text-purple-400"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-white mb-2">No hay eventos próximos</h3>
+                    <p class="text-gray-400 text-sm mb-4 text-center">Organizá tu tiempo creando eventos en el planificador.</p>
+                    <a href="planner.html" class="px-4 py-2 rounded-lg bg-gradient-to-r from-purple-500/20 via-pink-500/20 to-purple-500/20 text-purple-400 text-sm hover:from-purple-500/30 hover:via-pink-500/30 hover:to-purple-500/30 transition-all border border-purple-500/30 inline-flex items-center gap-2">
+                        <i data-lucide="plus" class="w-4 h-4"></i>
+                        <span>Crear mi primer evento</span>
+                    </a>
+                </div>
+            `;
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+            return;
+        }
+        
+        const nextEvent = upcomingEvents[0];
+        const eventDate = new Date(nextEvent.date);
+        const startTime = nextEvent.start_time.substring(0, 5);
+        const endTime = nextEvent.end_time.substring(0, 5);
+        
+        // Get event type display name
+        const typeNames: { [key: number]: string } = {
+            1: 'Bloque de Estudio',
+            2: 'Examen',
+            3: 'Tarea Importante',
+            4: 'Personal'
+        };
+        
+        const typeClass = nextEvent.type === 2 ? 'exam' : nextEvent.type === 3 ? 'task' : nextEvent.type === 4 ? 'personal' : '';
+        
+        container.innerHTML = `
+            <div class="space-y-4">
+                <div class="event-item ${typeClass} p-4">
+                    <div class="flex items-start justify-between mb-2">
+                        <h3 class="text-lg font-bold text-white">${nextEvent.title}</h3>
+                        <span class="text-xs px-2 py-1 rounded bg-purple-500/20 text-purple-400">${typeNames[nextEvent.type] || 'Evento'}</span>
+                    </div>
+                    <div class="flex items-center gap-4 text-sm text-gray-400">
+                        <div class="flex items-center gap-1">
+                            <i data-lucide="calendar" class="w-4 h-4"></i>
+                            <span>${formatDate(nextEvent.date)}</span>
+                        </div>
+                        <div class="flex items-center gap-1">
+                            <i data-lucide="clock" class="w-4 h-4"></i>
+                            <span>${startTime} - ${endTime}</span>
+                        </div>
+                    </div>
+                    ${nextEvent.notes ? `<p class="text-sm text-gray-500 mt-2">${nextEvent.notes}</p>` : ''}
+                </div>
+                <a href="planner.html" class="block text-center text-sm text-purple-400 hover:text-purple-300 transition-colors">
+                    Ver todos los eventos →
+                </a>
+            </div>
+        `;
+        
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    } catch (error) {
+        console.error("Error loading next event:", error);
+        // Show empty state on error too
+        container.innerHTML = `
+            <div class="flex flex-col items-center justify-center py-8">
+                <div class="w-16 h-16 rounded-full bg-gradient-to-br from-purple-500/20 via-fuchsia-500/20 to-purple-500/20 flex items-center justify-center mb-4" style="box-shadow: 0 0 0 1px rgba(168,85,247,0.3);">
+                    <i data-lucide="calendar-x" class="w-8 h-8 text-purple-400"></i>
+                </div>
+                <h3 class="text-lg font-bold text-white mb-2">No hay eventos próximos</h3>
+                <p class="text-gray-400 text-sm mb-4 text-center">Organizá tu tiempo creando eventos en el planificador.</p>
+                <a href="planner.html" class="px-4 py-2 rounded-lg bg-gradient-to-r from-purple-500/20 via-pink-500/20 to-purple-500/20 text-purple-400 text-sm hover:from-purple-500/30 hover:via-pink-500/30 hover:to-purple-500/30 transition-all border border-purple-500/30 inline-flex items-center gap-2">
+                    <i data-lucide="plus" class="w-4 h-4"></i>
+                    <span>Crear mi primer evento</span>
+                </a>
+            </div>
+        `;
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+}
+
+/**
  * Main function to load all dashboard data
  * Loads habits, subjects, pomodoro, objectives, and analytics in parallel
  */
@@ -1388,7 +1504,8 @@ async function loadDashboard() {
             loadFocusDistribution(),
             loadPeakProductivity(),
             loadWeeklyBalance(),
-            loadKeyHabits()
+            loadKeyHabits(),
+            loadNextEvent()
         ]);
         
         // Hide loading state on success
@@ -1409,6 +1526,8 @@ async function loadDashboard() {
  */
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
+        // Initialize confirmation modal
+        initConfirmModal();
         // Load dashboard data
         loadDashboard();
         

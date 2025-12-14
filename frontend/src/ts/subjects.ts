@@ -1,5 +1,6 @@
 // Import API utility functions and authentication helper
 import { apiGet, apiPost, apiDelete, getToken, apiPut } from "./api.js";
+import { initConfirmModal, showConfirmModal } from "./confirmModal.js";
 
 /**
  * Declare lucide icons library as global variable (loaded via CDN)
@@ -150,7 +151,11 @@ function attachSubjectEventListeners() {
  * @param subjectId - ID of the subject to delete
  */
 async function deleteSubject(subjectId: number) {
-    if (!confirm('¿Estás seguro de que quieres eliminar esta materia?')) return;
+    const confirmed = await showConfirmModal(
+        '¿Estás seguro de que deseas eliminar esta materia? Esta acción no se puede deshacer y se eliminarán todos los datos asociados.',
+        'Eliminar Materia'
+    );
+    if (!confirmed) return;
 
     try {
         // Call API to delete the subject
@@ -344,6 +349,7 @@ function attachGlobalListeners(): void {
 
 // Initialize when DOM is ready
 window.addEventListener('DOMContentLoaded', () => {
+    initConfirmModal();
     attachGlobalListeners();
     loadSubjects();
 });

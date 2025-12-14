@@ -24,6 +24,7 @@ from apps.habitRecord.views import *
 from apps.subject.views import *
 from apps.routine.views import *
 from apps.pomodoroSession.views import *
+from apps.events.views import *
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -44,4 +45,6 @@ urlpatterns = [
     path('api/weekly-objectives/<int:pk>/', WeeklyObjectiveDetailView.as_view(), name='weekly_objective_detail'),
     path('api/pomodoro/', PomodoroSessionCreateView.as_view(), name='pomodoro_list_create'),
     path('api/pomodoro/<int:pk>/', PomodoroSessionDetailView.as_view(), name='pomodoro_detail'),
+    path('api/events/', EventListCreateView.as_view(), name='event_list_create'),
+    path('api/events/<int:pk>/', EventDetailView.as_view(), name='event_detail'),
 ]
