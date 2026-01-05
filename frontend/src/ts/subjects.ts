@@ -76,25 +76,25 @@ async function loadSubjects() {
 
                     <div class="mb-4">
                         <div class="flex items-center justify-between mb-2">
-                            <span class="text-xs text-gray-400">Progress</span>
+                            <span class="text-xs text-gray-400">Progreso</span>
                             <span class="text-sm font-bold text-purple-400">${s.progress || 0}%</span>
                         </div>
-                        <div class="text-xs text-gray-400 mb-2">${s.study_minutes_week || 0} / ${s.weekly_target_minutes || 0} min this week</div>
+                        <div class="text-xs text-gray-400 mb-2">${s.study_minutes_week || 0} / ${s.weekly_target_minutes || 0} minutos esta semana </div>
                         <div class="w-full h-2 rounded-full bg-gray-700/50" style="box-shadow: inset 0 0 10px rgba(0,0,0,0.3);">
                             <div class="h-full rounded-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all duration-300" style="width: ${s.progress || 0}%; box-shadow: 0 0 15px rgba(168,85,247,0.6);"></div>
                         </div>
                     </div>
 
-                    ${s.next_exam_date ? `<div class="mb-4 text-xs text-gray-400"><i data-lucide="calendar" class="w-3 h-3 inline mr-1"></i> Next exam: ${s.next_exam_date}</div>` : ''}
+                    ${s.next_exam_date ? `<div class="mb-4 text-xs text-gray-400"><i data-lucide="calendar" class="w-3 h-3 inline mr-1"></i> Siguiente examen: ${s.next_exam_date}</div>` : ''}
 
-                    <div class="flex gap-3 pt-4 border-t border-gray-700/50">
+   2                 <div class="flex gap-3 pt-4 border-t border-gray-700/50">
                         <button class="edit-subject-btn flex-1 px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 border border-gray-700 text-gray-300 hover:text-white text-sm font-medium transition-all duration-300 flex items-center justify-center gap-2" data-subject-id="${s.id}">
                             <i data-lucide="edit-2" class="w-4 h-4"></i>
-                            <span>Edit</span>
+                            <span>Editar</span>
                         </button>
                         <button class="delete-subject-btn flex-1 px-4 py-2 rounded-lg bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 hover:text-red-300 text-sm font-medium transition-all duration-300 flex items-center justify-center gap-2" data-subject-id="${s.id}">
                             <i data-lucide="trash-2" class="w-4 h-4"></i>
-                            <span>Delete</span>
+                            <span>Borrar</span>
                         </button>
                     </div>
                 </div>

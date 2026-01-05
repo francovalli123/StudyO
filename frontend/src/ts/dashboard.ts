@@ -996,13 +996,19 @@ async function loadPeakProductivity() {
         const today = new Date();
         const fourWeeksAgo = new Date(today);
         fourWeeksAgo.setDate(fourWeeksAgo.getDate() - 28);
-        
+
+        // Defensive: only consider sessions with valid start_time and positive duration,
+        // and ignore any sessions scheduled in the future.
         const recentSessions = sessions.filter(s => {
+            if (!s || !s.start_time || typeof s.duration !== 'number') return false;
             const sessionDate = new Date(s.start_time);
+            if (isNaN(sessionDate.getTime())) return false;
+            if (sessionDate > new Date()) return false; // ignore future sessions
+            if (s.duration <= 0) return false; // ignore zero/negative durations
             return sessionDate >= fourWeeksAgo;
         });
-        
-        // Show message if insufficient data
+
+        // If no valid sessions, show message and exit
         if (recentSessions.length === 0) {
             const peakEl = document.getElementById('peak-productivity-time');
             if (peakEl) {
@@ -1014,55 +1020,68 @@ async function loadPeakProductivity() {
             }
             return;
         }
-        
-        // Group sessions by hour of day (0-23) and sum minutes
-        const hourMinutes: { [key: number]: number } = {};
-        
+
+        // Require a minimum amount of real data to report a peak.
+        // Heuristics: at least 3 sessions and at least 60 minutes total across the window.
+        const totalMinutes = recentSessions.reduce((sum, s) => sum + (s.duration || 0), 0);
+        if (recentSessions.length < 3 || totalMinutes < 60) {
+            const peakEl = document.getElementById('peak-productivity-time');
+            if (peakEl) peakEl.textContent = 'No hay datos suficientes';
+            const descriptionEl = document.getElementById('peak-productivity-desc');
+            if (descriptionEl) descriptionEl.textContent = 'Completá algunas sesiones de Pomodoro para descubrir tu momento peak de productividad.';
+            return;
+        }
+
+        // Group sessions by weekday and hour to find the (weekday, hour) with most minutes
+        const dayHourMinutes: { [key: string]: number } = {};
         recentSessions.forEach(session => {
             const sessionDate = new Date(session.start_time);
-            const hour = sessionDate.getHours();
-            if (!hourMinutes[hour]) {
-                hourMinutes[hour] = 0;
-            }
-            hourMinutes[hour] += session.duration;
+            const day = sessionDate.getDay(); // 0-6
+            const hour = sessionDate.getHours(); // 0-23
+            const key = `${day}-${hour}`;
+            if (!dayHourMinutes[key]) dayHourMinutes[key] = 0;
+            dayHourMinutes[key] += session.duration;
         });
-        
-        // Find hour with most minutes
-        let peakHour = 14; // Default if no data
+
+        // Find best day-hour combo
+        let bestDay = -1;
+        let bestHour = -1;
         let maxMinutes = 0;
-        
-        Object.keys(hourMinutes).forEach(hourStr => {
-            const hour = parseInt(hourStr);
-            const minutes = hourMinutes[hour];
+        Object.keys(dayHourMinutes).forEach(k => {
+            const minutes = dayHourMinutes[k];
             if (minutes > maxMinutes) {
                 maxMinutes = minutes;
-                peakHour = hour;
+                const parts = k.split('-').map(p => parseInt(p, 10));
+                bestDay = parts[0];
+                bestHour = parts[1];
             }
         });
-        
-        // Use default if no data found
-        if (maxMinutes === 0) {
-            peakHour = 14;
+
+        // If nothing meaningful found, show no-data state
+        if (bestDay === -1 || bestHour === -1 || maxMinutes === 0) {
+            const peakEl = document.getElementById('peak-productivity-time');
+            if (peakEl) peakEl.textContent = 'No hay datos suficientes';
+            const descriptionEl = document.getElementById('peak-productivity-desc');
+            if (descriptionEl) descriptionEl.textContent = 'Completá algunas sesiones de Pomodoro para descubrir tu momento peak de productividad.';
+            return;
         }
-        
+
         // Calculate 3-hour window around peak (1 hour before, peak, 1 hour after)
-        const startHour = Math.max(0, peakHour - 1);
-        const endHour = Math.min(23, peakHour + 1);
-        
+        const startHour = Math.max(0, bestHour - 1);
+        const endHour = Math.min(23, bestHour + 1);
+
         // Format hour for display
-        const formatHour = (h: number) => {
-            return `${h.toString().padStart(2, '0')}:00`;
-        };
-        
+        const formatHour = (h: number) => `${h.toString().padStart(2, '0')}:00`;
+
         const dayNames = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
-        const todayName = dayNames[today.getDay()];
-        
-        // Update UI with peak productivity info
+        const bestDayName = dayNames[bestDay] || '—';
+
+        // Update UI with peak productivity info (based only on real sessions)
         const peakEl = document.getElementById('peak-productivity-time');
         if (peakEl) {
-            peakEl.textContent = `${todayName}, ${formatHour(startHour)} - ${formatHour(endHour)}`;
+            peakEl.textContent = `${bestDayName}, ${formatHour(startHour)} - ${formatHour(endHour)}`;
         }
-        
+
         const descriptionEl = document.getElementById('peak-productivity-desc');
         if (descriptionEl) {
             descriptionEl.innerHTML = `

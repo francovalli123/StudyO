@@ -386,14 +386,18 @@ async function loadMonthlyFocusDistribution() {
         const sessions: PomodoroSession[] = await apiGet("/pomodoro/");
         const subjects: Subject[] = await apiGet("/subjects/");
         
-        // Get last 30 days
+        // Use current calendar month (dynamically computed) — updates automatically on day 1
         const today = new Date();
-        const monthAgo = new Date(today);
-        monthAgo.setDate(monthAgo.getDate() - 30);
-        
+        const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+
+        // Filter sessions that belong to the same month/year as today (local timezone).
+        // Defensive: validate date and ignore future sessions or non-positive durations.
         const monthlySessions = sessions.filter(s => {
+            if (!s || !s.start_time || typeof s.duration !== 'number') return false;
             const sessionDate = new Date(s.start_time);
-            return sessionDate >= monthAgo;
+            if (isNaN(sessionDate.getTime())) return false;
+            if (sessionDate > new Date()) return false; // ignore future
+            return sessionDate.getFullYear() === today.getFullYear() && sessionDate.getMonth() === today.getMonth();
         });
         
         // Group minutes by subject

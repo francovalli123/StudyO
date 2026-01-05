@@ -228,6 +228,111 @@ export function getCurrentUser() {
         return apiGet("/user/me/");
     });
 }
+/**
+ * Update current user partial fields via PATCH
+ */
+export function updateCurrentUser(data) {
+    return __awaiter(this, void 0, void 0, function* () {
+        return apiPatch("/user/me/", data);
+    });
+}
+/**
+ * Upload user avatar/photo. Expects server endpoint at /user/me/avatar/ or /user/me/photo/.
+ * Will try /user/me/avatar/ first then /user/me/photo/ as fallback.
+ */
+export function uploadUserAvatar(file) {
+    return __awaiter(this, void 0, void 0, function* () {
+        if (!getToken())
+            throw new Error('User not authenticated');
+        const token = getToken();
+        const form = new FormData();
+        form.append('avatar', file);
+        // Try common endpoint paths
+        const tryPaths = ['/user/me/avatar/', '/user/me/photo/'];
+        for (const path of tryPaths) {
+            try {
+                const res = yield fetch(`${BASE_URL}${path}`, {
+                    method: 'POST',
+                    headers: {
+                        // Do not set Content-Type; browser sets multipart boundary
+                        'Authorization': `Token ${token}`,
+                    },
+                    body: form,
+                    credentials: 'include'
+                });
+                if (!res.ok) {
+                    // if 404 try next
+                    if (res.status === 404)
+                        continue;
+                    return handleRequest(res);
+                }
+                return handleRequest(res);
+            }
+            catch (e) {
+                // keep trying fallback endpoints
+                continue;
+            }
+        }
+        // Fallback 1: try PATCH /user/me/ with multipart/form-data
+        try {
+            const res = yield fetch(`${BASE_URL}/user/me/`, {
+                method: 'PATCH',
+                headers: {
+                    'Authorization': `Token ${token}`,
+                },
+                body: form,
+                credentials: 'include'
+            });
+            if (res.ok)
+                return handleRequest(res);
+            // If method not allowed, try PUT with FormData (some APIs require PUT)
+            if (res.status === 405) {
+                try {
+                    const resPut = yield fetch(`${BASE_URL}/user/me/`, {
+                        method: 'PUT',
+                        headers: { 'Authorization': `Token ${token}` },
+                        body: form,
+                        credentials: 'include'
+                    });
+                    if (resPut.ok)
+                        return handleRequest(resPut);
+                }
+                catch (e) {
+                    // ignore and continue
+                }
+            }
+        }
+        catch (err) {
+            // ignore and continue to JSON fallback
+        }
+        // Fallback 2: try sending avatar as base64 in JSON (some backends accept this)
+        try {
+            // convert file to base64
+            const toBase64 = (file) => new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(String(reader.result));
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+            const dataUrl = yield toBase64(file);
+            const jsonRes = yield fetch(`${BASE_URL}/user/me/`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Token ${token}`
+                },
+                body: JSON.stringify({ avatar: dataUrl }),
+                credentials: 'include'
+            });
+            if (jsonRes.ok)
+                return handleRequest(jsonRes);
+        }
+        catch (e) {
+            // ignore
+        }
+        throw new Error('Avatar upload endpoint not found on server');
+    });
+}
 export function getEvents() {
     return __awaiter(this, void 0, void 0, function* () {
         return apiGet("/events/");

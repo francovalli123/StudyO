@@ -8,7 +8,18 @@
     <link rel="stylesheet" href="./src/css/styles.css">
 
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
+        <script>
+            (function(){
+                const orig = console.warn;
+                console.warn = function(...args){
+                    try{ if (args && args[0] && typeof args[0] === 'string' && args[0].includes('cdn.tailwindcss.com should not be used in production')) return; }catch(e){}
+                    orig.apply(console,args);
+                }
+            })();
+            window.tailwind = window.tailwind || {};
+            window.tailwind.config = { darkMode: 'class', theme: { extend: { colors: { dark: { bg: '#0a0a0c', card: '#11131a', sidebar: '#0a0a0c', input: '#1a1d26' }, brand: { primary: '#a855f7' } }, fontFamily: { sans: ['Inter', 'sans-serif'] } } } };
+        </script>
+        <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
 <body>

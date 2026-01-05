@@ -10,6 +10,9 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
+import base64
+from django.core.files.base import ContentFile
 
 User = get_user_model()
 
@@ -22,10 +25,54 @@ class RegisterView(CreateAPIView):
 # Obtener información del usuario actual
 class CurrentUserView(APIView):
     permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
 
     def get(self, request):
-        serializer = UserSerializer(request.user)
+        serializer = UserSerializer(request.user, context={'request': request})
         return Response(serializer.data)
+
+    def patch(self, request):
+        user = request.user
+        # Handle avatar file upload (multipart/form-data)
+        if 'avatar' in request.FILES:
+            user.avatar = request.FILES['avatar']
+            user.save()
+            serializer = UserSerializer(user, context={'request': request})
+            return Response(serializer.data)
+
+        # Handle base64 avatar in JSON payload (fallback)
+        avatar_data = request.data.get('avatar')
+        if avatar_data and isinstance(avatar_data, str) and avatar_data.startswith('data:'):
+            try:
+                header, encoded = avatar_data.split(',', 1)
+                file_ext = header.split('/')[1].split(';')[0]
+                decoded = base64.b64decode(encoded)
+                fname = f"avatar_{user.id}.{file_ext}"
+                user.avatar.save(fname, ContentFile(decoded), save=True)
+                serializer = UserSerializer(user, context={'request': request})
+                return Response(serializer.data)
+            except Exception as e:
+                return Response({'detail': 'Invalid avatar data'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Otherwise treat as partial update for allowed fields
+        data = {}
+        for field in ('first_name', 'last_name', 'email'):
+            if field in request.data:
+                data[field] = request.data.get(field)
+
+        if data:
+            # Update fields and save
+            for k, v in data.items():
+                setattr(user, k, v)
+            user.save()
+            serializer = UserSerializer(user, context={'request': request})
+            return Response(serializer.data)
+
+        return Response({'detail': 'No valid data provided.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    def put(self, request):
+        # For PUT, accept same behavior as PATCH (overwrite where provided)
+        return self.patch(request)
 
 # Cerrar sesión
 class LogoutView(APIView):

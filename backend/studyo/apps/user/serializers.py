@@ -28,7 +28,8 @@ class RegisterSerializer(serializers.ModelSerializer):
 
 class UserSerializer(serializers.ModelSerializer):
     """Serializer para obtener información del usuario (sin contraseña)"""
+    avatar = serializers.ImageField(read_only=True)
     class Meta:
         model = User
-        fields = ["id", "username", "email", "first_name", "last_name"]
-        read_only_fields = ["id", "username", "email", "first_name", "last_name"]
+        fields = ["id", "username", "email", "first_name", "last_name", "avatar"]
+        read_only_fields = ["id", "username"]

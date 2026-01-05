@@ -97,15 +97,35 @@
         .icon-option.selected {
             box-shadow: 0 0 0 2px rgba(168,85,247,0.5), 0 0 20px rgba(168,85,247,0.3);
         }
+        /* Sidebar collapse styles */
+        aside { transition: width 0.22s ease; overflow: hidden; }
+        body.sidebar-collapsed aside { width: 80px !important; min-width: 80px !important; }
+        body.sidebar-collapsed aside .logo-text { display: none; }
+        body.sidebar-collapsed aside nav a span { display: none; }
+        body.sidebar-collapsed aside nav a { justify-content: center; padding-left: 0.75rem; padding-right: 0.75rem; }
+        body.sidebar-collapsed aside .p-4.border-t { display: none; }
+        [data-sidebar-toggle] { transition: transform 0.2s ease; }
+        body.sidebar-collapsed [data-sidebar-toggle] { transform: rotate(180deg); }
+        body.sidebar-collapsed aside nav a i,
+        body.sidebar-collapsed aside nav a [data-lucide] {
+            width: 28px !important;
+            height: 28px !important;
+        }
+        body.sidebar-collapsed #sidebarToggleBtn i { width: 20px !important; height: 20px !important; }
+        /* Hide tiny dot indicators (e.g., calendar small badge) when collapsed */
+        body.sidebar-collapsed aside .w-1.h-1,
+        body.sidebar-collapsed aside .w-1.h-1.rounded-full { display: none !important; }
     </style>
 </head>
 <body class="bg-dark-bg text-gray-300 h-screen flex overflow-hidden selection:bg-purple-500 selection:text-white">
 
-    <aside class="w-64 bg-dark-sidebar flex flex-col border-r border-gray-800/50 h-full flex-shrink-0 animate-sidebar">
+    <aside id="sidebar" class="w-64 bg-dark-sidebar flex flex-col border-r border-gray-800/50 h-full flex-shrink-0 animate-sidebar">
         <div class="p-6 flex items-center gap-3">
             <i data-lucide="book-open" class="text-white w-6 h-6"></i>
-            <span class="text-xl font-bold text-white tracking-wide">StudyO</span>
-            <i data-lucide="chevron-left" class="ml-auto text-gray-500 w-4 h-4 cursor-pointer"></i>
+            <span class="text-xl font-bold text-white tracking-wide logo-text">StudyO</span>
+            <button id="sidebarToggleBtn" data-sidebar-toggle class="ml-auto text-gray-500 w-8 h-8 flex items-center justify-center rounded hover:bg-white/5" aria-label="Toggle sidebar">
+                <i data-lucide="chevron-left" class="w-4 h-4"></i>
+            </button>
         </div>
 
         <nav class="flex-1 px-4 space-y-2 mt-2">
@@ -133,6 +153,10 @@
 
         <div class="p-4 border-t border-gray-800/50 space-y-2">
             <div class="text-xs font-semibold text-gray-500 uppercase px-4 mb-2">Ajustes</div>
+            <a href="profile.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gradient-to-r hover:from-purple-500/10 hover:via-fuchsia-500/10 hover:to-purple-500/10 text-gray-400 hover:text-purple-300 transition-all duration-300">
+                <i data-lucide="settings" class="w-5 h-5"></i>
+                <span>Ajustes</span>
+            </a>
             <a href="#" class="flex items-center gap-3 px-4 py-2 rounded-xl hover:bg-gradient-to-r hover:from-yellow-500/10 hover:via-orange-500/10 hover:to-yellow-500/10 text-yellow-500 hover:text-yellow-400 transition-all duration-300">
                 <i data-lucide="sparkles" class="w-4 h-4"></i>
                 <span>Tema Premium</span>
@@ -178,6 +202,55 @@
 
         </div>
     </main>
+        <script>
+            (function(){
+                function setCollapsed(collapsed) {
+                    if (collapsed) document.body.classList.add('sidebar-collapsed');
+                    else document.body.classList.remove('sidebar-collapsed');
+                    try { localStorage.setItem('sidebarCollapsed', collapsed ? '1' : '0'); } catch(e) {}
+                }
+
+                document.addEventListener('DOMContentLoaded', function(){
+                    const saved = localStorage.getItem('sidebarCollapsed') === '1';
+                    setCollapsed(saved);
+
+                    function attachToggle(el) {
+                        if (!el) return;
+                        try {
+                            el.addEventListener('click', function(e){
+                                e.preventDefault();
+                                const next = !document.body.classList.contains('sidebar-collapsed');
+                                console.debug('sidebar: toggle clicked, next=', next);
+                                setCollapsed(next);
+                            });
+                        } catch (err) {
+                            console.debug('sidebar: attachToggle error', err);
+                        }
+                    }
+
+                    const btn = document.getElementById('sidebarToggleBtn');
+                    if (btn) {
+                        console.debug('sidebar: attaching to #sidebarToggleBtn');
+                        attachToggle(btn);
+                    } else {
+                        const toggles = Array.from(document.querySelectorAll('[data-sidebar-toggle], [data-lucide="chevron-left"]'));
+                        if (toggles.length) {
+                            console.debug('sidebar: attaching to', toggles.length, 'toggle elements');
+                            toggles.forEach(function(el){ attachToggle(el); });
+                        } else {
+                            const header = document.querySelector('#sidebar .p-6');
+                            if (header) header.addEventListener('click', function(e){
+                                const target = e.target;
+                                const el = (target instanceof Element) ? target : null;
+                                if (el && (el.closest('[data-lucide="chevron-left"]') || el.closest('[data-sidebar-toggle]'))) {
+                                    setCollapsed(!document.body.classList.contains('sidebar-collapsed'));
+                                }
+                            });
+                        }
+                    }
+                });
+            })();
+        </script>
 
     <div id="subjectModal" class="modal-overlay">
         <div class="modal-content">

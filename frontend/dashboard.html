@@ -3,35 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>StudyO Main Page</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        dark: {
-                            bg: '#0a0a0c',      /* Fondo principal muy oscuro */
-                            card: '#11131a',    /* Fondo de tarjetas */
-                            sidebar: '#0a0a0c', /* Fondo sidebar */
-                            input: '#1a1d26'    /* Fondo inputs */
+        <title>StudyO Main Page</title>
+        <script>
+            (function(){
+                const orig = console.warn;
+                console.warn = function(...args){
+                    try{ if (args && args[0] && typeof args[0] === 'string' && args[0].includes('cdn.tailwindcss.com should not be used in production')) return; }catch(e){}
+                    orig.apply(console,args);
+                }
+            })();
+            window.tailwind = window.tailwind || {};
+            window.tailwind.config = {
+                darkMode: 'class',
+                theme: {
+                    extend: {
+                        colors: {
+                            dark: { bg: '#0a0a0c', card: '#11131a', sidebar: '#0a0a0c', input: '#1a1d26' },
+                            brand: { primary: '#a855f7', glow: '#d946ef', text: '#e2e8f0' }
                         },
-                        brand: {
-                            primary: '#a855f7', /* Púrpura base */
-                            glow: '#d946ef',    /* Rosa neón */
-                            text: '#e2e8f0'     /* Blanco hueso */
-                        }
-                    },
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
+                        fontFamily: { sans: ['Inter', 'sans-serif'] }
                     }
                 }
-            }
-        }
-    </script>
+            };
+        </script>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <script src="https://unpkg.com/lucide@latest"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./src/css/styles.css">
     <style>
         body { font-family: 'Inter', sans-serif; }
         /* Scrollbar personalizada sutil */
@@ -120,15 +118,39 @@
         .delay-400 { animation-delay: 0.4s; }
         .delay-500 { animation-delay: 0.5s; }
         .delay-600 { animation-delay: 0.6s; }
+
+        /* Sidebar collapse styles */
+        aside { transition: width 0.22s ease; overflow: hidden; }
+        /* Slightly wider collapsed width for better visibility */
+        body.sidebar-collapsed aside { width: 80px !important; min-width: 80px !important; }
+        body.sidebar-collapsed aside .logo-text { display: none; }
+        body.sidebar-collapsed aside nav a span { display: none; }
+        body.sidebar-collapsed aside nav a { justify-content: center; padding-left: 0.75rem; padding-right: 0.75rem; }
+        body.sidebar-collapsed aside .p-4.border-t { display: none; }
+        [data-sidebar-toggle] { transition: transform 0.2s ease; }
+        body.sidebar-collapsed [data-sidebar-toggle] { transform: rotate(180deg); }
+        /* Increase icon sizes when collapsed for better tap targets */
+        body.sidebar-collapsed aside nav a i,
+        body.sidebar-collapsed aside nav a [data-lucide] {
+            width: 28px !important;
+            height: 28px !important;
+        }
+        /* Make toggle button icon larger */
+        body.sidebar-collapsed #sidebarToggleBtn i { width: 20px !important; height: 20px !important; }
+        /* Hide tiny dot indicators (e.g., calendar small badge) when collapsed */
+        body.sidebar-collapsed aside .w-1.h-1,
+        body.sidebar-collapsed aside .w-1.h-1.rounded-full { display: none !important; }
     </style>
 </head>
 <body class="bg-dark-bg text-gray-300 h-screen flex overflow-hidden selection:bg-purple-500 selection:text-white">
 
-    <aside class="w-64 bg-dark-sidebar flex flex-col border-r border-gray-800/50 h-full flex-shrink-0 animate-sidebar">
+    <aside id="sidebar" class="w-64 bg-dark-sidebar flex flex-col border-r border-gray-800/50 h-full flex-shrink-0 animate-sidebar">
         <div class="p-6 flex items-center gap-3">
             <i data-lucide="book-open" class="text-white w-6 h-6"></i>
-            <span class="text-xl font-bold text-white tracking-wide">StudyO</span>
-            <i data-lucide="chevron-left" class="ml-auto text-gray-500 w-4 h-4 cursor-pointer"></i>
+            <span class="text-xl font-bold text-white tracking-wide logo-text">StudyO</span>
+            <button id="sidebarToggleBtn" data-sidebar-toggle class="ml-auto text-gray-500 w-8 h-8 flex items-center justify-center rounded hover:bg-white/5" aria-label="Toggle sidebar">
+                <i data-lucide="chevron-left" class="w-4 h-4"></i>
+            </button>
         </div>
 
         <nav class="flex-1 px-4 space-y-2 mt-2">
@@ -153,10 +175,14 @@
                 <i data-lucide="trending-up" class="w-5 h-5"></i>
                 <span>Progreso</span>
             </a>
-    </nav>
+        </nav>
 
         <div class="p-4 border-t border-gray-800/50 space-y-2">
             <div class="text-xs font-semibold text-gray-500 uppercase px-4 mb-2">Ajustes</div>
+            <a href="profile.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gradient-to-r hover:from-purple-500/10 hover:via-fuchsia-500/10 hover:to-purple-500/10 text-gray-400 hover:text-purple-300 transition-all duration-300">
+                <i data-lucide="settings" class="w-5 h-5"></i>
+                <span>Ajustes</span>
+            </a>
             <a href="#" class="flex items-center gap-3 px-4 py-2 rounded-xl hover:bg-gradient-to-r hover:from-yellow-500/10 hover:via-orange-500/10 hover:to-yellow-500/10 text-yellow-500 hover:text-yellow-400 transition-all duration-300">
                 <i data-lucide="sparkles" class="w-4 h-4"></i>
                 <span>Tema Premium</span>
@@ -179,10 +205,13 @@
                     <p class="text-gray-400 text-lg">es hora de diseñar tu <span class="text-purple-400 font-medium">obra maestra de estudio</span>.</p>
                 </div>
                 <div class="flex gap-3">
-                    <button class="w-10 h-10 rounded-full bg-dark-card border border-gray-700 flex items-center justify-center text-gray-400 hover:text-white">
-                        <i data-lucide="maximize" class="w-4 h-4"></i>
-                    </button>
-                    <div class="w-10 h-10 rounded-full bg-gray-200 animate-pulse"></div> </div>
+                        <button class="w-10 h-10 rounded-full bg-dark-card border border-gray-700 flex items-center justify-center text-gray-400 hover:text-white">
+                            <i data-lucide="maximize" class="w-4 h-4"></i>
+                        </button>
+                        <button id="profileAvatarBtn" class="w-10 h-10 rounded-full overflow-hidden border border-gray-700 bg-dark-card flex items-center justify-center" title="Ver perfil">
+                            <img id="dashAvatarImg" src="/placeholder.svg?width=40&height=40" alt="avatar" class="w-10 h-10 object-cover">
+                        </button>
+                    </div>
             </header>
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -582,20 +611,19 @@
                 const firstNameElement = document.getElementById('firstName');
 
                 if (firstNameElement) {
-                    // Usa el first_name si existe. Si es vacío o null, usa el username.
                     const nameToDisplay = user.first_name ? user.first_name : user.username;
-
-                    // Si user.first_name está vacío, el console.log no es necesario,
-                    // pero si quieres uno que refleje la lógica, podría ser:
-                    if (!user.first_name) {
-                        console.log("first_name no disponible, mostrando username como fallback.");
-                    }
-
                     firstNameElement.textContent = nameToDisplay;
                 }
+
+                // Set dashboard avatar if available (plain JS, no TS casts)
+                const avatarEl = document.getElementById('dashAvatarImg');
+                const profileBtn = document.getElementById('profileAvatarBtn');
+                const possible = user.avatar || user.avatar_url || user.photo || user.profile_image;
+                if (avatarEl instanceof HTMLImageElement && possible) avatarEl.src = possible;
+                if (profileBtn) profileBtn.addEventListener('click', () => { window.location.href = 'profile.html'; });
+
             } catch (error) {
                 console.error('Error al cargar información del usuario:', error);
-                // Si no está autenticado, redirigir a login
                 if (error.message === "No autenticado" || error.message === "Sesión expirada") {
                     window.location.href = 'login.html';
                 }
@@ -610,16 +638,68 @@
                     
                     try {
                         await logout();
-                        // Redirigir a index.html después de cerrar sesión
                         window.location.href = 'index.html';
                     } catch (error) {
                         console.error('Error al cerrar sesión:', error);
-                        // Aún así redirigir si hay error (el token ya se eliminó localmente)
                         window.location.href = 'index.html';
                     }
                 });
             }
         });
+    </script>
+    <script>
+        (function(){
+            function setCollapsed(collapsed) {
+                if (collapsed) document.body.classList.add('sidebar-collapsed');
+                else document.body.classList.remove('sidebar-collapsed');
+                try { localStorage.setItem('sidebarCollapsed', collapsed ? '1' : '0'); } catch(e) {}
+            }
+
+            document.addEventListener('DOMContentLoaded', function(){
+                const saved = localStorage.getItem('sidebarCollapsed') === '1';
+                setCollapsed(saved);
+
+                function attachToggle(el) {
+                    if (!el) return;
+                    try {
+                        el.addEventListener('click', function(e){
+                            e.preventDefault();
+                            const next = !document.body.classList.contains('sidebar-collapsed');
+                            console.debug('sidebar: toggle clicked, next=', next);
+                            setCollapsed(next);
+                        });
+                    } catch (err) {
+                        console.debug('sidebar: attachToggle error', err);
+                    }
+                }
+
+                // Find all possible toggle elements: explicit attr or lucide chevron
+                // Prefer fixed id button for reliable attachment
+                const btn = document.getElementById('sidebarToggleBtn');
+                if (btn) {
+                    console.debug('sidebar: attaching to #sidebarToggleBtn');
+                    attachToggle(btn);
+                } else {
+                    const toggles = Array.from(document.querySelectorAll('[data-sidebar-toggle], [data-lucide="chevron-left"]'));
+                    if (toggles.length) {
+                        console.debug('sidebar: attaching to', toggles.length, 'toggle elements');
+                        toggles.forEach(attachToggle);
+                    } else {
+                        // As fallback, attach delegated listener to the sidebar header
+                        const header = document.querySelector('#sidebar .p-6');
+                        if (header) {
+                            header.addEventListener('click', function(e){
+                                const target = e.target;
+                                const el = (target instanceof Element) ? target : null;
+                                if (el && (el.closest('[data-lucide="chevron-left"]') || el.closest('[data-sidebar-toggle]'))) {
+                                    setCollapsed(!document.body.classList.contains('sidebar-collapsed'));
+                                }
+                            });
+                        }
+                    }
+                }
+            });
+        })();
     </script>
     <script type="module" src="dist/ts/dashboard.js"></script>
 </body>

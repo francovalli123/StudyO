@@ -34,8 +34,9 @@ body {
    2. NAVIGATION BAR
    ========================================= */
 
-/* Main navigation container: flexbox layout with space between content */
-nav {
+/* Main navigation container: flexbox layout with space between content
+   Scoped to header/top nav only so sidebar <nav> isn't affected */
+header nav, body > nav, .top-nav {
     width: 100%;
     padding: 25px 8%;
     display: flex;
@@ -43,8 +44,8 @@ nav {
     align-items: center;
 }
 
-/* Logo/brand styling: flexbox for icon and text alignment */
-nav .logo {
+/* Logo/brand styling: flexbox for icon and text alignment (scoped) */
+header nav .logo, body > nav .logo, .top-nav .logo {
     font-size: 22px;
     font-weight: 600;
     display: flex;
@@ -52,22 +53,22 @@ nav .logo {
     align-items: center;
 }
 
-/* Navigation menu: horizontal list with flex layout */
-nav .menu {
+/* Navigation menu: horizontal list with flex layout (scoped) */
+header nav .menu, body > nav .menu, .top-nav .menu {
     display: flex;
     gap: 30px;
 }
 
-/* Navigation menu links: gray text with smooth hover transition */
-nav .menu a {
+/* Navigation menu links: gray text with smooth hover transition (scoped) */
+header nav .menu a, body > nav .menu a, .top-nav .menu a {
     text-decoration: none;
     color: #aaa;
     font-size: 15px;
     transition: 0.2s;
 }
 
-/* Menu link hover state: transitions to white */
-nav .menu a:hover {
+/* Menu link hover state: transitions to white (scoped) */
+header nav .menu a:hover, body > nav .menu a:hover, .top-nav .menu a:hover {
     color: white;
 }
 

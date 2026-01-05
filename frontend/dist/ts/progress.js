@@ -171,25 +171,23 @@ function loadMonthlyRhythm() {
             </defs>
             <path d="${pathD}" fill="url(#lineGradient)" />
             
-            <!-- Line (smooth curve) - only show if more than 1 point -->
-            ${points.length > 1 ? `<path d="${linePathD}" 
+            <!-- Line (smooth curve) -->
+            <path d="${linePathD}" 
                   fill="none" 
                   stroke="#a855f7" 
                   stroke-width="3" 
                   stroke-linecap="round" 
-                  stroke-linejoin="round" />` : ''}
+                  stroke-linejoin="round" />
             
             <!-- Data points -->
             ${points.map((p, index) => {
                 const hours = monthValues[index];
-                const radius = points.length === 1 ? 7 : 5; // Larger point for single data
                 return `
                     <g>
-                        <circle cx="${p.x}" cy="${p.y}" r="${radius}" fill="#1e212b" stroke="#a855f7" stroke-width="${points.length === 1 ? 3 : 2}" 
-                                class="cursor-pointer hover:r-${radius + 2} transition-all" 
+                        <circle cx="${p.x}" cy="${p.y}" r="5" fill="#1e212b" stroke="#a855f7" stroke-width="2" 
+                                class="cursor-pointer hover:r-7 transition-all" 
                                 data-month="${monthLabels[index]}" 
                                 data-hours="${hours.toFixed(1)}"/>
-                        ${points.length === 1 ? `<circle cx="${p.x}" cy="${p.y}" r="${radius + 4}" fill="none" stroke="#a855f7" stroke-width="1" opacity="0.3" />` : ''}
                         <title>${monthLabels[index]}: ${hours.toFixed(1)}h</title>
                     </g>
                 `;
@@ -342,13 +340,20 @@ function loadMonthlyFocusDistribution() {
         try {
             const sessions = yield apiGet("/pomodoro/");
             const subjects = yield apiGet("/subjects/");
-            // Get last 30 days
+            // Use current calendar month (dynamically computed) — updates automatically on day 1
             const today = new Date();
-            const monthAgo = new Date(today);
-            monthAgo.setDate(monthAgo.getDate() - 30);
+            const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+            // Filter sessions that belong to the same month/year as today (local timezone).
+            // Defensive: validate date and ignore future sessions or non-positive durations.
             const monthlySessions = sessions.filter(s => {
+                if (!s || !s.start_time || typeof s.duration !== 'number')
+                    return false;
                 const sessionDate = new Date(s.start_time);
-                return sessionDate >= monthAgo;
+                if (isNaN(sessionDate.getTime()))
+                    return false;
+                if (sessionDate > new Date())
+                    return false; // ignore future
+                return sessionDate.getFullYear() === today.getFullYear() && sessionDate.getMonth() === today.getMonth();
             });
             // Group minutes by subject
             const subjectMinutes = {};
@@ -549,7 +554,7 @@ function loadStudyHeatmap() {
             });
             heatmapHTML += '</div>';
             // Weeks and months
-            heatmapHTML += '<div class="flex gap-1 flex-1 min-w-0">';
+            heatmapHTML += '<div class="flex gap-0.5 flex-1 min-w-0">';
             weeks.forEach((week, weekIndex) => {
                 // Check if this week starts a new month
                 const monthLabel = monthLabels.find(m => m.weekIndex === weekIndex);
