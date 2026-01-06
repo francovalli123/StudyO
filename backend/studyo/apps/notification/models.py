@@ -18,4 +18,35 @@ class Notification(models.Model):
     created_at = models.DateTimeField(auto_now_add=True) # Fecha de creación
 
     def __str__(self):
-        return f"{self.name} ({self.get_frequency_display()})" # Esto sirve para debuggear
+        try:
+            return f"{self.user.username}: {self.message} @ {self.scheduled_time}"
+        except Exception:
+            return f"Notification {self.pk}"
+
+    def send_email(self):
+        """Send an email for this notification. Uses Django email settings and an HTML template."""
+        from django.template.loader import render_to_string
+        from django.core.mail import EmailMultiAlternatives
+        from django.conf import settings
+        try:
+            subject = "Recordatorio de StudyO"
+            to_email = self.user.email
+            context = {
+                'user': self.user,
+                'message': self.message,
+                'scheduled_time': self.scheduled_time,
+                'site_name': getattr(settings, 'SITE_NAME', 'StudyO'),
+                'site_url': getattr(settings, 'SITE_URL', '/')
+            }
+            html_body = render_to_string('notification/email.html', context)
+            text_body = f"{self.message}\n\nVisita StudyO para más detalles."
+
+            email = EmailMultiAlternatives(subject, text_body, settings.DEFAULT_FROM_EMAIL, [to_email])
+            email.attach_alternative(html_body, "text/html")
+            email.send(fail_silently=False)
+            # mark sent
+            self.sent = True
+            self.save(update_fields=['sent'])
+            return True
+        except Exception:
+            return False

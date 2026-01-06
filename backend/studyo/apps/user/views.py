@@ -60,6 +60,18 @@ class CurrentUserView(APIView):
             if field in request.data:
                 data[field] = request.data.get(field)
 
+        # Preferences: accept a `preferences` object from frontend and store in notification_preferences
+        if 'preferences' in request.data:
+            try:
+                prefs = request.data.get('preferences') or {}
+                # Merge into user.notification_preferences (replace for now)
+                user.notification_preferences = prefs
+                user.save()
+                serializer = UserSerializer(user, context={'request': request})
+                return Response(serializer.data)
+            except Exception as e:
+                return Response({'detail': 'Invalid preferences format.'}, status=status.HTTP_400_BAD_REQUEST)
+
         if data:
             # Update fields and save
             for k, v in data.items():

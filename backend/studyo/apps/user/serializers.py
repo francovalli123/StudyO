@@ -29,7 +29,16 @@ class RegisterSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     """Serializer para obtener información del usuario (sin contraseña)"""
     avatar = serializers.ImageField(read_only=True)
+    preferences = serializers.SerializerMethodField()
+
     class Meta:
         model = User
-        fields = ["id", "username", "email", "first_name", "last_name", "avatar"]
+        fields = ["id", "username", "email", "first_name", "last_name", "avatar", "preferences"]
         read_only_fields = ["id", "username"]
+
+    def get_preferences(self, obj):
+        # Return stored notification/preferences JSON under a single key to be compatible with frontend
+        try:
+            return getattr(obj, 'notification_preferences', {}) or {}
+        except Exception:
+            return {}

@@ -62,6 +62,39 @@ function init() {
             const possibleAvatar = (user.avatar || user.photo || user.avatar_url || user.profile_image);
             if (possibleAvatar)
                 avatarImg.src = possibleAvatar;
+            // Populate preference toggles if provided by API
+            const prefs = user.preferences || {};
+            try {
+                if (darkModeBtn && prefs.dark_mode) {
+                    darkModeBtn.setAttribute('data-state', 'checked');
+                    darkModeBtn.setAttribute('aria-checked', 'true');
+                    const span = darkModeBtn.querySelector('span');
+                    if (span)
+                        span.classList.add('translate-x-5');
+                }
+                if (taskReminders && prefs.task_reminders) {
+                    taskReminders.setAttribute('data-state', 'checked');
+                    taskReminders.setAttribute('aria-checked', 'true');
+                    const span = taskReminders.querySelector('span');
+                    if (span)
+                        span.classList.add('translate-x-5');
+                }
+                if (habitReminders && prefs.habit_reminders) {
+                    habitReminders.setAttribute('data-state', 'checked');
+                    habitReminders.setAttribute('aria-checked', 'true');
+                    const span = habitReminders.querySelector('span');
+                    if (span)
+                        span.classList.add('translate-x-5');
+                }
+                if (progressUpdates && prefs.progress_updates) {
+                    progressUpdates.setAttribute('data-state', 'checked');
+                    progressUpdates.setAttribute('aria-checked', 'true');
+                    const span = progressUpdates.querySelector('span');
+                    if (span)
+                        span.classList.add('translate-x-5');
+                }
+            }
+            catch (e) { /* non-fatal */ }
         }
         catch (err) {
             console.error('Error loading user', err);

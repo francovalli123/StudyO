@@ -73,8 +73,36 @@
     body.sidebar-collapsed #sidebarToggleBtn i { width: 20px !important; height: 20px !important; }
     body.sidebar-collapsed aside .w-1.h-1, body.sidebar-collapsed aside .w-1.h-1.rounded-full { display: none !important; }
   </style>
+  <style>
+    /* Profile-specific input styles to improve contrast and match dashboard theme */
+    .profile-page input[type="text"],
+    .profile-page input[type="email"],
+    .profile-page input[type="password"],
+    .profile-page textarea,
+    .profile-page .form-control {
+      background: #000 !important;
+      color: #ffffff !important;
+      border-color: rgba(255,255,255,0.06) !important;
+      box-shadow: none !important;
+    }
+    .profile-page input::placeholder, .profile-page textarea::placeholder {
+      color: rgba(255,255,255,0.6) !important;
+    }
+    /* Make profile cards use same palette as dashboard */
+    .profile-page .rounded-lg.border.text-card-foreground {
+      background: #0f1724 !important;
+      border-color: rgba(255,255,255,0.04) !important;
+      color: #e6eef8 !important;
+    }
+    /* Adjust Save button to match dashboard primary style */
+    .profile-page .save-profile-btn {
+      background: linear-gradient(90deg,#A770EF,#CF8BF3) !important;
+      color: #061025 !important;
+      font-weight:700;
+    }
+  </style>
 </head>
-<body class="bg-dark-bg text-gray-300 h-screen flex overflow-hidden selection:bg-purple-500 selection:text-white">
+<body class="profile-page bg-dark-bg text-gray-300 h-screen flex overflow-hidden selection:bg-purple-500 selection:text-white">
 
 <aside id="sidebar"
   class="w-64 bg-dark-sidebar flex flex-col border-r border-gray-800/50 h-full flex-shrink-0 animate-sidebar animated">
@@ -163,7 +191,7 @@
               <div class="grid sm:grid-cols-2 gap-6">
                 <div class="space-y-1.5">
                   <label class="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 font-medium dark:text-gray-300" for="name">Nombre Completo</label>
-                  <input id="name" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base" value="">
+                  <input id="name"type="text" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base" value="">
                 </div>
                 <div class="space-y-1.5">
                   <label class="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 font-medium dark:text-gray-300" for="email">Correo Electrónico</label>
@@ -171,7 +199,7 @@
                 </div>
               </div>
 
-              <button id="saveProfileBtn" class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-10 px-4 py-2 bg-studyO-lavender-dark hover:bg-studyO-lavender-dark/90 dark:bg-studyO-lavender dark:hover:bg-studyO-lavender/90 text-white dark:text-studyO-warmGray-dark font-semibold shadow-md hover:shadow-lg transition-shadow">Guardar Cambios de Perfil</button>
+              <button id="saveProfileBtn" class="save-profile-btn inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-10 px-4 py-2 bg-studyO-lavender-dark hover:bg-studyO-lavender-dark/90 dark:bg-studyO-lavender dark:hover:bg-studyO-lavender/90 text-white dark:text-studyO-warmGray-dark font-semibold shadow-md hover:shadow-lg transition-shadow">Guardar Cambios de Perfil</button>
             </div>
           </div>
 
