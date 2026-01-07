@@ -198,7 +198,10 @@
 
             <div id="dailyProgress" class="bg-dark-card rounded-3xl p-6 relative animate-on-load delay-300" style="box-shadow: 0 0 0 1px rgba(168,85,247,0.2), 0 0 30px rgba(168,85,247,0.15), inset 0 0 20px rgba(168,85,247,0.03);">
                 <h2 class="text-xl font-bold text-white mb-2">Progreso Diario de Hábitos</h2>
-                <p id="progressText" class="text-gray-400">Completaste <span id="progressPercentage" class="text-purple-400 font-bold">0%</span> de tus hábitos hoy.</p>
+                <p id="progressText" class="text-gray-400 mb-4">Completaste <span id="progressPercentage" class="text-purple-400 font-bold">0%</span> de tus hábitos hoy.</p>
+                <div class="w-full bg-gray-800 h-2 rounded-full overflow-hidden">
+                    <div id="dailyProgressBar" class="bg-gradient-to-r from-purple-500 to-pink-500 h-full w-0 transition-all duration-500 ease-out" style="width: 0%"></div>
+                </div>
             </div>
 
             <div id="emptyState" class="hidden bg-dark-card rounded-3xl p-12 flex flex-col items-center justify-center text-center animate-on-load delay-400" style="box-shadow: 0 0 0 1px rgba(168,85,247,0.2), 0 0 30px rgba(168,85,247,0.15), inset 0 0 20px rgba(168,85,247,0.03);">
@@ -347,54 +350,6 @@
                     element.classList.add('animated');
                 }, 100 + (index * 50));
             });
-        });
-    </script>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const grid = document.getElementById('habitsGrid');
-            const percentageText = document.getElementById('progressPercentage');
-
-            // Esta función cuenta los botones completados visualmente
-            const recalculateProgress = () => {
-                const buttons = grid.querySelectorAll('button'); 
-                const total = buttons.length;
-                
-                if (total === 0) {
-                    if(percentageText) percentageText.textContent = "0%";
-                    return;
-                }
-
-                let completed = 0;
-                buttons.forEach(btn => {
-                    // INTELIGENCIA: Detectamos si está completado buscando clases que indican "activo"
-                    // Buscamos 'bg-gradient' (tu estilo de activo) o atributos data
-                    // Ajusta esto si tu botón completado se ve diferente
-                    const isCompleted = 
-                        btn.classList.contains('bg-gradient-to-r') || 
-                        btn.getAttribute('data-completed') === 'true' ||
-                        btn.classList.contains('bg-orange-500'); // Por si acaso usas el estilo antiguo
-
-                    if (isCompleted) {
-                        completed++;
-                    }
-                });
-
-                const percent = Math.round((completed / total) * 100);
-                if(percentageText) percentageText.textContent = `${percent}%`;
-            };
-
-            // 1. ESCUCHAR CLICKS: Cuando clickeas un hábito, esperamos un poco y recalculamos
-            if (grid) {
-                grid.addEventListener('click', (e) => {
-                    // Usamos timeout para dar tiempo a que tu otro script cambie el color del botón
-                    setTimeout(recalculateProgress, 100); 
-                });
-
-                // 2. ESCUCHAR CARGA: Cuando el TS inyecta los hábitos, recalculamos
-                const observer = new MutationObserver(recalculateProgress);
-                observer.observe(grid, { childList: true, subtree: true });
-            }
         });
     </script>
 
