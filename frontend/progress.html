@@ -41,60 +41,29 @@
         
         /* Animaciones de entrada suaves */
         @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         
         @keyframes fadeInLeft {
-            from {
-                opacity: 0;
-                transform: translateX(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
         }
         
         @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
-            to {
-                opacity: 1;
-            }
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
         
         /* Clases de animación inicial - elementos ocultos */
-        .animate-on-load {
-            opacity: 0;
-        }
+        .animate-on-load { opacity: 0; }
+        .animate-on-load.animated { animation: fadeInUp 0.6s ease-out forwards; }
         
-        .animate-on-load.animated {
-            animation: fadeInUp 0.6s ease-out forwards;
-        }
+        .animate-sidebar { opacity: 0; }
+        .animate-sidebar.animated { animation: fadeInLeft 0.5s ease-out forwards; }
         
-        .animate-sidebar {
-            opacity: 0;
-        }
-        
-        .animate-sidebar.animated {
-            animation: fadeInLeft 0.5s ease-out forwards;
-        }
-        
-        .animate-fade {
-            opacity: 0;
-        }
-        
-        .animate-fade.animated {
-            animation: fadeIn 0.4s ease-out forwards;
-        }
+        .animate-fade { opacity: 0; }
+        .animate-fade.animated { animation: fadeIn 0.4s ease-out forwards; }
         
         /* Delays escalonados para efecto cascada */
         .delay-100 { animation-delay: 0.1s; }
@@ -140,39 +109,40 @@
             margin-bottom: 4px;
         }
         
-        #heatmap-wrapper {
-            width: 100%;
-            overflow-x: visible;
-        }
-        
-        #heatmap-grid {
-            width: 100%;
-            flex-wrap: nowrap;
-            justify-content: flex-start;
-        }
+        #heatmap-wrapper { width: 100%; overflow-x: visible; }
+        #heatmap-grid { width: 100%; flex-wrap: nowrap; justify-content: flex-start; }
         
         @media (min-width: 1024px) {
-            .heatmap-cell {
-                width: 8px;
-                height: 8px;
-            }
+            .heatmap-cell { width: 8px; height: 8px; }
         }
-        /* Sidebar collapse styles */
+
+        /* --- SIDEBAR COLLAPSE STYLES (CORREGIDO) --- */
         aside { transition: width 0.22s ease; overflow: hidden; }
         body.sidebar-collapsed aside { width: 80px !important; min-width: 80px !important; }
-        body.sidebar-collapsed aside .logo-text { display: none; }
-        body.sidebar-collapsed aside nav a span { display: none; }
-        body.sidebar-collapsed aside nav a { justify-content: center; padding-left: 0.75rem; padding-right: 0.75rem; }
-        body.sidebar-collapsed aside .p-4.border-t { display: none; }
+        
+        /* 1. Ocultar textos y títulos */
+        body.sidebar-collapsed aside .logo-text,
+        body.sidebar-collapsed aside nav a span,
+        body.sidebar-collapsed aside .border-t a span, /* Texto footer */
+        body.sidebar-collapsed aside .border-t .text-xs /* Título AJUSTES */
+        { display: none; }
+
+        /* 2. Centrar elementos */
+        body.sidebar-collapsed aside nav a,
+        body.sidebar-collapsed aside .border-t a /* Items footer */
+        { justify-content: center; padding-left: 0.75rem; padding-right: 0.75rem; }
+
+        /* 3. Ajustar tamaño de iconos */
+        body.sidebar-collapsed aside nav a i,
+        body.sidebar-collapsed aside nav a [data-lucide],
+        body.sidebar-collapsed aside .border-t a i, /* Iconos footer */
+        body.sidebar-collapsed aside .border-t a [data-lucide]
+        { width: 28px !important; height: 28px !important; }
+
+        /* Otros ajustes */
         [data-sidebar-toggle] { transition: transform 0.2s ease; }
         body.sidebar-collapsed [data-sidebar-toggle] { transform: rotate(180deg); }
-        body.sidebar-collapsed aside nav a i,
-        body.sidebar-collapsed aside nav a [data-lucide] {
-            width: 28px !important;
-            height: 28px !important;
-        }
         body.sidebar-collapsed #sidebarToggleBtn i { width: 20px !important; height: 20px !important; }
-        /* Hide tiny dot indicators (e.g., calendar small badge) when collapsed */
         body.sidebar-collapsed aside .w-1.h-1,
         body.sidebar-collapsed aside .w-1.h-1.rounded-full { display: none !important; }
     </style>
@@ -231,7 +201,6 @@
     <main class="flex-1 overflow-y-auto relative">
         <div class="p-8 max-w-7xl mx-auto space-y-8">
             
-            <!-- Header -->
             <header class="animate-on-load delay-200">
                 <h1 class="text-4xl font-bold text-white mb-2">
                     Tu Evolución en StudyO
@@ -241,9 +210,7 @@
                 </p>
             </header>
 
-            <!-- Sección Superior: Gráfico de Línea Mensual + Card Constancia Semanal -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <!-- Gráfico de Línea Mensual (Columna Grande) -->
                 <div class="lg:col-span-2 bg-dark-card rounded-3xl p-6 relative animate-on-load delay-300" style="box-shadow: 0 0 0 1px rgba(168,85,247,0.2), 0 0 30px rgba(168,85,247,0.15), inset 0 0 20px rgba(168,85,247,0.03);">
                     <div class="flex justify-between items-start mb-6">
                         <div>
@@ -255,12 +222,10 @@
 
                     <div class="h-64 w-full relative" id="monthly-rhythm-chart-container">
                         <svg id="monthly-rhythm-chart" class="w-full h-full overflow-visible">
-                            <!-- Chart will be rendered here -->
-                        </svg>
+                            </svg>
                     </div>
                 </div>
 
-                <!-- Card Constancia Semanal (Columna Pequeña) -->
                 <div class="bg-dark-card rounded-3xl p-6 flex flex-col items-center justify-center relative animate-on-load delay-400" style="box-shadow: 0 0 0 1px rgba(168,85,247,0.2), 0 0 30px rgba(168,85,247,0.15), inset 0 0 20px rgba(168,85,247,0.03);">
                     <div class="w-full flex justify-between items-start mb-4">
                         <h2 class="text-lg font-bold text-white">Constancia Semanal</h2>
@@ -292,7 +257,6 @@
                 </div>
             </div>
 
-            <!-- Heatmap de Estudio (Ancho Completo) -->
             <div class="bg-dark-card rounded-3xl p-6 relative animate-on-load delay-500" style="box-shadow: 0 0 0 1px rgba(168,85,247,0.2), 0 0 30px rgba(168,85,247,0.15), inset 0 0 20px rgba(168,85,247,0.03);">
                 <div class="flex justify-between items-start mb-4">
                     <div>
@@ -308,8 +272,7 @@
                     </div>
                     <div id="heatmap-wrapper" class="w-full">
                         <div id="heatmap-grid" class="flex items-start">
-                            <!-- Heatmap will be generated here -->
-                        </div>
+                            </div>
                     </div>
                     
                     <div class="flex items-center justify-end gap-4 text-xs text-gray-500 mt-4">
@@ -326,7 +289,6 @@
                 </div>
             </div>
 
-            <!-- Gráfico Donut: Distribución de Enfoque Mensual -->
             <div class="bg-dark-card rounded-3xl p-6 flex flex-col relative animate-on-load delay-600" style="box-shadow: 0 0 0 1px rgba(168,85,247,0.2), 0 0 30px rgba(168,85,247,0.15), inset 0 0 20px rgba(168,85,247,0.03);">
                 <div class="flex justify-between items-start mb-4">
                     <div>

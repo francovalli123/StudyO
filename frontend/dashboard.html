@@ -3,31 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>StudyO Main Page</title>
-        <script>
-            (function(){
-                const orig = console.warn;
-                console.warn = function(...args){
-                    try{ if (args && args[0] && typeof args[0] === 'string' && args[0].includes('cdn.tailwindcss.com should not be used in production')) return; }catch(e){}
-                    orig.apply(console,args);
+    <title>StudyO Main Page</title>
+    <script>
+        (function(){
+            const orig = console.warn;
+            console.warn = function(...args){
+                try{ if (args && args[0] && typeof args[0] === 'string' && args[0].includes('cdn.tailwindcss.com should not be used in production')) return; }catch(e){}
+                orig.apply(console,args);
+            }
+        })();
+        window.tailwind = window.tailwind || {};
+        window.tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        dark: { bg: '#0a0a0c', card: '#11131a', sidebar: '#0a0a0c', input: '#1a1d26' },
+                        brand: { primary: '#a855f7', glow: '#d946ef', text: '#e2e8f0' }
+                    },
+                    fontFamily: { sans: ['Inter', 'sans-serif'] }
                 }
-            })();
-            window.tailwind = window.tailwind || {};
-            window.tailwind.config = {
-                darkMode: 'class',
-                theme: {
-                    extend: {
-                        colors: {
-                            dark: { bg: '#0a0a0c', card: '#11131a', sidebar: '#0a0a0c', input: '#1a1d26' },
-                            brand: { primary: '#a855f7', glow: '#d946ef', text: '#e2e8f0' }
-                        },
-                        fontFamily: { sans: ['Inter', 'sans-serif'] }
-                    }
-                }
-            };
-        </script>
-        <script src="https://cdn.tailwindcss.com"></script>
-        <script src="https://unpkg.com/lucide@latest"></script>
+            }
+        };
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="./src/css/styles.css">
     <style>
@@ -56,60 +56,29 @@
         
         /* Animaciones de entrada suaves */
         @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         
         @keyframes fadeInLeft {
-            from {
-                opacity: 0;
-                transform: translateX(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
         }
         
         @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
-            to {
-                opacity: 1;
-            }
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
         
         /* Clases de animación inicial - elementos ocultos */
-        .animate-on-load {
-            opacity: 0;
-        }
+        .animate-on-load { opacity: 0; }
+        .animate-on-load.animated { animation: fadeInUp 0.6s ease-out forwards; }
         
-        .animate-on-load.animated {
-            animation: fadeInUp 0.6s ease-out forwards;
-        }
+        .animate-sidebar { opacity: 0; }
+        .animate-sidebar.animated { animation: fadeInLeft 0.5s ease-out forwards; }
         
-        .animate-sidebar {
-            opacity: 0;
-        }
-        
-        .animate-sidebar.animated {
-            animation: fadeInLeft 0.5s ease-out forwards;
-        }
-        
-        .animate-fade {
-            opacity: 0;
-        }
-        
-        .animate-fade.animated {
-            animation: fadeIn 0.4s ease-out forwards;
-        }
+        .animate-fade { opacity: 0; }
+        .animate-fade.animated { animation: fadeIn 0.4s ease-out forwards; }
         
         /* Delays escalonados para efecto cascada */
         .delay-100 { animation-delay: 0.1s; }
@@ -119,25 +88,33 @@
         .delay-500 { animation-delay: 0.5s; }
         .delay-600 { animation-delay: 0.6s; }
 
-        /* Sidebar collapse styles */
+        /* --- SIDEBAR COLLAPSE STYLES (CORREGIDO) --- */
         aside { transition: width 0.22s ease; overflow: hidden; }
-        /* Slightly wider collapsed width for better visibility */
         body.sidebar-collapsed aside { width: 80px !important; min-width: 80px !important; }
-        body.sidebar-collapsed aside .logo-text { display: none; }
-        body.sidebar-collapsed aside nav a span { display: none; }
-        body.sidebar-collapsed aside nav a { justify-content: center; padding-left: 0.75rem; padding-right: 0.75rem; }
-        body.sidebar-collapsed aside .p-4.border-t { display: none; }
+        
+        /* 1. Ocultar textos y títulos */
+        body.sidebar-collapsed aside .logo-text,
+        body.sidebar-collapsed aside nav a span,
+        body.sidebar-collapsed aside .border-t a span, /* Texto footer */
+        body.sidebar-collapsed aside .border-t .text-xs /* Título AJUSTES */
+        { display: none; }
+
+        /* 2. Centrar elementos */
+        body.sidebar-collapsed aside nav a,
+        body.sidebar-collapsed aside .border-t a /* Items footer */
+        { justify-content: center; padding-left: 0.75rem; padding-right: 0.75rem; }
+
+        /* 3. Ajustar tamaño de iconos */
+        body.sidebar-collapsed aside nav a i,
+        body.sidebar-collapsed aside nav a [data-lucide],
+        body.sidebar-collapsed aside .border-t a i, /* Iconos footer */
+        body.sidebar-collapsed aside .border-t a [data-lucide]
+        { width: 28px !important; height: 28px !important; }
+
+        /* Otros ajustes */
         [data-sidebar-toggle] { transition: transform 0.2s ease; }
         body.sidebar-collapsed [data-sidebar-toggle] { transform: rotate(180deg); }
-        /* Increase icon sizes when collapsed for better tap targets */
-        body.sidebar-collapsed aside nav a i,
-        body.sidebar-collapsed aside nav a [data-lucide] {
-            width: 28px !important;
-            height: 28px !important;
-        }
-        /* Make toggle button icon larger */
         body.sidebar-collapsed #sidebarToggleBtn i { width: 20px !important; height: 20px !important; }
-        /* Hide tiny dot indicators (e.g., calendar small badge) when collapsed */
         body.sidebar-collapsed aside .w-1.h-1,
         body.sidebar-collapsed aside .w-1.h-1.rounded-full { display: none !important; }
     </style>
@@ -205,7 +182,7 @@
                     <p class="text-gray-400 text-lg">es hora de diseñar tu <span class="text-purple-400 font-medium">obra maestra de estudio</span>.</p>
                 </div>
                 <div class="flex gap-3">
-                        <button class="w-10 h-10 rounded-full bg-dark-card border border-gray-700 flex items-center justify-center text-gray-400 hover:text-white">
+                        <button id="concentrationToggleBtn" class="w-10 h-10 rounded-full bg-dark-card border border-gray-700 flex items-center justify-center text-gray-400 hover:text-white" title="Modo Concentración">
                             <i data-lucide="maximize" class="w-4 h-4"></i>
                         </button>
                         <button id="profileAvatarBtn" class="w-10 h-10 rounded-full overflow-hidden border border-gray-700 bg-dark-card flex items-center justify-center" title="Ver perfil">
@@ -223,19 +200,16 @@
                     </div>
                     <p class="text-gray-500 text-sm mb-6">Definí tus objetivos cruciales por área. Claridad es poder.</p>
 
-                    <!-- Container for weekly objectives (empty when no items) -->
                     <div id="weeklyObjectivesContainer" class="space-y-3 mb-6">
-                        <!-- Objectives will be inserted here by TypeScript -->
-                    </div>
+                        </div>
 
-                    <!-- Add button (shown when container is empty or always visible) -->
                     <button id="addObjectiveBtn" class="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-gradient-to-r from-purple-500/20 via-pink-500/20 to-purple-500/20 text-purple-400 text-sm hover:from-purple-500/30 hover:via-pink-500/30 hover:to-purple-500/30 transition-all border border-purple-500/30" style="box-shadow: 0 0 0 1px rgba(168,85,247,0.3);">
                         <i data-lucide="plus-circle" class="w-4 h-4"></i>
                         <span>Añadir Objetivo Estratégico</span>
                     </button>
                 </div>
 
-                <div class="bg-dark-card rounded-3xl p-6 flex flex-col items-center justify-between relative overflow-hidden animate-on-load delay-400 h-fit" style="box-shadow: 0 0 0 1px rgba(168,85,247,0.2), 0 0 30px rgba(168,85,247,0.15), inset 0 0 30px rgba(168,85,247,0.03);">
+                <div id="pomodoroCard" class="bg-dark-card rounded-3xl p-6 flex flex-col items-center justify-between relative overflow-hidden animate-on-load delay-400 h-fit" style="box-shadow: 0 0 0 1px rgba(168,85,247,0.2), 0 0 30px rgba(168,85,247,0.15), inset 0 0 30px rgba(168,85,247,0.03);">
                     <div class="w-full flex justify-between items-start z-10">
                         <h2 class="text-lg font-bold text-white w-2/3">Zona de Enfoque Pomodoro</h2>
                         <button id="pomodoroSettingsBtn" class="p-2 rounded-lg bg-white/5 text-gray-400"><i data-lucide="sliders-horizontal" class="w-4 h-4"></i></button>
@@ -339,7 +313,6 @@
                     </div>
                     
                     <div id="nextEventContainer">
-                        <!-- Next event will be loaded here -->
                         <div class="flex items-center justify-center py-8">
                             <div class="text-center">
                                 <i data-lucide="calendar-x" class="w-12 h-12 text-gray-600 mx-auto mb-3"></i>
@@ -412,8 +385,7 @@
                     </div>
 
                     <div class="space-y-4" id="key-habits-container">
-                        <!-- Los hábitos clave se cargarán aquí dinámicamente -->
-                    </div>
+                        </div>
                     
                     <div class="mt-6">
                         <div class="flex justify-between text-xs text-gray-500 mb-2">
@@ -431,7 +403,6 @@
         </div>
     </main>
 
-    <!-- Weekly Objective Modal -->
     <div id="objectiveModal"
         class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center transition-all duration-300"
         style="display:none; z-index: 1000;">
@@ -521,7 +492,6 @@
         </div>
     </div>
 
-    <!-- Pomodoro Settings Modal -->
     <div id="pomodoroSettingsModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center" style="display:none; z-index: 60;">
         <div class="bg-dark-card rounded-2xl p-6 w-full max-w-lg mx-4">
             <h3 class="text-lg font-bold text-white mb-4">Ajustes Pomodoro</h3>
@@ -557,20 +527,16 @@
         </div>
     </div>
 
-    <!-- Sección para datos dinámicos del dashboard -->
     <div id="dashboard-stats" style="display: none;">
-        <!-- Estadísticas de Hábitos -->
         <div id="habits-stats">
             <span id="total-habits">0</span>
             <span id="max-streak">0</span>
             <span id="avg-streak">0</span>
         </div>
-        <!-- Estadísticas de Materias -->
         <div id="subjects-stats">
             <span id="total-subjects">0</span>
             <span id="avg-progress">0</span>
         </div>
-        <!-- Estadísticas de Pomodoro -->
         <div id="pomodoro-stats">
             <span id="sessions-today">0</span>
             <span id="minutes-today">0</span>
@@ -581,6 +547,66 @@
         if (typeof lucide !== 'undefined') {
             lucide.createIcons();
         }
+        // Concentration mode styles + toasts
+        (function(){
+            const style = document.createElement('style');
+            style.textContent = `
+            body.concentration-mode { background: #0b0b0d !important; overflow: hidden; }
+            body.concentration-mode aside, body.concentration-mode header, body.concentration-mode nav, body.concentration-mode .top-nav, body.concentration-mode .animate-on-load:not(#pomodoroCard) { display: none !important; }
+            body.concentration-mode main { position: fixed !important; top: 0 !important; left: 0 !important; width: 100vw !important; height: 100vh !important; margin: 0 !important; z-index: 9998 !important; display:flex !important; align-items:center; justify-content:center; padding:0 !important; }            body.concentration-mode #pomodoroCard { width: 560px !important; max-width:96vw; height: auto !important; border-radius:18px !important; box-shadow: 0 20px 60px rgba(3,6,12,0.8), inset 0 1px 0 rgba(255,255,255,0.02); background: linear-gradient(180deg, rgba(11,12,14,0.95), rgba(8,9,11,0.92)) !important; padding:36px !important; }
+            body.concentration-mode #pomodoroCard .text-5xl { font-size:72px !important; line-height:1 !important; }
+            body.concentration-mode #pomodoroCard .text-sm { color: #c7ccd6 !important; }
+            body.concentration-mode #pomodoroCard .text-purple-400 { color: #b76cf0 !important; }
+            body.concentration-mode #concentrationExitBtn { display:flex !important; }
+            #concentrationExitBtn { display:none; position:fixed; right:18px; top:18px; z-index:9999; background:transparent; color:white; border:none; padding:6px 8px; border-radius:10px; cursor:pointer; align-items:center; gap:8px; font-weight:600; }
+
+            /* Toast styles */
+            .focus-toast { position:fixed; top:18px; right:18px; z-index:10000; min-width:320px; max-width:clamp(260px,36vw,420px); border-radius:10px; padding:14px 16px; display:flex; gap:12px; align-items:flex-start; box-shadow:0 6px 30px rgba(0,0,0,0.6); }
+            .focus-toast .close-x { margin-left:auto; cursor:pointer; opacity:0.9; }
+            .focus-toast.green { background: #052e17; border:1px solid rgba(34,197,94,0.22); color:#c9f7d0; }
+            .focus-toast.green .title { font-weight:700; color:#a7f3bf; }
+            .focus-toast.blue { background: #082034; border:1px solid rgba(59,130,246,0.13); color:#cfe9ff; }
+            .focus-toast.blue .title { font-weight:700; color:#93c5fd; }
+            `;
+            document.head.appendChild(style);
+        })();
+
+        // Exit button and toasts for concentration mode
+        (function(){
+            // Exit button
+            const btn = document.createElement('button');
+            btn.id = 'concentrationExitBtn';
+            btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>';
+            btn.title = 'Salir Modo Concentración';
+            btn.addEventListener('click', () => {
+                document.body.classList.remove('concentration-mode');
+                try { if (document.fullscreenElement) document.exitFullscreen(); } catch(e){}
+                // show exit toast (blue) after a short delay so layout restored
+                setTimeout(() => { window.showExitToast?.(); }, 120);            });
+            document.body.appendChild(btn);
+
+            // Enter toast (green)
+            const enter = document.createElement('div');
+            enter.id = 'concentrationEnterToast';
+            enter.className = 'focus-toast green';
+            enter.style.display = 'none';
+            enter.innerHTML = '<div style="width:28px;height:28px;border-radius:6px;background:linear-gradient(90deg,#A770EF,#CF8BF3);display:flex;align-items:center;justify-content:center;color:#051025;font-weight:700">⚡</div><div><div class="title">Modo Enfoque Absoluto Activado.</div><div style="font-size:13px;margin-top:4px">Tu espacio de concentración. Sin distracciones.</div></div><div class="close-x" title="Cerrar">✕</div>';
+            document.body.appendChild(enter);
+            enter.querySelector('.close-x')?.addEventListener('click', ()=>{ enter.style.display='none'; });
+
+            // Exit toast (blue) appended but hidden; will be shown on exit
+            const exit = document.createElement('div');
+            exit.id = 'concentrationExitToast';
+            exit.className = 'focus-toast blue';
+            exit.style.display = 'none';
+            exit.innerHTML = '<div style="width:28px;height:28px;border-radius:6px;background:#0b2b4a;display:flex;align-items:center;justify-content:center;color:#93c5fd;font-weight:700">i</div><div><div class="title">Modo Enfoque Desactivado.</div><div style="font-size:13px;margin-top:4px">Bienvenido de nuevo a tu centro de mando.</div></div><div class="close-x" title="Cerrar">✕</div>';
+            document.body.appendChild(exit);
+            exit.querySelector('.close-x')?.addEventListener('click', ()=>{ exit.style.display='none'; });
+
+            // helper functions exposed on window for dashboard.ts to call
+            window.showEnterToast = function(){ enter.style.display='flex'; };
+            window.showExitToast = function(){ exit.style.display='flex'; setTimeout(()=>{ try{ exit.style.display='none'; }catch(e){} }, 4500); };
+        })();
         
         // Activar animaciones al cargar la página
         document.addEventListener('DOMContentLoaded', function() {

@@ -87,7 +87,7 @@ async function loadSubjects() {
 
                     ${s.next_exam_date ? `<div class="mb-4 text-xs text-gray-400"><i data-lucide="calendar" class="w-3 h-3 inline mr-1"></i> Siguiente examen: ${s.next_exam_date}</div>` : ''}
 
-   2                 <div class="flex gap-3 pt-4 border-t border-gray-700/50">
+                    <div class="flex gap-3 pt-4 border-t border-gray-700/50">
                         <button class="edit-subject-btn flex-1 px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 border border-gray-700 text-gray-300 hover:text-white text-sm font-medium transition-all duration-300 flex items-center justify-center gap-2" data-subject-id="${s.id}">
                             <i data-lucide="edit-2" class="w-4 h-4"></i>
                             <span>Editar</span>

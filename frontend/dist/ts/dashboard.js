@@ -10,6 +10,63 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 // Import API functions for making HTTP requests and token management
 import { apiGet, apiPost, apiDelete, apiPut, getToken, getEvents } from "./api.js";
 import { initConfirmModal, showConfirmModal, showAlertModal } from "./confirmModal.js";
+// --- Concentration Mode Setup (global) ---
+function setupConcentrationMode() {
+    function enter() {
+        document.body.classList.add('concentration-mode');
+        try {
+            const el = document.documentElement;
+            if (el.requestFullscreen)
+                el.requestFullscreen().catch(() => { });
+        }
+        catch (e) { }
+    }
+    function exit() {
+        document.body.classList.remove('concentration-mode');
+        try {
+            if (document.fullscreenElement)
+                document.exitFullscreen();
+        }
+        catch (e) { }
+    }
+    const toggle = document.getElementById('concentrationToggleBtn');
+    const exitBtn = document.getElementById('concentrationExitBtn');
+    if (toggle) {
+        toggle.addEventListener('click', (e) => {
+            var _a, _b;
+            e.preventDefault();
+            if (!document.body.classList.contains('concentration-mode')) {
+                enter();
+                // show enter toast once
+                try {
+                    (_b = (_a = window).showEnterToast) === null || _b === void 0 ? void 0 : _b.call(_a);
+                }
+                catch (e) { }
+            }
+            else
+                exit();
+        });
+    }
+    if (exitBtn) {
+        exitBtn.addEventListener('click', (e) => { e.preventDefault(); exit(); });
+    }
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && document.body.classList.contains('concentration-mode')) {
+            exit();
+        }
+    });
+    document.addEventListener('fullscreenchange', () => {
+        if (!document.fullscreenElement && document.body.classList.contains('concentration-mode')) {
+            document.body.classList.remove('concentration-mode');
+        }
+    });
+}
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setupConcentrationMode);
+}
+else {
+    setupConcentrationMode();
+}
 /**
  * ==========================================
  * Utility Functions

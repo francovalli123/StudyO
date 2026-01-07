@@ -27,6 +27,58 @@ interface Habit {
     completed_today: boolean;
 }
 
+// --- Concentration Mode Setup (global) ---
+function setupConcentrationMode() {
+    function enter() {
+        document.body.classList.add('concentration-mode');
+        try {
+            const el = document.documentElement as any;
+            if (el.requestFullscreen) el.requestFullscreen().catch(()=>{});
+        } catch(e){}
+    }
+
+    function exit() {
+        document.body.classList.remove('concentration-mode');
+        try { if ((document as any).fullscreenElement) (document as any).exitFullscreen(); } catch(e){}
+    }
+
+    const toggle = document.getElementById('concentrationToggleBtn');
+    const exitBtn = document.getElementById('concentrationExitBtn');
+
+    if (toggle) {
+        toggle.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (!document.body.classList.contains('concentration-mode')) {
+                enter();
+                // show enter toast once
+                try { (window as any).showEnterToast?.(); } catch(e){}
+            } else exit();
+        });
+    }
+
+    if (exitBtn) {
+        exitBtn.addEventListener('click', (e)=>{ e.preventDefault(); exit(); });
+    }
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && document.body.classList.contains('concentration-mode')) {
+            exit();
+        }
+    });
+
+    document.addEventListener('fullscreenchange', () => {
+        if (!(document as any).fullscreenElement && document.body.classList.contains('concentration-mode')) {
+            document.body.classList.remove('concentration-mode');
+        }
+    });
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setupConcentrationMode);
+} else {
+    setupConcentrationMode();
+}
+
 /**
  * Subject interface - Represents an academic subject
  */
