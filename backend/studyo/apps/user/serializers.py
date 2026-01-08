@@ -30,15 +30,20 @@ class UserSerializer(serializers.ModelSerializer):
     """Serializer para obtener información del usuario (sin contraseña)"""
     avatar = serializers.ImageField(read_only=True)
     preferences = serializers.SerializerMethodField()
+    language = serializers.CharField(read_only=True)
 
     class Meta:
         model = User
-        fields = ["id", "username", "email", "first_name", "last_name", "avatar", "preferences"]
+        fields = ["id", "username", "email", "first_name", "last_name", "avatar", "preferences", "language"]
         read_only_fields = ["id", "username"]
 
     def get_preferences(self, obj):
         # Return stored notification/preferences JSON under a single key to be compatible with frontend
         try:
-            return getattr(obj, 'notification_preferences', {}) or {}
+            prefs = getattr(obj, 'notification_preferences', {}) or {}
+            # Ensure language is present even if not stored in preferences JSON
+            if 'language' not in prefs and getattr(obj, 'language', None):
+                prefs = {**prefs, 'language': obj.language}
+            return prefs
         except Exception:
             return {}

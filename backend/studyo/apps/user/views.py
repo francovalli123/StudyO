@@ -64,6 +64,10 @@ class CurrentUserView(APIView):
         if 'preferences' in request.data:
             try:
                 prefs = request.data.get('preferences') or {}
+                # Update language field if present
+                lang = prefs.get('language')
+                if isinstance(lang, str) and lang:
+                    user.language = lang
                 # Merge into user.notification_preferences (replace for now)
                 user.notification_preferences = prefs
                 user.save()
@@ -71,6 +75,15 @@ class CurrentUserView(APIView):
                 return Response(serializer.data)
             except Exception as e:
                 return Response({'detail': 'Invalid preferences format.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Allow direct language update
+        if 'language' in request.data:
+            lang = request.data.get('language')
+            if isinstance(lang, str) and lang:
+                user.language = lang
+                user.save()
+                serializer = UserSerializer(user, context={'request': request})
+                return Response(serializer.data)
 
         if data:
             # Update fields and save

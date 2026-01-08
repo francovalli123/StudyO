@@ -132,41 +132,41 @@
         <nav class="flex-1 px-4 space-y-2 mt-2">
             <a href="dashboard.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gradient-to-r hover:from-purple-500/10 hover:via-fuchsia-500/10 hover:to-purple-500/10 text-gray-400 hover:text-purple-300 transition-all duration-300">
                 <i data-lucide="home" class="w-5 h-5"></i>
-                <span>Inicio</span>
+                <span data-i18n="nav.home">Inicio</span>
             </a>
 
             <a href="planner.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gradient-to-r hover:from-purple-500/10 hover:via-fuchsia-500/10 hover:to-purple-500/10 text-gray-400 hover:text-purple-300 transition-all duration-300">
                 <i data-lucide="calendar" class="w-5 h-5"></i>
-                <span>Planificador</span>
+                <span data-i18n="nav.planner">Planificador</span>
             </a>
 
             <a href="subjects.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gradient-to-r hover:from-purple-500/10 hover:via-fuchsia-500/10 hover:to-purple-500/10 text-gray-400 hover:text-purple-300 transition-all duration-300">
                 <i data-lucide="monitor" class="w-5 h-5"></i>
-                <span>Mi Sistema Académico</span>
+                <span data-i18n="nav.subjects">Mi Sistema Académico</span>
             </a>
             <a href="habits.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gradient-to-r hover:from-purple-500/10 hover:via-fuchsia-500/10 hover:to-purple-500/10 text-gray-400 hover:text-purple-300 transition-all duration-300">
                 <i data-lucide="target" class="w-5 h-5"></i>
-                <span>Hábitos</span>
+                <span data-i18n="nav.habits">Hábitos</span>
             </a>
             <a href="progress.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gradient-to-r hover:from-purple-500/10 hover:via-fuchsia-500/10 hover:to-purple-500/10 text-gray-400 hover:text-purple-300 transition-all duration-300">
                 <i data-lucide="trending-up" class="w-5 h-5"></i>
-                <span>Progreso</span>
+                <span data-i18n="nav.progress">Progreso</span>
             </a>
         </nav>
 
         <div class="p-4 border-t border-gray-800/50 space-y-2">
-            <div class="text-xs font-semibold text-gray-500 uppercase px-4 mb-2">Ajustes</div>
+            <div class="text-xs font-semibold text-gray-500 uppercase px-4 mb-2" data-i18n="nav.settings">Ajustes</div>
             <a href="profile.html" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-gradient-to-r from-purple-600 via-fuchsia-500 to-purple-600 text-white shadow-[0_0_15px_rgba(168,85,247,0.5)] font-medium">
                 <i data-lucide="settings" class="w-5 h-5"></i>
-                <span>Ajustes</span>
+                <span data-i18n="nav.settings">Ajustes</span>
             </a>
             <a href="#" class="flex items-center gap-3 px-4 py-2 rounded-xl hover:bg-gradient-to-r hover:from-yellow-500/10 hover:via-orange-500/10 hover:to-yellow-500/10 text-yellow-500 hover:text-yellow-400 transition-all duration-300">
                 <i data-lucide="sparkles" class="w-4 h-4"></i>
-                <span>Tema Premium</span>
+                <span data-i18n="nav.premium">Tema Premium</span>
             </a>
             <a href="#" id="logoutBtn" class="flex items-center gap-3 px-4 py-2 rounded-xl hover:bg-gradient-to-r hover:from-red-500/10 hover:via-pink-500/10 hover:to-red-500/10 text-red-400 hover:text-red-300 transition-all duration-300">
                 <i data-lucide="log-out" class="w-4 h-4"></i>
-                <span>Cerrar Sesión</span>
+                <span data-i18n="nav.logout">Cerrar Sesión</span>
             </a>
         </div>
     </aside>
@@ -175,8 +175,8 @@
       <div class="max-w-8xl mx-auto w-full">
         <div class="space-y-8 max-w-3xl mx-auto pb-10">
           <div>
-            <h1 class="text-3xl md:text-4xl font-bold text-studyO-warmGray-dark dark:text-white">Ajustes de Cuenta</h1>
-            <p class="text-studyO-warmGray dark:text-gray-300 mt-1 text-md">Personalizá tu experiencia en StudyO.</p>
+            <h1 class="text-3xl md:text-4xl font-bold text-studyO-warmGray-dark dark:text-white" data-i18n="profile.title">Ajustes de Cuenta</h1>
+            <p class="text-studyO-warmGray dark:text-gray-300 mt-1 text-md" data-i18n="profile.subtitle">Personalizá tu experiencia en StudyO.</p>
             <div id="profileMsg" class="mt-3 text-sm text-red-400 hidden"></div>
           </div>
 
@@ -184,9 +184,9 @@
             <div class="flex flex-col space-y-1.5 p-6">
               <div class="tracking-tight text-xl font-semibold flex items-center text-studyO-warmGray-dark dark:text-white">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user mr-3 h-6 w-6 text-studyO-lavender-dark dark:text-studyO-lavender-light"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-                Perfil Personal
+                <span data-i18n="profile.personalProfile">Perfil Personal</span>
               </div>
-              <div class="text-sm text-muted-foreground dark:text-gray-400">Actualizá tu información y foto de perfil.</div>
+              <div class="text-sm text-muted-foreground dark:text-gray-400" data-i18n="profile.updateInfo">Actualizá tu información y foto de perfil.</div>
             </div>
 
             <div class="p-6 pt-0 space-y-6">
@@ -197,7 +197,7 @@
                 <div class="flex items-center gap-2">
                   <button id="changePhotoBtn" class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pen-line mr-2 h-4 w-4"><path d="M12 20h9"></path><path d="M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z"></path></svg>
-                    Cambiar Foto
+                    <span data-i18n="profile.changePhoto">Cambiar Foto</span>
                   </button>
                   <input type="file" id="avatarInput" accept="image/*" style="display:none">
                 </div>
@@ -205,29 +205,29 @@
 
               <div class="grid sm:grid-cols-2 gap-6">
                 <div class="space-y-1.5">
-                  <label class="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 font-medium dark:text-gray-300" for="name">Nombre Completo</label>
+                  <label class="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 font-medium dark:text-gray-300" for="name" data-i18n="profile.fullName">Nombre Completo</label>
                   <input id="name"type="text" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base" value="">
                 </div>
                 <div class="space-y-1.5">
-                  <label class="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 font-medium dark:text-gray-300" for="email">Correo Electrónico</label>
+                  <label class="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 font-medium dark:text-gray-300" for="email" data-i18n="profile.email">Correo Electrónico</label>
                   <input id="email" type="email" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base" value="">
                 </div>
               </div>
 
-              <button id="saveProfileBtn" class="save-profile-btn inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-10 px-4 py-2 bg-studyO-lavender-dark hover:bg-studyO-lavender-dark/90 dark:bg-studyO-lavender dark:hover:bg-studyO-lavender/90 text-white dark:text-studyO-warmGray-dark font-semibold shadow-md hover:shadow-lg transition-shadow">Guardar Cambios de Perfil</button>
+              <button id="saveProfileBtn" class="save-profile-btn inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-10 px-4 py-2 bg-studyO-lavender-dark hover:bg-studyO-lavender-dark/90 dark:bg-studyO-lavender dark:hover:bg-studyO-lavender/90 text-white dark:text-studyO-warmGray-dark font-semibold shadow-md hover:shadow-lg transition-shadow" data-i18n="profile.saveProfile">Guardar Cambios de Perfil</button>
             </div>
           </div>
 
           <div class="rounded-lg border text-card-foreground bg-white dark:bg-gray-800/70 shadow-lg">
             <div class="flex flex-col space-y-1.5 p-6">
-              <div class="tracking-tight text-xl font-semibold flex items-center text-studyO-warmGray-dark dark:text-white"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-palette mr-3 h-6 w-6 text-studyO-skyBlue-dark dark:text-studyO-skyBlue-light"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"></circle><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"></circle><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"></circle><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"></circle><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"></path></svg> Apariencia</div>
-              <div class="text-sm text-muted-foreground dark:text-gray-400">Personalizá cómo se ve StudyO.</div>
+              <div class="tracking-tight text-xl font-semibold flex items-center text-studyO-warmGray-dark dark:text-white"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-palette mr-3 h-6 w-6 text-studyO-skyBlue-dark dark:text-studyO-skyBlue-light"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"></circle><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"></circle><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"></circle><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"></circle><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"></path></svg> <span data-i18n="profile.appearance">Apariencia</span></div>
+              <div class="text-sm text-muted-foreground dark:text-gray-400" data-i18n="profile.customizeAppearance">Personalizá cómo se ve StudyO.</div>
             </div>
             <div class="p-6 pt-0">
               <div class="flex items-center justify-between p-4 rounded-lg bg-studyO-warmGray-light/30 dark:bg-gray-700/50">
                 <label class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex flex-col space-y-1 cursor-pointer" for="dark-mode">
-                  <span class="font-medium text-studyO-warmGray-dark dark:text-white">Modo Oscuro</span>
-                  <span class="text-sm text-studyO-warmGray dark:text-gray-400">Activá el modo oscuro para una experiencia visual más relajada.</span>
+                  <span class="font-medium text-studyO-warmGray-dark dark:text-white" data-i18n="profile.darkMode">Modo Oscuro</span>
+                  <span class="text-sm text-studyO-warmGray dark:text-gray-400" data-i18n="profile.darkModeDesc">Activá el modo oscuro para una experiencia visual más relajada.</span>
                 </label>
                 <button type="button" role="switch" aria-checked="false" data-state="unchecked" value="off" class="peer inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors" id="dark-mode"><span data-state="unchecked" class="pointer-events-none block h-5 w-5 rounded-full bg-background shadow-lg ring-0 transition-transform"></span></button>
               </div>
@@ -236,22 +236,53 @@
 
           <div class="rounded-lg border text-card-foreground bg-white dark:bg-gray-800/70 shadow-lg">
             <div class="flex flex-col space-y-1.5 p-6">
-              <div class="tracking-tight text-xl font-semibold flex items-center text-studyO-warmGray-dark dark:text-white"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-bell mr-3 h-6 w-6 text-yellow-500 dark:text-yellow-400"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path></svg> Notificaciones</div>
-              <div class="text-sm text-muted-foreground dark:text-gray-400">Configurá tus preferencias de notificación.</div>
+              <div class="tracking-tight text-xl font-semibold flex items-center text-studyO-warmGray-dark dark:text-white">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-languages mr-3 h-6 w-6 text-purple-500 dark:text-purple-400">
+                  <path d="M5 8l6 6"></path>
+                  <path d="M4 14l6-6 2-3"></path>
+                  <path d="M2 5h12"></path>
+                  <path d="M7 2h1v6H7z"></path>
+                  <path d="M22 22l-5-10-5 10"></path>
+                  <path d="M14 18h6"></path>
+                </svg>
+                <span data-i18n="profile.language">Idioma</span>
+              </div>
+              <div class="text-sm text-muted-foreground dark:text-gray-400" data-i18n="profile.languageSettings">Seleccioná el idioma de la aplicación.</div>
+            </div>
+            <div class="p-6 pt-0">
+              <div class="flex items-center justify-between p-4 rounded-lg bg-studyO-warmGray-light/30 dark:bg-gray-700/50">
+                <label class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex flex-col space-y-1 cursor-pointer" for="language-select">
+                  <span class="font-medium text-studyO-warmGray-dark dark:text-white" data-i18n="profile.selectLanguage">Seleccionar Idioma</span>
+                  <span class="text-sm text-studyO-warmGray dark:text-gray-400" data-i18n="profile.languageSettings">Seleccioná el idioma de la aplicación.</span>
+                </label>
+                <select id="language-select" class="px-4 py-2 rounded-lg bg-white dark:bg-dark-input border border-gray-700 text-black dark:text-white text-sm focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all appearance-none cursor-pointer min-w-[140px]" style="color: #000000 !important;">
+                  <option value="es" data-i18n="languages.es" style="color: #000000;">Español</option>
+                  <option value="en" data-i18n="languages.en" style="color: #000000;">Inglés</option>
+                  <option value="zh" data-i18n="languages.zh" style="color: #000000;">Chino</option>
+                  <option value="pt" data-i18n="languages.pt" style="color: #000000;">Portugués</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="rounded-lg border text-card-foreground bg-white dark:bg-gray-800/70 shadow-lg">
+            <div class="flex flex-col space-y-1.5 p-6">
+              <div class="tracking-tight text-xl font-semibold flex items-center text-studyO-warmGray-dark dark:text-white"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-bell mr-3 h-6 w-6 text-yellow-500 dark:text-yellow-400"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path></svg> <span data-i18n="profile.notifications">Notificaciones</span></div>
+              <div class="text-sm text-muted-foreground dark:text-gray-400" data-i18n="profile.notificationSettings">Configurá tus preferencias de notificación.</div>
             </div>
             <div class="p-6 pt-0 space-y-5">
               <div class="flex items-center justify-between p-4 rounded-lg bg-studyO-warmGray-light/30 dark:bg-gray-700/50">
-                <label class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex flex-col space-y-1 cursor-pointer" for="task-reminders"><span class="font-medium text-studyO-warmGray-dark dark:text-white">Recordatorios de tareas</span><span class="text-sm text-studyO-warmGray dark:text-gray-400">Recibir alertas para tareas próximas o vencidas.</span></label>
+                <label class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex flex-col space-y-1 cursor-pointer" for="task-reminders"><span class="font-medium text-studyO-warmGray-dark dark:text-white" data-i18n="profile.taskReminders">Recordatorios de tareas</span><span class="text-sm text-studyO-warmGray dark:text-gray-400" data-i18n="profile.taskRemindersDesc">Recibir alertas para tareas próximas o vencidas.</span></label>
                 <button type="button" role="switch" aria-checked="true" data-state="checked" value="on" class="peer inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors" id="task-reminders"><span data-state="checked" class="pointer-events-none block h-5 w-5 rounded-full bg-background shadow-lg ring-0 transition-transform translate-x-5"></span></button>
               </div>
 
               <div class="flex items-center justify-between p-4 rounded-lg bg-studyO-warmGray-light/30 dark:bg-gray-700/50">
-                <label class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex flex-col space-y-1 cursor-pointer" for="habit-reminders"><span class="font-medium text-studyO-warmGray-dark dark:text-white">Recordatorios de hábitos</span><span class="text-sm text-studyO-warmGray dark:text-gray-400">Pequeños empujones para mantener tu racha.</span></label>
+                <label class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex flex-col space-y-1 cursor-pointer" for="habit-reminders"><span class="font-medium text-studyO-warmGray-dark dark:text-white" data-i18n="profile.habitReminders">Recordatorios de hábitos</span><span class="text-sm text-studyO-warmGray dark:text-gray-400" data-i18n="profile.habitRemindersDesc">Pequeños empujones para mantener tu racha.</span></label>
                 <button type="button" role="switch" aria-checked="true" data-state="checked" value="on" class="peer inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors" id="habit-reminders"><span data-state="checked" class="pointer-events-none block h-5 w-5 rounded-full bg-background shadow-lg ring-0 transition-transform translate-x-5"></span></button>
               </div>
 
               <div class="flex items-center justify-between p-4 rounded-lg bg-studyO-warmGray-light/30 dark:bg-gray-700/50">
-                <label class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex flex-col space-y-1 cursor-pointer" for="progress-updates"><span class="font-medium text-studyO-warmGray-dark dark:text-white">Actualizaciones de progreso</span><span class="text-sm text-studyO-warmGray dark:text-gray-400">Resumen semanal de tus logros y avances.</span></label>
+                <label class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex flex-col space-y-1 cursor-pointer" for="progress-updates"><span class="font-medium text-studyO-warmGray-dark dark:text-white" data-i18n="profile.progressUpdates">Actualizaciones de progreso</span><span class="text-sm text-studyO-warmGray dark:text-gray-400" data-i18n="profile.progressUpdatesDesc">Resumen semanal de tus logros y avances.</span></label>
                 <button type="button" role="switch" aria-checked="false" data-state="unchecked" value="off" class="peer inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors" id="progress-updates"><span data-state="unchecked" class="pointer-events-none block h-5 w-5 rounded-full bg-background shadow-lg ring-0 transition-transform"></span></button>
               </div>
             </div>
@@ -287,6 +318,7 @@
       })();
     </script>
     <script type="module" src="./dist/ts/profile.js"></script>
+    <script type="module" src="./dist/ts/i18n-init.js"></script>
 
     <script>
     document.addEventListener("DOMContentLoaded", () => {

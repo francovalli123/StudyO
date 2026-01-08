@@ -10,6 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 // Import API functions and types
 import { getEvents, createEvent, updateEvent, deleteEvent, apiGet } from "./api.js";
 import { initConfirmModal, showConfirmModal, showAlertModal } from "./confirmModal.js";
+import { translations, getCurrentLanguage } from "./i18n.js";
 // Global state
 let events = [];
 let subjects = [];
@@ -90,12 +91,14 @@ function updateSubjectDropdown() {
  * Render the monthly calendar (compact, for navigation only)
  */
 function renderCalendar() {
+    const lang = getCurrentLanguage();
+    const locale = lang === 'en' ? 'en-US' : lang === 'pt' ? 'pt-BR' : lang === 'zh' ? 'zh-CN' : 'es-AR';
     const calendarGrid = document.getElementById('calendarGrid');
     const currentMonthYear = document.getElementById('currentMonthYear');
     if (!calendarGrid || !currentMonthYear)
         return;
     // Update month/year display
-    currentMonthYear.textContent = `${monthNames[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
+    currentMonthYear.textContent = new Intl.DateTimeFormat(locale, { month: 'long', year: 'numeric' }).format(currentDate);
     // Get first day of month and number of days
     const firstDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
     const lastDay = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
@@ -160,6 +163,9 @@ function isDateInWeek(date, weekStart) {
  * Render the weekly schedule (main area for events)
  */
 function renderWeeklySchedule() {
+    const lang = getCurrentLanguage();
+    const trans = translations[lang];
+    const locale = lang === 'en' ? 'en-US' : lang === 'pt' ? 'pt-BR' : lang === 'zh' ? 'zh-CN' : 'es-AR';
     const weeklySchedule = document.getElementById('weeklySchedule');
     const weekRange = document.getElementById('weekRange');
     const weekNumber = document.getElementById('weekNumber');
@@ -170,11 +176,11 @@ function renderWeeklySchedule() {
     const sunday = new Date(monday);
     sunday.setDate(monday.getDate() + 6);
     // Update week range display
-    weekRange.textContent = `${monthNames[monday.getMonth()]} ${monday.getFullYear()}`;
+    weekRange.textContent = new Intl.DateTimeFormat(locale, { month: 'long', year: 'numeric' }).format(monday);
     // Calculate week number
     if (weekNumber) {
         const weekNum = getWeekNumber(monday);
-        weekNumber.textContent = `Semana ${weekNum}`;
+        weekNumber.textContent = (trans.planner.weekNumberLabel || 'Semana {n}').replace('{n}', String(weekNum));
     }
     // Update day headers with dates
     for (let i = 0; i < 7; i++) {
@@ -384,6 +390,8 @@ function openEventModal(date, hour) {
     const modal = document.getElementById('eventModal');
     const form = document.getElementById('eventForm');
     const modalTitle = document.getElementById('modalTitle');
+    const lang = getCurrentLanguage();
+    const plannerTrans = translations[lang].planner;
     if (!modal || !form)
         return;
     // Reset form
@@ -412,7 +420,7 @@ function openEventModal(date, hour) {
         eventEndTime.value = '01:00';
     }
     if (modalTitle) {
-        modalTitle.textContent = 'Nuevo Evento';
+        modalTitle.textContent = plannerTrans.newEvent;
     }
     // Hide delete button for new events
     const deleteBtn = document.getElementById('deleteEventBtn');
@@ -486,6 +494,7 @@ function editEvent(eventId) {
     const modal = document.getElementById('eventModal');
     const modalTitle = document.getElementById('modalTitle');
     const form = document.getElementById('eventForm');
+    const plannerTrans = translations[getCurrentLanguage()].planner;
     if (!modal || !form || !modalTitle)
         return;
     // Populate form
@@ -496,7 +505,7 @@ function editEvent(eventId) {
     document.getElementById('eventEndTime').value = formatTimeForInput(event.end_time);
     document.getElementById('eventSubject').value = ((_a = event.subject) === null || _a === void 0 ? void 0 : _a.toString()) || '';
     document.getElementById('eventNotes').value = event.notes || '';
-    modalTitle.textContent = 'Editar Evento';
+    modalTitle.textContent = plannerTrans.editEvent;
     // Show delete button for existing events
     const deleteBtn = document.getElementById('deleteEventBtn');
     if (deleteBtn) {
@@ -605,7 +614,8 @@ function setupEventListeners() {
     if (deleteEventBtn) {
         deleteEventBtn.addEventListener('click', () => __awaiter(this, void 0, void 0, function* () {
             if (currentEditingEvent && currentEditingEvent.id) {
-                const confirmed = yield showConfirmModal('¿Estás seguro de que deseas eliminar este evento? Esta acción no se puede deshacer.', 'Eliminar Evento');
+                const trans = translations[getCurrentLanguage()];
+                const confirmed = yield showConfirmModal(trans.confirmations.deleteEventMessage, trans.confirmations.deleteEventTitle);
                 if (confirmed) {
                     yield deleteEventById(currentEditingEvent.id);
                 }
@@ -642,7 +652,8 @@ function deleteEventById(eventId) {
         }
         catch (error) {
             console.error('Error deleting event:', error);
-            yield showAlertModal('Error al eliminar el evento. Por favor, intenta nuevamente.', 'Error');
+            const trans = translations[getCurrentLanguage()];
+            yield showAlertModal(trans.confirmations.deleteEventMessage, trans.common.error);
         }
     });
 }
@@ -654,6 +665,7 @@ function saveEvent() {
         const form = document.getElementById('eventForm');
         if (!form)
             return;
+        const trans = translations[getCurrentLanguage()];
         const formData = new FormData(form);
         const title = formData.get('title');
         const date = formData.get('date');
@@ -685,7 +697,7 @@ function saveEvent() {
         }
         catch (error) {
             console.error('Error saving event:', error);
-            yield showAlertModal('Error al guardar el evento. Por favor, intenta nuevamente.', 'Error');
+            yield showAlertModal(trans.common.error, trans.common.error);
         }
     });
 }

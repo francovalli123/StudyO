@@ -3,6 +3,8 @@
  * Provides a professional confirmation dialog that can be used throughout the app
  */
 
+import { t } from "./i18n.js";
+
 declare const lucide: {
     createIcons: () => void;
 };
@@ -27,10 +29,10 @@ export function initConfirmModal(): void {
                     </div>
                     <p id="confirmModalMessage" class="text-gray-300 mb-6">¿Estás seguro de que deseas realizar esta acción?</p>
                     <div class="flex gap-3">
-                        <button id="confirmModalCancel" class="flex-1 px-4 py-2.5 rounded-xl bg-transparent border border-gray-700 text-gray-300 text-sm font-medium hover:bg-gray-800 transition-all">
+                        <button id="confirmModalCancel" class="flex-1 px-4 py-2.5 rounded-xl bg-transparent border border-gray-700 text-gray-300 text-sm font-medium hover:bg-gray-800 transition-all" data-i18n="common.cancel">
                             Cancelar
                         </button>
-                        <button id="confirmModalConfirm" class="flex-1 px-4 py-2.5 rounded-xl bg-gradient-to-r from-red-600 to-red-500 text-white text-sm font-bold hover:shadow-[0_0_20px_rgba(239,68,68,0.4)] transition-all transform hover:scale-[1.02]">
+                        <button id="confirmModalConfirm" class="flex-1 px-4 py-2.5 rounded-xl bg-gradient-to-r from-red-600 to-red-500 text-white text-sm font-bold hover:shadow-[0_0_20px_rgba(239,68,68,0.4)] transition-all transform hover:scale-[1.02]" data-i18n="common.confirm">
                             Confirmar
                         </button>
                     </div>
@@ -44,13 +46,17 @@ export function initConfirmModal(): void {
     const cancelBtn = document.getElementById('confirmModalCancel');
     const confirmBtn = document.getElementById('confirmModalConfirm');
     
+    // Apply translations to buttons
+    const trans = t();
     if (cancelBtn) {
+        cancelBtn.textContent = trans.common.cancel;
         cancelBtn.addEventListener('click', () => {
             closeConfirmModal(false);
         });
     }
     
     if (confirmBtn) {
+        confirmBtn.textContent = trans.common.confirm;
         confirmBtn.addEventListener('click', () => {
             closeConfirmModal(true);
         });
@@ -94,8 +100,9 @@ export function showAlertModal(message: string, title: string = 'Información'):
         if (messageEl) messageEl.textContent = message;
         
         // Change button text and style for alert
+        const trans = t();
         if (confirmBtn) {
-            confirmBtn.textContent = 'Aceptar';
+            confirmBtn.textContent = trans.common.accept;
             confirmBtn.className = 'flex-1 px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-fuchsia-600 text-white text-sm font-bold hover:shadow-[0_0_20px_rgba(168,85,247,0.4)] transition-all transform hover:scale-[1.02]';
         }
         
@@ -107,10 +114,10 @@ export function showAlertModal(message: string, title: string = 'Información'):
             if (confirmBtn) confirmBtn.removeEventListener('click', handleConfirm);
             if (cancelBtn) {
                 cancelBtn.style.display = 'block';
-                cancelBtn.textContent = 'Cancelar';
+                cancelBtn.textContent = trans.common.cancel;
             }
             if (confirmBtn) {
-                confirmBtn.textContent = 'Confirmar';
+                confirmBtn.textContent = trans.common.confirm;
                 confirmBtn.className = 'flex-1 px-4 py-2.5 rounded-xl bg-gradient-to-r from-red-600 to-red-500 text-white text-sm font-bold hover:shadow-[0_0_20px_rgba(239,68,68,0.4)] transition-all transform hover:scale-[1.02]';
             }
             closeConfirmModal(false);
@@ -147,9 +154,16 @@ export function showConfirmModal(message: string, title: string = 'Confirmar acc
         
         const titleEl = document.getElementById('confirmModalTitle');
         const messageEl = document.getElementById('confirmModalMessage');
+        const cancelBtn = document.getElementById('confirmModalCancel');
+        const confirmBtn = document.getElementById('confirmModalConfirm');
         
         if (titleEl) titleEl.textContent = title;
         if (messageEl) messageEl.textContent = message;
+        
+        // Update button texts with current translations
+        const trans = t();
+        if (cancelBtn) cancelBtn.textContent = trans.common.cancel;
+        if (confirmBtn) confirmBtn.textContent = trans.common.confirm;
         
         confirmResolve = resolve;
         confirmModalContainer.style.display = 'flex';

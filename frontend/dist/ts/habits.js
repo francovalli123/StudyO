@@ -9,6 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 import { apiGet, apiPost, apiPut, apiDelete, getToken } from './api.js';
 import { showConfirmModal } from "./confirmModal.js";
+import { translations, getCurrentLanguage } from './i18n.js';
 /**
  * Constants & Config
  */
@@ -31,6 +32,16 @@ const COLOR_CLASSES = {
     yellow: { card: 'bg-yellow-950/40 border-yellow-500/30 hover:bg-yellow-900/40', text: 'text-yellow-400', icon: 'text-yellow-500', check: 'bg-yellow-500 border-yellow-500 text-black' },
     gold: { card: 'bg-amber-950/40 border-amber-500/30 hover:bg-amber-900/40', text: 'text-amber-400', icon: 'text-amber-500', check: 'bg-amber-500 border-amber-500 text-black' }
 };
+/**
+ * i18n Helpers
+ */
+function getLang() {
+    return getCurrentLanguage();
+}
+function getT() {
+    const lang = getLang();
+    return translations[lang];
+}
 /**
  * Local Storage Helpers
  */
@@ -65,13 +76,13 @@ let selectedIcon = 'zap';
 let selectedColor = 'orange';
 function updateDailyProgress(completed, total) {
     const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
-    // CORRECCIÓN: Usar los IDs correctos que están en habits.html
-    // El texto del porcentaje tiene ID "progressPercentage"
-    const text = document.getElementById("progressPercentage");
-    if (text) {
-        text.textContent = `${percent}%`;
+    const t = getT();
+    const progressTextEl = document.getElementById("progressText");
+    if (progressTextEl) {
+        const template = t.habits.progressText || 'Completaste {percent}% de tus hábitos hoy.';
+        const percentSpan = `<span id="progressPercentage" class="text-purple-400 font-bold">${percent}%</span>`;
+        progressTextEl.innerHTML = template.replace('{percent}', percentSpan);
     }
-    // La barra de progreso (si existe en el HTML)
     const bar = document.getElementById("dailyProgressBar");
     if (bar) {
         bar.style.width = `${percent}%`;
@@ -90,12 +101,10 @@ function loadHabits() {
             todayCompletions = getTodayCompletions();
             habits = habitsData.map(h => {
                 const serverSaysCompleted = h.completed_today || false;
-                if (serverSaysCompleted) {
+                if (serverSaysCompleted)
                     todayCompletions.add(h.id);
-                }
-                else {
+                else
                     todayCompletions.delete(h.id);
-                }
                 const iconConfig = getIconForHabit(h);
                 return Object.assign(Object.assign({}, h), { completedToday: serverSaysCompleted, icon: iconConfig.icon, color: iconConfig.color });
             });
@@ -111,12 +120,13 @@ function loadHabits() {
 function loadSubjects() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
+            const t = getT();
             subjects = yield apiGet('/subjects/');
             const sel = document.getElementById('habitSubject');
             if (sel) {
-                sel.innerHTML =
-                    `<option value="">Ninguna</option>` +
-                        subjects.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+                // "Ninguna" translated to "None" or equivalent
+                sel.innerHTML = `<option value="">${t.subjects.notSpecified}</option>` +
+                    subjects.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
             }
         }
         catch (e) {
@@ -143,18 +153,34 @@ function renderHabits() {
     const emptyState = document.getElementById("emptyState");
     if (!grid || !emptyState)
         return;
+    const t = getT();
+    const lang = getLang();
     if (habits.length === 0) {
         grid.innerHTML = "";
         grid.classList.add("hidden");
         emptyState.classList.remove("hidden");
         emptyState.classList.add("flex");
-        // Update progress to 0% if no habits
+        // Update Empty State Texts
+        const emptyTitle = emptyState.querySelector('h3');
+        const emptyDesc = emptyState.querySelector('p');
+        const emptyBtn = document.getElementById('emptyStateAddBtn');
+        if (emptyTitle)
+            emptyTitle.textContent = t.habits.emptyTitle;
+        if (emptyDesc)
+            emptyDesc.textContent = t.habits.emptyDesc;
+        if (emptyBtn) {
+            const span = emptyBtn.querySelector('span');
+            if (span)
+                span.textContent = t.habits.createFirst;
+        }
         updateDailyProgress(0, 0);
         return;
     }
     emptyState.classList.add("hidden");
     emptyState.classList.remove("flex");
     grid.classList.remove("hidden");
+    // Streak Label Localization
+    const streakLabel = t.habits.streak;
     grid.innerHTML = habits.map(habit => {
         const color = COLOR_CLASSES[habit.color] || COLOR_CLASSES.orange;
         const completed = habit.completedToday;
@@ -170,7 +196,7 @@ function renderHabits() {
                     </div>
                     <div class="flex items-center gap-2 text-sm font-medium ${completed ? "text-gray-600" : color.text}">
                         <i data-lucide="trending-up" class="w-4 h-4"></i>
-                        <span>Racha: ${habit.streak}</span>
+                        <span>${streakLabel}: ${habit.streak}</span>
                     </div>
                 </div>
             </div>
@@ -183,10 +209,10 @@ function renderHabits() {
             </button>
 
             <div class="flex gap-3 pt-4 border-t border-gray-700/50">
-                <button class="edit-habit-btn flex-1 px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 border border-gray-700 text-gray-300 hover:text-white text-sm font-medium transition-all duration-300 flex items-center justify-center gap-2" data-habit-id="${habit.id}">
+                <button title="${t.habits.editHabit}" class="edit-habit-btn flex-1 px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 border border-gray-700 text-gray-300 hover:text-white text-sm font-medium transition-all duration-300 flex items-center justify-center gap-2" data-habit-id="${habit.id}">
                     <i data-lucide="edit-2" class="w-4 h-4"></i>
                 </button>
-                <button class="delete-habit-btn flex-1 px-4 py-2 rounded-lg bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 hover:text-red-300 text-sm font-medium transition-all duration-300 flex items-center justify-center gap-2" data-habit-id="${habit.id}">
+                <button title="${t.common.delete}" class="delete-habit-btn flex-1 px-4 py-2 rounded-lg bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 hover:text-red-300 text-sm font-medium transition-all duration-300 flex items-center justify-center gap-2" data-habit-id="${habit.id}">
                     <i data-lucide="trash-2" class="w-4 h-4"></i>
                 </button>
             </div>
@@ -200,6 +226,7 @@ function renderHabits() {
  * ACTIONS: Edit & Delete
  */
 function openEditModal(habitId) {
+    const t = getT();
     const habit = habits.find(h => h.id === habitId);
     if (!habit)
         return;
@@ -221,15 +248,16 @@ function openEditModal(habitId) {
     const title = document.getElementById('modalTitle');
     const submitBtnText = document.getElementById('submitBtnText');
     if (title)
-        title.textContent = "Editar Hábito";
+        title.textContent = t.habits.editHabit;
     if (submitBtnText)
-        submitBtnText.textContent = "Guardar Cambios";
+        submitBtnText.textContent = t.common.save;
     renderIconsSelection();
     openCreateModal();
 }
 function deleteHabit(habitId) {
     return __awaiter(this, void 0, void 0, function* () {
-        const confirmed = yield showConfirmModal('¿Estás seguro de que deseas eliminar este hábito? Esta acción no se puede deshacer.', 'Eliminar Hábito');
+        const translations = getT();
+        const confirmed = yield showConfirmModal(translations.confirmations.deleteHabitMessage, translations.confirmations.deleteHabitTitle);
         if (!confirmed)
             return;
         try {
@@ -239,18 +267,18 @@ function deleteHabit(habitId) {
         }
         catch (error) {
             console.error("Error deleting habit:", error);
-            alert('Error al eliminar el hábito.');
         }
     });
 }
 function handleSaveHabit(e) {
     return __awaiter(this, void 0, void 0, function* () {
         e.preventDefault();
+        const t = getT();
         const submitBtn = document.querySelector('#habitForm button[type="submit"]');
         const submitTextSpan = document.getElementById('submitBtnText');
         const originalText = submitTextSpan ? submitTextSpan.innerText : "Guardar";
         if (submitTextSpan)
-            submitTextSpan.innerText = "Guardando...";
+            submitTextSpan.innerText = t.common.loading;
         submitBtn.disabled = true;
         try {
             const form = e.target;
@@ -260,12 +288,7 @@ function handleSaveHabit(e) {
             const subjectValue = formData.get('subject');
             const subject = subjectValue ? parseInt(subjectValue) : null;
             const isKey = formData.get('is_key') === 'on' || formData.get('is_key') === 'true';
-            const payload = {
-                name,
-                frequency,
-                subject,
-                is_key: isKey
-            };
+            const payload = { name, frequency, subject, is_key: isKey };
             if (editingHabitId) {
                 yield apiPut(`/habits/${editingHabitId}/`, payload);
                 saveIconForHabit(editingHabitId, selectedIcon, selectedColor);
@@ -279,7 +302,6 @@ function handleSaveHabit(e) {
         }
         catch (error) {
             console.error("Error saving habit:", error);
-            alert("Error al guardar el hábito.");
         }
         finally {
             if (submitTextSpan)
@@ -289,7 +311,6 @@ function handleSaveHabit(e) {
     });
 }
 function attachHabitEventListeners() {
-    // 1. Completion
     document.querySelectorAll('.habit-complete-btn').forEach(button => {
         button.addEventListener('click', (e) => __awaiter(this, void 0, void 0, function* () {
             const btn = e.currentTarget;
@@ -298,7 +319,6 @@ function attachHabitEventListeners() {
             yield toggleHabitCompletion(id, !completed);
         }));
     });
-    // 2. Edit
     document.querySelectorAll('.edit-habit-btn').forEach(button => {
         button.addEventListener('click', (e) => {
             const btn = e.currentTarget;
@@ -306,7 +326,6 @@ function attachHabitEventListeners() {
             openEditModal(id);
         });
     });
-    // 3. Delete
     document.querySelectorAll('.delete-habit-btn').forEach(button => {
         button.addEventListener('click', (e) => {
             const btn = e.currentTarget;
@@ -352,7 +371,6 @@ function toggleHabitCompletion(habitId, complete) {
         catch (err) {
             habits[index].completedToday = previousState;
             habits[index].streak = previousStreak;
-            alert("Error de conexión.");
             renderHabits();
             updateDailyProgress(habits.filter(h => h.completedToday).length, habits.length);
         }
@@ -391,6 +409,7 @@ function attachGlobalListeners() {
     }
 }
 function prepareCreateModal() {
+    const t = getT();
     editingHabitId = null;
     selectedIcon = 'zap';
     selectedColor = 'orange';
@@ -400,9 +419,9 @@ function prepareCreateModal() {
     const title = document.getElementById('modalTitle');
     const submitBtnText = document.getElementById('submitBtnText');
     if (title)
-        title.textContent = "Añadir Nuevo Hábito";
+        title.textContent = t.habits.addHabit;
     if (submitBtnText)
-        submitBtnText.textContent = "Crear Hábito";
+        submitBtnText.textContent = t.habits.createHabit;
     renderIconsSelection();
 }
 function openCreateModal() {
@@ -418,9 +437,8 @@ function openCreateModal() {
 }
 function closeCreateModal() {
     const modal = document.getElementById('habitModal');
-    if (modal) {
+    if (modal)
         modal.classList.remove('active');
-    }
 }
 function renderIconsSelection() {
     const container = document.querySelector('#habitForm .grid');

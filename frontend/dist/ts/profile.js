@@ -8,6 +8,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import { getCurrentUser, updateCurrentUser, uploadUserAvatar } from "./api.js";
+import { getCurrentLanguage, setCurrentLanguage, applyTranslations, t, getTranslations } from "./i18n.js";
+import { showConfirmModal, showAlertModal, initConfirmModal } from "./confirmModal.js";
 function showError(msg) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
@@ -37,8 +39,36 @@ function clearMessage() {
         catch (e) { }
     });
 }
+function refreshLanguageSelectOptions(select) {
+    if (!select)
+        return;
+    const current = select.value;
+    const trans = t();
+    const codes = ['es', 'en', 'zh', 'pt'];
+    select.innerHTML = '';
+    codes.forEach((code) => {
+        const opt = document.createElement('option');
+        opt.value = code;
+        opt.textContent = trans.languages[code];
+        opt.setAttribute('data-i18n', `languages.${code}`);
+        select.appendChild(opt);
+    });
+    if (codes.includes(current)) {
+        select.value = current;
+    }
+    else {
+        select.value = getCurrentLanguage();
+    }
+    // Force repaint to avoid cached option label
+    select.blur();
+}
 function init() {
     return __awaiter(this, void 0, void 0, function* () {
+        var _a;
+        // Initialize confirmation modal
+        initConfirmModal();
+        // Apply translations on page load
+        applyTranslations();
         const nameInput = document.getElementById('name');
         const emailInput = document.getElementById('email');
         const avatarImg = document.getElementById('avatarImg');
@@ -49,12 +79,26 @@ function init() {
         const taskReminders = document.getElementById('task-reminders');
         const habitReminders = document.getElementById('habit-reminders');
         const progressUpdates = document.getElementById('progress-updates');
+        const languageSelect = document.getElementById('language-select');
         if (!nameInput || !emailInput || !avatarImg || !changePhotoBtn || !avatarInput || !saveBtn) {
             console.error('Profile page: missing DOM elements');
             return;
         }
+        let currentUser = null;
         try {
             const user = yield getCurrentUser();
+            currentUser = user;
+            // Sync language from backend preference if available
+            const backendLang = user.language || ((_a = user.preferences) === null || _a === void 0 ? void 0 : _a.language);
+            if (backendLang && backendLang !== getCurrentLanguage()) {
+                setCurrentLanguage(backendLang);
+                applyTranslations();
+            }
+            if (languageSelect) {
+                refreshLanguageSelectOptions(languageSelect);
+                if (backendLang)
+                    languageSelect.value = backendLang;
+            }
             // Populate fields defensively
             nameInput.value = (user.first_name || user.username || '');
             emailInput.value = user.email || '';
@@ -93,12 +137,19 @@ function init() {
                     if (span)
                         span.classList.add('translate-x-5');
                 }
+                // Set language from preferences or localStorage
+                const savedLanguage = prefs.language || getCurrentLanguage();
+                if (languageSelect) {
+                    languageSelect.value = savedLanguage;
+                    refreshLanguageSelectOptions(languageSelect);
+                }
             }
             catch (e) { /* non-fatal */ }
         }
         catch (err) {
             console.error('Error loading user', err);
-            yield showError('No se pudo cargar la información del usuario.');
+            const trans = t();
+            yield showError(trans.profile.loadUserError);
         }
         changePhotoBtn.addEventListener('click', () => avatarInput.click());
         avatarInput.addEventListener('change', (e) => __awaiter(this, void 0, void 0, function* () {
@@ -115,9 +166,10 @@ function init() {
                     avatarImg.src = newUrl;
                 yield clearMessage();
                 // small non-blocking confirmation
+                const trans = t();
                 const el = document.getElementById('profileMsg');
                 if (el) {
-                    el.textContent = 'Foto de perfil actualizada.';
+                    el.textContent = trans.profile.avatarUpdated;
                     el.classList.remove('hidden');
                     setTimeout(() => { if (el) {
                         el.classList.add('hidden');
@@ -128,7 +180,8 @@ function init() {
             catch (err) {
                 console.error('Upload avatar error', err);
                 // Try to extract useful message
-                let message = 'No se pudo subir la foto.';
+                const trans = t();
+                let message = trans.profile.avatarUpdateError;
                 try {
                     if (err instanceof Error)
                         message = err.message || message;
@@ -158,6 +211,8 @@ function init() {
                 payload.first_name = nameInput.value;
             if (emailInput.value)
                 payload.email = emailInput.value;
+            // Always persist current language to backend
+            payload.language = getCurrentLanguage();
             // preferences from toggles
             const prefs = {};
             if (darkModeBtn)
@@ -168,15 +223,19 @@ function init() {
                 prefs.habit_reminders = habitReminders.getAttribute('data-state') === 'checked';
             if (progressUpdates)
                 prefs.progress_updates = progressUpdates.getAttribute('data-state') === 'checked';
+            // Include current language in preferences
+            prefs.language = getCurrentLanguage();
             if (Object.keys(prefs).length)
                 payload.preferences = prefs;
             try {
                 yield updateCurrentUser(payload);
-                alert('Perfil actualizado correctamente');
+                const trans = t();
+                yield showAlertModal(trans.profile.profileUpdated, trans.common.success);
             }
             catch (err) {
                 console.error('Error updating profile', err);
-                yield showError('No se pudieron guardar los cambios.');
+                const trans = t();
+                yield showError(trans.profile.profileUpdateError);
             }
             finally {
                 saveBtn.disabled = false;
@@ -199,6 +258,47 @@ function init() {
                 }
             });
         });
+        // Handle language change
+        if (languageSelect) {
+            languageSelect.addEventListener('change', (e) => __awaiter(this, void 0, void 0, function* () {
+                const newLang = e.target.value;
+                const currentLang = getCurrentLanguage();
+                // If language hasn't changed, do nothing
+                if (newLang === currentLang) {
+                    return;
+                }
+                // Show confirmation modal
+                const trans = t();
+                const confirmed = yield showConfirmModal(trans.confirmations.changeLanguageMessage, trans.confirmations.changeLanguage);
+                if (!confirmed) {
+                    // Revert selection if cancelled
+                    languageSelect.value = currentLang;
+                    return;
+                }
+                // Change language
+                setCurrentLanguage(newLang);
+                applyTranslations();
+                refreshLanguageSelectOptions(languageSelect);
+                // Save to backend preferences
+                try {
+                    const existingPrefs = ((currentUser === null || currentUser === void 0 ? void 0 : currentUser.preferences) || {});
+                    const prefs = Object.assign(Object.assign({}, existingPrefs), { language: newLang });
+                    yield updateCurrentUser({ preferences: prefs, language: newLang });
+                    currentUser = Object.assign(Object.assign({}, currentUser), { preferences: prefs, language: newLang });
+                }
+                catch (err) {
+                    console.error('Error saving language preference:', err);
+                    // Continue anyway - language is saved in localStorage
+                }
+                // Show success message
+                const newTrans = getTranslations(newLang);
+                yield showAlertModal(newTrans.profile.languageChangeSuccess, newTrans.profile.languageChanged);
+                // Reload page to apply all translations
+                window.location.reload();
+            }));
+            // Update option texts when language changes (for display)
+            refreshLanguageSelectOptions(languageSelect);
+        }
     });
 }
 document.addEventListener('DOMContentLoaded', init);

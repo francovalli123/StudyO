@@ -9,6 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 // Import API functions
 import { apiGet } from "./api.js";
+import { translations, getCurrentLanguage } from "./i18n.js";
 /**
  * ==========================================
  * Utility Functions
@@ -97,13 +98,14 @@ function loadMonthlyRhythm() {
                 return;
             // Show empty state if no data
             if (monthValues.length === 0 || recentSessions.length === 0) {
+                const trans = translations[getCurrentLanguage()];
                 chartContainer.innerHTML = `
                 <div class="flex flex-col items-center justify-center h-full py-12">
                     <div class="w-16 h-16 rounded-full bg-gradient-to-br from-purple-500/20 via-fuchsia-500/20 to-purple-500/20 flex items-center justify-center mb-4" style="box-shadow: 0 0 0 1px rgba(168,85,247,0.3);">
                         <i data-lucide="trending-up" class="w-8 h-8 text-purple-400"></i>
                     </div>
-                    <h3 class="text-lg font-bold text-white mb-2">Aún no hay datos de estudio</h3>
-                    <p class="text-gray-400 text-sm text-center max-w-xs">Completá sesiones de Pomodoro para ver tu ritmo de estudio mensual.</p>
+                    <h3 class="text-lg font-bold text-white mb-2">${trans.progress.monthlyRhythm}</h3>
+                    <p class="text-gray-400 text-sm text-center max-w-xs">${trans.progress.monthlyRhythmDesc}</p>
                 </div>
             `;
                 if (typeof lucide !== 'undefined')
@@ -278,6 +280,7 @@ function loadWeeklyConsistency() {
             const feedbackEl = document.getElementById('consistency-feedback');
             // Show empty state if no data
             if (sessions.length === 0 && consistencyCard) {
+                const trans = translations[getCurrentLanguage()];
                 const cardContent = consistencyCard.querySelector('.flex.flex-col');
                 if (cardContent) {
                     cardContent.innerHTML = `
@@ -285,8 +288,8 @@ function loadWeeklyConsistency() {
                         <div class="w-16 h-16 rounded-full bg-gradient-to-br from-purple-500/20 via-fuchsia-500/20 to-purple-500/20 flex items-center justify-center mb-4" style="box-shadow: 0 0 0 1px rgba(168,85,247,0.3);">
                             <i data-lucide="target" class="w-8 h-8 text-purple-400"></i>
                         </div>
-                        <h3 class="text-lg font-bold text-white mb-2">Sin datos de constancia</h3>
-                        <p class="text-gray-400 text-sm text-center max-w-xs">Completá sesiones de Pomodoro para ver tu constancia semanal.</p>
+                        <h3 class="text-lg font-bold text-white mb-2">${trans.progress.weeklyConsistency}</h3>
+                        <p class="text-gray-400 text-sm text-center max-w-xs">${trans.progress.consistencyDesc}</p>
                     </div>
                 `;
                     if (typeof lucide !== 'undefined')
@@ -303,21 +306,29 @@ function loadWeeklyConsistency() {
                 percentageEl.textContent = `${consistencyPercentage}%`;
             }
             if (feedbackEl) {
+                const lang = getCurrentLanguage();
+                const feedbackMap = {
+                    es: ['¡Excelente constancia!', 'Muy buena constancia', 'Buen ritmo, sigue así', 'Puedes mejorar tu constancia', 'Intenta estudiar más días'],
+                    en: ['Excellent consistency!', 'Very good consistency', 'Good pace, keep it up', 'You can improve your consistency', 'Try to study more days'],
+                    zh: ['极佳的坚持！', '非常好的坚持', '节奏不错，继续保持', '可以提升坚持度', '尝试更多天学习'],
+                    pt: ['Consistência excelente!', 'Muito boa consistência', 'Bom ritmo, continue assim', 'Você pode melhorar a constância', 'Tente estudar mais dias'],
+                };
+                const texts = feedbackMap[lang] || feedbackMap.es;
                 let feedback = '';
                 if (consistencyPercentage >= 85) {
-                    feedback = '¡Excelente constancia!';
+                    feedback = texts[0];
                 }
                 else if (consistencyPercentage >= 70) {
-                    feedback = 'Muy buena constancia';
+                    feedback = texts[1];
                 }
                 else if (consistencyPercentage >= 50) {
-                    feedback = 'Buen ritmo, sigue así';
+                    feedback = texts[2];
                 }
                 else if (consistencyPercentage >= 30) {
-                    feedback = 'Puedes mejorar tu constancia';
+                    feedback = texts[3];
                 }
                 else {
-                    feedback = 'Intenta estudiar más días';
+                    feedback = texts[4];
                 }
                 feedbackEl.textContent = feedback;
             }
@@ -407,13 +418,14 @@ function loadMonthlyFocusDistribution() {
             if (donutChart && donutChartParent) {
                 // Show empty state if no data
                 if (monthlySessions.length === 0 || subjectData.length === 0) {
+                    const trans = translations[getCurrentLanguage()];
                     donutChartParent.innerHTML = `
                     <div class="flex flex-col items-center justify-center h-full py-12">
                         <div class="w-16 h-16 rounded-full bg-gradient-to-br from-purple-500/20 via-fuchsia-500/20 to-purple-500/20 flex items-center justify-center mb-4" style="box-shadow: 0 0 0 1px rgba(168,85,247,0.3);">
                             <i data-lucide="pie-chart" class="w-8 h-8 text-purple-400"></i>
                         </div>
-                        <h3 class="text-lg font-bold text-white mb-2">Sin distribución de enfoque</h3>
-                        <p class="text-gray-400 text-sm text-center max-w-xs">Completá sesiones de Pomodoro con materias asignadas para ver cómo distribuis tu tiempo de estudio.</p>
+                        <h3 class="text-lg font-bold text-white mb-2">${trans.progress.monthlyFocus}</h3>
+                        <p class="text-gray-400 text-sm text-center max-w-xs">${trans.progress.monthlyFocusDesc}</p>
                     </div>
                 `;
                     if (typeof lucide !== 'undefined')
@@ -488,13 +500,14 @@ function loadStudyHeatmap() {
                 return;
             // Show empty state if no data
             if (Object.keys(dailyHours).length === 0 || sessions.length === 0) {
+                const trans = translations[getCurrentLanguage()];
                 heatmapContainer.innerHTML = `
                 <div class="flex flex-col items-center justify-center py-12 w-full">
                     <div class="w-16 h-16 rounded-full bg-gradient-to-br from-purple-500/20 via-fuchsia-500/20 to-purple-500/20 flex items-center justify-center mb-4" style="box-shadow: 0 0 0 1px rgba(168,85,247,0.3);">
                         <i data-lucide="calendar" class="w-8 h-8 text-purple-400"></i>
                     </div>
-                    <h3 class="text-lg font-bold text-white mb-2">Sin actividad de estudio</h3>
-                    <p class="text-gray-400 text-sm text-center max-w-xs">Completá sesiones de Pomodoro para ver tu mapa de calor de estudio.</p>
+                    <h3 class="text-lg font-bold text-white mb-2">${trans.progress.heatmap}</h3>
+                    <p class="text-gray-400 text-sm text-center max-w-xs">${trans.progress.heatmapDesc}</p>
                 </div>
             `;
                 if (typeof lucide !== 'undefined')
@@ -504,7 +517,14 @@ function loadStudyHeatmap() {
             // Update total contributions
             if (heatmapTotal) {
                 const totalHours = Object.values(dailyHours).reduce((sum, hours) => sum + hours, 0);
-                heatmapTotal.textContent = `${totalContributions} días con estudio en el último año`;
+                const lang = getCurrentLanguage();
+                const suffixMap = {
+                    es: 'días con estudio en el último año',
+                    en: 'days with study in the last year',
+                    zh: '天在过去一年有学习记录',
+                    pt: 'dias com estudo no último ano',
+                };
+                heatmapTotal.textContent = `${totalContributions} ${suffixMap[lang] || ''}`;
             }
             // Organize by weeks (Sunday to Saturday)
             const weeks = [];
@@ -543,7 +563,11 @@ function loadStudyHeatmap() {
             let heatmapHTML = '<div class="flex items-start gap-1 w-full">';
             // Day labels column
             heatmapHTML += '<div class="flex flex-col gap-1 pt-5 flex-shrink-0">';
-            const dayLabels = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+            const lang = getCurrentLanguage();
+            const dayLabels = lang === 'en' ? ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+                : lang === 'pt' ? ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
+                    : lang === 'zh' ? ['日', '一', '二', '三', '四', '五', '六']
+                        : ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
             dayLabels.forEach((label, dayIndex) => {
                 if (dayIndex % 2 === 0) { // Show only some days to save space
                     heatmapHTML += `<div class="heatmap-day-label" style="height: 11px; line-height: 11px; padding-top: 1px;">${label}</div>`;
@@ -602,10 +626,27 @@ function loadStudyHeatmap() {
                     const hours = cell.getAttribute('data-hours');
                     if (date) {
                         const dateObj = new Date(date);
-                        const dateStr = dateObj.toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' });
+                        const lang = getCurrentLanguage();
+                        const locale = lang === 'en' ? 'en-US' : lang === 'pt' ? 'pt-BR' : lang === 'zh' ? 'zh-CN' : 'es-AR';
+                        const dateStr = dateObj.toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' });
                         const hoursNum = parseFloat(hours || '0');
+                        const noStudyMap = {
+                            es: 'Sin estudio',
+                            en: 'No study',
+                            zh: '无学习',
+                            pt: 'Sem estudo',
+                        };
+                        const studiedSuffixMap = {
+                            es: 'h estudiadas',
+                            en: 'h studied',
+                            zh: '小时学习',
+                            pt: 'h estudadas',
+                        };
+                        const titleText = hoursNum > 0
+                            ? `${hoursNum.toFixed(1)}${studiedSuffixMap[lang] || studiedSuffixMap.es}`
+                            : noStudyMap[lang] || noStudyMap.es;
                         tooltip.innerHTML = `
-                        <div class="font-bold text-purple-400">${hoursNum > 0 ? hoursNum.toFixed(1) + 'h estudiadas' : 'Sin estudio'}</div>
+                        <div class="font-bold text-purple-400">${titleText}</div>
                         <div class="text-gray-300">${dateStr}</div>
                     `;
                     }

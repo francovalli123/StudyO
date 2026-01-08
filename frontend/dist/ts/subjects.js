@@ -10,6 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 // Import API utility functions and authentication helper
 import { apiGet, apiPost, apiDelete, getToken, apiPut } from "./api.js";
 import { initConfirmModal, showConfirmModal } from "./confirmModal.js";
+import { translations, getCurrentLanguage } from "./i18n.js";
 // Global state: stores all subjects fetched from API
 let subjects = [];
 // Global state: stores the ID of the subject being edited (null if creating new)
@@ -21,6 +22,9 @@ let currentSubjectId = null;
 function loadSubjects() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
+            const transAll = translations[getCurrentLanguage()];
+            const transSubjects = transAll.subjects;
+            const common = transAll.common;
             // Fetch subjects from backend API
             subjects = yield apiGet("/subjects/");
             // Debug log: show loaded subjects and auth token for permission verification
@@ -34,6 +38,18 @@ function loadSubjects() {
                 container.innerHTML = "";
                 container.classList.add("hidden");
                 emptyState.classList.remove("hidden");
+                const emptyTitle = emptyState.querySelector('h3');
+                const emptyDesc = emptyState.querySelector('p');
+                const btn = document.getElementById('emptyStateSubjectBtn');
+                if (emptyTitle)
+                    emptyTitle.textContent = transSubjects.emptyTitle;
+                if (emptyDesc)
+                    emptyDesc.textContent = transSubjects.emptyDesc;
+                if (btn) {
+                    const span = btn.querySelector('span');
+                    if (span)
+                        span.textContent = transSubjects.createFirst;
+                }
                 return;
             }
             // Show subjects container and hide empty state
@@ -50,32 +66,32 @@ function loadSubjects() {
                             </div>
                             <div class="flex-1">
                                 <h3 class="text-xl font-bold text-white">${s.name}</h3>
-                                <p class="text-sm text-gray-400 mt-1">Prof. ${s.professor_name || 'N/A'}</p>
+                                <p class="text-sm text-gray-400 mt-1">${transSubjects.professorShort} ${s.professor_name || transSubjects.notSpecified}</p>
                             </div>
                         </div>
                     </div>
 
                     <div class="mb-4">
                         <div class="flex items-center justify-between mb-2">
-                            <span class="text-xs text-gray-400">Progreso</span>
+                            <span class="text-xs text-gray-400">${transSubjects.progressLabel}</span>
                             <span class="text-sm font-bold text-purple-400">${s.progress || 0}%</span>
                         </div>
-                        <div class="text-xs text-gray-400 mb-2">${s.study_minutes_week || 0} / ${s.weekly_target_minutes || 0} minutos esta semana </div>
+                        <div class="text-xs text-gray-400 mb-2">${(transSubjects.weeklyMinutesLabel || '').replace('{done}', String(s.study_minutes_week || 0)).replace('{target}', String(s.weekly_target_minutes || 0))} </div>
                         <div class="w-full h-2 rounded-full bg-gray-700/50" style="box-shadow: inset 0 0 10px rgba(0,0,0,0.3);">
                             <div class="h-full rounded-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all duration-300" style="width: ${s.progress || 0}%; box-shadow: 0 0 15px rgba(168,85,247,0.6);"></div>
                         </div>
                     </div>
 
-                    ${s.next_exam_date ? `<div class="mb-4 text-xs text-gray-400"><i data-lucide="calendar" class="w-3 h-3 inline mr-1"></i> Siguiente examen: ${s.next_exam_date}</div>` : ''}
+                    ${s.next_exam_date ? `<div class="mb-4 text-xs text-gray-400"><i data-lucide="calendar" class="w-3 h-3 inline mr-1"></i> ${transSubjects.nextExam}: ${s.next_exam_date}</div>` : ''}
 
                     <div class="flex gap-3 pt-4 border-t border-gray-700/50">
                         <button class="edit-subject-btn flex-1 px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 border border-gray-700 text-gray-300 hover:text-white text-sm font-medium transition-all duration-300 flex items-center justify-center gap-2" data-subject-id="${s.id}">
                             <i data-lucide="edit-2" class="w-4 h-4"></i>
-                            <span>Editar</span>
+                            <span>${transSubjects.editAction || common.edit}</span>
                         </button>
                         <button class="delete-subject-btn flex-1 px-4 py-2 rounded-lg bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 hover:text-red-300 text-sm font-medium transition-all duration-300 flex items-center justify-center gap-2" data-subject-id="${s.id}">
                             <i data-lucide="trash-2" class="w-4 h-4"></i>
-                            <span>Borrar</span>
+                            <span>${transSubjects.deleteAction || common.delete}</span>
                         </button>
                     </div>
                 </div>
@@ -132,7 +148,8 @@ function attachSubjectEventListeners() {
  */
 function deleteSubject(subjectId) {
     return __awaiter(this, void 0, void 0, function* () {
-        const confirmed = yield showConfirmModal('¿Estás seguro de que deseas eliminar esta materia? Esta acción no se puede deshacer y se eliminarán todos los datos asociados.', 'Eliminar Materia');
+        const transAll = translations[getCurrentLanguage()];
+        const confirmed = yield showConfirmModal(transAll.confirmations.deleteSubjectMessage, transAll.confirmations.deleteSubjectTitle);
         if (!confirmed)
             return;
         try {
@@ -182,12 +199,15 @@ function deleteSubject(subjectId) {
 function handleSaveSubject(e) {
     return __awaiter(this, void 0, void 0, function* () {
         e.preventDefault();
+        const transAll = translations[getCurrentLanguage()];
+        const common = transAll.common;
+        const subjTrans = transAll.subjects;
         const form = e.target;
         const submitBtn = form.querySelector('button[type="submit"]');
         const originalText = submitBtn.innerText;
         // Check if editing or creating (ID set by openSubjectModal)
         const isEditing = currentSubjectId !== null;
-        submitBtn.innerText = isEditing ? "Updating..." : "Saving...";
+        submitBtn.innerText = common.loading;
         submitBtn.disabled = true;
         try {
             const formData = new FormData(form);
@@ -242,6 +262,8 @@ function handleSaveSubject(e) {
 function openSubjectModal(subjectId = null) {
     const modal = document.getElementById('subjectModal');
     const form = document.getElementById('subjectForm');
+    const transAll = translations[getCurrentLanguage()];
+    const subjTrans = transAll.subjects;
     if (!modal || !form)
         return;
     currentSubjectId = subjectId; // Set ID (null for create, id for edit)
@@ -274,17 +296,17 @@ function openSubjectModal(subjectId = null) {
                 examInput.value = subject.next_exam_date;
             }
             if (title)
-                title.innerText = 'Edit Subject';
+                title.innerText = subjTrans.editSubject;
             if (submitBtn)
-                submitBtn.innerText = 'Save Changes';
+                submitBtn.innerText = subjTrans.updateSubject;
         }
     }
     else {
         // Create mode: show empty form
         if (title)
-            title.innerText = 'Create New Subject';
+            title.innerText = subjTrans.newSubject;
         if (submitBtn)
-            submitBtn.innerText = 'Create Subject';
+            submitBtn.innerText = subjTrans.createSubject;
     }
     modal.classList.add('active');
 }

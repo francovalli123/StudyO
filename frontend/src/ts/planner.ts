@@ -2,6 +2,7 @@
 import { getEvents, createEvent, updateEvent, deleteEvent, Event, apiGet } from "./api.js";
 import { Subject } from "./api.js";
 import { initConfirmModal, showConfirmModal, showAlertModal } from "./confirmModal.js";
+import { translations, getCurrentLanguage } from "./i18n.js";
 
 declare const lucide: {
     createIcons: () => void;
@@ -86,13 +87,15 @@ function updateSubjectDropdown() {
  * Render the monthly calendar (compact, for navigation only)
  */
 function renderCalendar() {
+    const lang = getCurrentLanguage();
+    const locale = lang === 'en' ? 'en-US' : lang === 'pt' ? 'pt-BR' : lang === 'zh' ? 'zh-CN' : 'es-AR';
     const calendarGrid = document.getElementById('calendarGrid');
     const currentMonthYear = document.getElementById('currentMonthYear');
     
     if (!calendarGrid || !currentMonthYear) return;
     
     // Update month/year display
-    currentMonthYear.textContent = `${monthNames[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
+    currentMonthYear.textContent = new Intl.DateTimeFormat(locale, { month: 'long', year: 'numeric' }).format(currentDate);
     
     // Get first day of month and number of days
     const firstDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
@@ -175,6 +178,9 @@ function isDateInWeek(date: Date, weekStart: Date): boolean {
  * Render the weekly schedule (main area for events)
  */
 function renderWeeklySchedule() {
+    const lang = getCurrentLanguage();
+    const trans = translations[lang];
+    const locale = lang === 'en' ? 'en-US' : lang === 'pt' ? 'pt-BR' : lang === 'zh' ? 'zh-CN' : 'es-AR';
     const weeklySchedule = document.getElementById('weeklySchedule');
     const weekRange = document.getElementById('weekRange');
     const weekNumber = document.getElementById('weekNumber');
@@ -187,12 +193,12 @@ function renderWeeklySchedule() {
     sunday.setDate(monday.getDate() + 6);
     
     // Update week range display
-    weekRange.textContent = `${monthNames[monday.getMonth()]} ${monday.getFullYear()}`;
+    weekRange.textContent = new Intl.DateTimeFormat(locale, { month: 'long', year: 'numeric' }).format(monday);
     
     // Calculate week number
     if (weekNumber) {
         const weekNum = getWeekNumber(monday);
-        weekNumber.textContent = `Semana ${weekNum}`;
+        weekNumber.textContent = (trans.planner.weekNumberLabel || 'Semana {n}').replace('{n}', String(weekNum));
     }
     
     // Update day headers with dates
@@ -423,6 +429,8 @@ function openEventModal(date?: Date, hour?: number) {
     const modal = document.getElementById('eventModal') as HTMLElement;
     const form = document.getElementById('eventForm') as HTMLFormElement;
     const modalTitle = document.getElementById('modalTitle') as HTMLElement;
+    const lang = getCurrentLanguage();
+    const plannerTrans = translations[lang].planner;
     
     if (!modal || !form) return;
     
@@ -456,7 +464,7 @@ function openEventModal(date?: Date, hour?: number) {
     }
     
     if (modalTitle) {
-        modalTitle.textContent = 'Nuevo Evento';
+        modalTitle.textContent = plannerTrans.newEvent;
     }
     
     // Hide delete button for new events
@@ -536,6 +544,7 @@ function editEvent(eventId: number) {
     const modal = document.getElementById('eventModal') as HTMLElement;
     const modalTitle = document.getElementById('modalTitle') as HTMLElement;
     const form = document.getElementById('eventForm') as HTMLFormElement;
+    const plannerTrans = translations[getCurrentLanguage()].planner;
     
     if (!modal || !form || !modalTitle) return;
     
@@ -548,7 +557,7 @@ function editEvent(eventId: number) {
     (document.getElementById('eventSubject') as HTMLSelectElement).value = event.subject?.toString() || '';
     (document.getElementById('eventNotes') as HTMLTextAreaElement).value = event.notes || '';
     
-    modalTitle.textContent = 'Editar Evento';
+    modalTitle.textContent = plannerTrans.editEvent;
     
     // Show delete button for existing events
     const deleteBtn = document.getElementById('deleteEventBtn') as HTMLElement;
@@ -674,10 +683,11 @@ function setupEventListeners() {
     if (deleteEventBtn) {
         deleteEventBtn.addEventListener('click', async () => {
             if (currentEditingEvent && currentEditingEvent.id) {
+                    const trans = translations[getCurrentLanguage()];
                 const confirmed = await showConfirmModal(
-                    '¿Estás seguro de que deseas eliminar este evento? Esta acción no se puede deshacer.',
-                    'Eliminar Evento'
-                );
+                        trans.confirmations.deleteEventMessage,
+                        trans.confirmations.deleteEventTitle
+                    );
                 if (confirmed) {
                     await deleteEventById(currentEditingEvent.id);
                 }
@@ -715,9 +725,10 @@ async function deleteEventById(eventId: number) {
         await loadEvents();
     } catch (error) {
         console.error('Error deleting event:', error);
+        const trans = translations[getCurrentLanguage()];
         await showAlertModal(
-            'Error al eliminar el evento. Por favor, intenta nuevamente.',
-            'Error'
+            trans.confirmations.deleteEventMessage,
+            trans.common.error
         );
     }
 }
@@ -728,6 +739,7 @@ async function deleteEventById(eventId: number) {
 async function saveEvent() {
     const form = document.getElementById('eventForm') as HTMLFormElement;
     if (!form) return;
+    const trans = translations[getCurrentLanguage()];
     
     const formData = new FormData(form);
     const title = formData.get('title') as string;
@@ -762,8 +774,8 @@ async function saveEvent() {
     } catch (error) {
         console.error('Error saving event:', error);
         await showAlertModal(
-            'Error al guardar el evento. Por favor, intenta nuevamente.',
-            'Error'
+            trans.common.error,
+            trans.common.error
         );
     }
 }

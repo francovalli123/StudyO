@@ -143,39 +143,39 @@
         <nav class="flex-1 px-4 space-y-2 mt-2">
             <a href="dashboard.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gradient-to-r hover:from-purple-500/10 hover:via-fuchsia-500/10 hover:to-purple-500/10 text-gray-400 hover:text-purple-300 transition-all duration-300">
                 <i data-lucide="home" class="w-5 h-5"></i>
-                <span>Inicio</span>
+                <span data-i18n="nav.home">Inicio</span>
             </a>
             <a href="planner.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gradient-to-r hover:from-purple-500/10 hover:via-fuchsia-500/10 hover:to-purple-500/10 text-gray-400 hover:text-purple-300 transition-all duration-300">
                 <i data-lucide="calendar" class="w-5 h-5"></i>
-                <span>Planificador</span>
+                <span data-i18n="nav.planner">Planificador</span>
             </a>
             <a href="subjects.html" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-gradient-to-r from-purple-600 via-fuchsia-500 to-purple-600 text-white shadow-[0_0_15px_rgba(168,85,247,0.5)] font-medium">
                 <i data-lucide="monitor" class="w-5 h-5"></i>
-                <span>Mi Sistema Académico</span> 
+                <span data-i18n="nav.subjects">Mi Sistema Académico</span> 
             </a>
             <a href="habits.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gradient-to-r hover:from-purple-500/10 hover:via-fuchsia-500/10 hover:to-purple-500/10 text-gray-400 hover:text-purple-300 transition-all duration-300">
                 <i data-lucide="target" class="w-5 h-5"></i>
-                <span>Hábitos</span>
+                <span data-i18n="nav.habits">Hábitos</span>
             </a>
             <a href="progress.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gradient-to-r hover:from-purple-500/10 hover:via-fuchsia-500/10 hover:to-purple-500/10 text-gray-400 hover:text-purple-300 transition-all duration-300">
                 <i data-lucide="trending-up" class="w-5 h-5"></i>
-                <span>Progreso</span>
+                <span data-i18n="nav.progress">Progreso</span>
             </a>
         </nav>
 
         <div class="p-4 border-t border-gray-800/50 space-y-2">
-            <div class="text-xs font-semibold text-gray-500 uppercase px-4 mb-2">Ajustes</div>
+            <div class="text-xs font-semibold text-gray-500 uppercase px-4 mb-2" data-i18n="nav.settings">Ajustes</div>
             <a href="profile.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gradient-to-r hover:from-purple-500/10 hover:via-fuchsia-500/10 hover:to-purple-500/10 text-gray-400 hover:text-purple-300 transition-all duration-300">
                 <i data-lucide="settings" class="w-5 h-5"></i>
-                <span>Ajustes</span>
+                <span data-i18n="nav.settings">Ajustes</span>
             </a>
             <a href="#" class="flex items-center gap-3 px-4 py-2 rounded-xl hover:bg-gradient-to-r hover:from-yellow-500/10 hover:via-orange-500/10 hover:to-yellow-500/10 text-yellow-500 hover:text-yellow-400 transition-all duration-300">
                 <i data-lucide="sparkles" class="w-4 h-4"></i>
-                <span>Tema Premium</span>
+                <span data-i18n="nav.premium">Tema Premium</span>
             </a>
             <a href="#" id="logoutBtn" class="flex items-center gap-3 px-4 py-2 rounded-xl hover:bg-gradient-to-r hover:from-red-500/10 hover:via-pink-500/10 hover:to-red-500/10 text-red-400 hover:text-red-300 transition-all duration-300">
                 <i data-lucide="log-out" class="w-4 h-4"></i>
-                <span>Cerrar Sesión</span>
+                <span data-i18n="nav.logout">Cerrar Sesión</span>
             </a>
         </div>
     </aside>
@@ -185,14 +185,14 @@
             
             <header class="flex justify-between items-start animate-on-load delay-200">
                 <div>
-                    <h1 class="text-4xl font-bold text-white mb-2">
+                    <h1 class="text-4xl font-bold text-white mb-2" data-i18n="subjects.title">
                         Mi Sistema Académico
                     </h1>
-                    <p class="text-gray-400 text-lg">Gestioná todas tus asignaturas y tu progreso estratégico.</p>
+                    <p class="text-gray-400 text-lg" data-i18n="subjects.subtitle">Gestioná todas tus asignaturas y tu progreso estratégico.</p>
                 </div>
                 <button id="addSubjectBtn" class="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-purple-600 via-fuchsia-500 to-purple-600 text-white font-medium hover:from-purple-500 hover:via-fuchsia-400 hover:to-purple-500 transition-all duration-300 shadow-[0_0_15px_rgba(168,85,247,0.5)]">
                     <i data-lucide="plus-circle" class="w-5 h-5"></i>
-                    <span>Agregar Asignatura</span>
+                    <span data-i18n="subjects.addSubject">Agregar Asignatura</span>
                 </button>
             </header>
 
@@ -204,11 +204,11 @@
                 <div class="w-24 h-24 rounded-full bg-gradient-to-br from-purple-500/20 via-fuchsia-500/20 to-purple-500/20 flex items-center justify-center mb-6" style="box-shadow: 0 0 0 1px rgba(168,85,247,0.3);">
                     <i data-lucide="book-open" class="w-12 h-12 text-purple-400"></i>
                 </div>
-                <h3 class="text-2xl font-bold text-white mb-3">¡Comienza tu jornada académica!</h3>
-                <p class="text-gray-400 mb-6 max-w-md">Aún no has registrado ninguna materia. Organiza tus asignaturas y mantén un seguimiento de tu progreso académico.</p>
+                <h3 class="text-2xl font-bold text-white mb-3" data-i18n="subjects.emptyTitle">¡Comienza tu jornada académica!</h3>
+                <p class="text-gray-400 mb-6 max-w-md" data-i18n="subjects.emptyDesc">Aún no has registrado ninguna materia. Organiza tus asignaturas y mantén un seguimiento de tu progreso académico.</p>
                 <button id="emptyStateSubjectBtn" class="px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 via-fuchsia-500 to-purple-600 text-white font-medium hover:from-purple-500 hover:via-fuchsia-400 hover:to-purple-500 transition-all duration-300 shadow-[0_0_15px_rgba(168,85,247,0.5)]">
                     <i data-lucide="plus-circle" class="w-5 h-5 inline mr-2"></i>
-                    Crear mi primera materia
+                    <span data-i18n="subjects.createFirst">Crear mi primera materia</span>
                 </button>
             </div>
 
@@ -267,7 +267,7 @@
     <div id="subjectModal" class="modal-overlay">
         <div class="modal-content">
             <div class="flex justify-between items-center mb-6">
-                <h2 id="modalTitle" class="text-2xl font-bold text-white">Agregar Nueva Materia</h2>
+                <h2 id="modalTitle" class="text-2xl font-bold text-white" data-i18n="subjects.newSubject">Agregar Nueva Materia</h2>
                 <button id="closeSubjectModalBtn" class="text-gray-400 hover:text-white transition-colors">
                     <i data-lucide="x" class="w-6 h-6"></i>
                 </button>
@@ -275,38 +275,38 @@
 
             <form id="subjectForm" class="space-y-6">
                 <div>
-                    <label class="block text-sm font-medium text-gray-300 mb-2">Nombre de la Materia *</label>
+                    <label class="block text-sm font-medium text-gray-300 mb-2" data-i18n="subjects.subjectName">Nombre de la Materia *</label>
                     <input type="text" name="name" required
                            class="w-full bg-dark-input border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all"
                            placeholder="Ej: Cálculo I, Historia del Arte, etc.">
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-300 mb-2">Profesor</label>
+                    <label class="block text-sm font-medium text-gray-300 mb-2" data-i18n="subjects.professor">Profesor</label>
                     <input type="text" name="professor_name"
                            class="w-full bg-dark-input border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all"
                            placeholder="Ej: Juan Pérez">
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-300 mb-2">Prioridad</label>
+                    <label class="block text-sm font-medium text-gray-300 mb-2" data-i18n="subjects.priority">Prioridad</label>
                     <select name="priority"
                             class="w-full bg-dark-input border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all">
-                        <option value="">Sin especificar</option>
-                        <option value="1">Alta</option>
-                        <option value="2">Media</option>
-                        <option value="3">Baja</option>
+                        <option value="" data-i18n="subjects.notSpecified">Sin especificar</option>
+                        <option value="1" data-i18n="subjects.high">Alta</option>
+                        <option value="2" data-i18n="subjects.medium">Media</option>
+                        <option value="3" data-i18n="subjects.low">Baja</option>
                     </select>
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-300 mb-2">Próximo Examen (Opcional)</label>
+                    <label class="block text-sm font-medium text-gray-300 mb-2" data-i18n="subjects.nextExam">Próximo Examen (Opcional)</label>
                     <input type="date" name="next_exam_date"
                            class="w-full bg-dark-input border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all">
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-300 mb-2">Objetivo semanal (min)</label>
+                    <label class="block text-sm font-medium text-gray-300 mb-2" data-i18n="subjects.weeklyTarget">Objetivo semanal (min)</label>
                     <input type="number" name="weekly_target_minutes" min="0" step="10"
                            class="w-full bg-dark-input border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all"
                            placeholder="Ej: 300 (minutos por semana)">
@@ -314,9 +314,9 @@
 
                 <div class="flex gap-3 pt-4">
                     <button type="submit" class="flex-1 px-4 py-3 rounded-lg bg-gradient-to-r from-purple-600 via-fuchsia-500 to-purple-600 text-white font-medium hover:from-purple-500 hover:via-fuchsia-400 hover:to-purple-500 transition-all duration-300 shadow-[0_0_15px_rgba(168,85,247,0.5)]">
-                        <span id="submitBtnText">Crear Materia</span>
+                        <span id="submitBtnText" data-i18n="subjects.createSubject">Crear Materia</span>
                     </button>
-                    <button type="button" id="cancelSubjectBtn" class="px-4 py-3 rounded-lg bg-dark-input border border-gray-700 text-gray-300 font-medium hover:bg-gray-800 transition-all duration-300">
+                    <button type="button" id="cancelSubjectBtn" class="px-4 py-3 rounded-lg bg-dark-input border border-gray-700 text-gray-300 font-medium hover:bg-gray-800 transition-all duration-300" data-i18n="common.cancel">
                         Cancelar
                     </button>
                 </div>
@@ -371,6 +371,7 @@
     </script>
 
     <script type="module" src="dist/ts/subjects.js"></script>
+    <script type="module" src="dist/ts/i18n-init.js"></script>
 
 </body>
 </html>

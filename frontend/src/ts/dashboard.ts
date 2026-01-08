@@ -1,6 +1,7 @@
 // Import API functions for making HTTP requests and token management
-import { apiGet, apiPost, apiDelete, apiPut, getToken, getEvents, Event } from "./api.js";
+import { apiGet, apiPost, apiDelete, apiPut, getToken, getEvents, Event, getCurrentUser } from "./api.js";
 import { initConfirmModal, showConfirmModal, showAlertModal } from "./confirmModal.js";
+import { t, getCurrentLanguage, setCurrentLanguage, applyTranslations } from "./i18n.js";
 
 // Declare lucide icons library for dynamic icon rendering
 declare const lucide: any;
@@ -31,6 +32,11 @@ interface Habit {
 function setupConcentrationMode() {
     function enter() {
         document.body.classList.add('concentration-mode');
+        // Close pomodoro settings modal if it's open
+        const settingsModal = document.getElementById('pomodoroSettingsModal') as HTMLElement | null;
+        if (settingsModal) {
+            settingsModal.style.display = 'none';
+        }
         try {
             const el = document.documentElement as any;
             if (el.requestFullscreen) el.requestFullscreen().catch(()=>{});
@@ -40,6 +46,17 @@ function setupConcentrationMode() {
     function exit() {
         document.body.classList.remove('concentration-mode');
         try { if ((document as any).fullscreenElement) (document as any).exitFullscreen(); } catch(e){}
+        // Hide enter toast first if it's still visible
+        try { (window as any).hideEnterToast?.(); } catch(e){}
+        // Close pomodoro settings modal if it's open
+        const settingsModal = document.getElementById('pomodoroSettingsModal') as HTMLElement | null;
+        if (settingsModal) {
+            settingsModal.style.display = 'none';
+        }
+        // Show exit toast after a short delay
+        setTimeout(() => { 
+            try { (window as any).showExitToast?.(); } catch(e){} 
+        }, 120);
     }
 
     const toggle = document.getElementById('concentrationToggleBtn');
@@ -68,9 +85,31 @@ function setupConcentrationMode() {
 
     document.addEventListener('fullscreenchange', () => {
         if (!(document as any).fullscreenElement && document.body.classList.contains('concentration-mode')) {
-            document.body.classList.remove('concentration-mode');
+            exit();
         }
     });
+}
+
+function localizeConcentrationToasts() {
+    const trans = t();
+    const enterToast = document.getElementById('concentrationEnterToast');
+    if (enterToast) {
+        const title = enterToast.querySelector('.title');
+        if (title) title.textContent = trans.dashboard.concentrationEnterTitle;
+        const body = title?.nextElementSibling as HTMLElement | null;
+        if (body) body.textContent = trans.dashboard.concentrationEnterBody;
+        const close = enterToast.querySelector('.close-x');
+        if (close) close.setAttribute('title', trans.common.close);
+    }
+    const exitToast = document.getElementById('concentrationExitToast');
+    if (exitToast) {
+        const title = exitToast.querySelector('.title');
+        if (title) title.textContent = trans.dashboard.concentrationExitTitle;
+        const body = title?.nextElementSibling as HTMLElement | null;
+        if (body) body.textContent = trans.dashboard.concentrationExitBody;
+        const close = exitToast.querySelector('.close-x');
+        if (close) close.setAttribute('title', trans.common.close);
+    }
 }
 
 if (document.readyState === 'loading') {
@@ -555,9 +594,10 @@ async function loadWeeklyObjectives() {
  * @param id - The ID of the objective to delete
  */
 async function deleteObjective(id: number) {
+    const trans = t();
     const confirmed = await showConfirmModal(
-        '¿Estás seguro de que deseas eliminar este objetivo? Esta acción no se puede deshacer.',
-        'Eliminar Objetivo'
+        trans.confirmations.deleteEventMessage,
+        trans.common.delete
     );
     if (!confirmed) return;
     
@@ -1565,6 +1605,28 @@ async function loadDashboard() {
     }
     
     try {
+        // Sync language preference from backend before rendering data
+        try {
+            const user = await getCurrentUser();
+            const backendLang = (user as any).language || (user as any).preferences?.language;
+            if (backendLang && backendLang !== getCurrentLanguage()) {
+                setCurrentLanguage(backendLang);
+                applyTranslations();
+            }
+        } catch (e) { /* ignore language sync errors */ }
+        localizeConcentrationToasts();
+        // Localize static pomodoro tagline
+        const tagline = document.getElementById('pomodoroTagline');
+        if (tagline) {
+            const lang = getCurrentLanguage();
+            const map: Record<string, string> = {
+                es: 'Define tu ritmo. Domina tu tiempo.',
+                en: 'Set your rhythm. Master your time.',
+                zh: '设定你的节奏，掌控你的时间。',
+                pt: 'Defina seu ritmo. Domine seu tempo.',
+            };
+            tagline.textContent = map[lang] || map.es;
+        }
         // Load all data in parallel
         await Promise.all([
             loadHabitsStats(),
@@ -1770,9 +1832,28 @@ if (document.readyState === 'loading') {
         
         // Update stage label
         if (stageLabel) {
-            if (currentStage === 'work') stageLabel.textContent = 'Enfoque';
-            else if (currentStage === 'short_break') stageLabel.textContent = 'Descanso corto';
-            else stageLabel.textContent = 'Descanso largo';
+            const lang = getCurrentLanguage();
+            const workMap: Record<string, string> = {
+                es: 'Enfoque',
+                en: 'Focus',
+                zh: '专注',
+                pt: 'Foco',
+            };
+            const shortMap: Record<string, string> = {
+                es: 'Descanso corto',
+                en: 'Short break',
+                zh: '短休息',
+                pt: 'Pausa curta',
+            };
+            const longMap: Record<string, string> = {
+                es: 'Descanso largo',
+                en: 'Long break',
+                zh: '长休息',
+                pt: 'Pausa longa',
+            };
+            if (currentStage === 'work') stageLabel.textContent = workMap[lang] || workMap.es;
+            else if (currentStage === 'short_break') stageLabel.textContent = shortMap[lang] || shortMap.es;
+            else stageLabel.textContent = longMap[lang] || longMap.es;
         }
         
         // Update progress circle
@@ -1785,12 +1866,26 @@ if (document.readyState === 'loading') {
         
         // Update pomodoro counters
         try {
-            if (pomodorosCountEl) pomodorosCountEl.textContent = `Pomodoros: ${completedCycles}`;
+            const lang = getCurrentLanguage();
+            const pomodoroLabel: Record<string, string> = {
+                es: 'Pomodoros',
+                en: 'Pomodoros',
+                zh: '番茄钟',
+                pt: 'Pomodoros',
+            };
+            const setLabelTemplate: Record<string, string> = {
+                es: 'Set: {current} / {total}',
+                en: 'Set: {current} / {total}',
+                zh: '组: {current} / {total}',
+                pt: 'Conjunto: {current} / {total}',
+            };
+            if (pomodorosCountEl) pomodorosCountEl.textContent = `${pomodoroLabel[lang] || pomodoroLabel.es}: ${completedCycles}`;
             if (pomodoroSetLabelEl) {
                 const cycles = Math.max(1, settings.cyclesBeforeLongBreak);
                 let inSet = completedCycles % cycles;
                 if (inSet === 0 && completedCycles > 0) inSet = cycles;
-                pomodoroSetLabelEl.textContent = `Set: ${inSet} / ${cycles}`;
+                const tpl = setLabelTemplate[lang] || setLabelTemplate.es;
+                pomodoroSetLabelEl.textContent = tpl.replace('{current}', String(inSet)).replace('{total}', String(cycles));
             }
         } catch (e) { /* ignore DOM issues */ }
     }
@@ -1884,7 +1979,14 @@ if (document.readyState === 'loading') {
         // Add navigation warning
         beforeUnloadHandler = (e: BeforeUnloadEvent) => {
             e.preventDefault();
-            e.returnValue = 'El Pomodoro se detendrá si abandonas esta página. ¿Estás seguro?';
+            const lang = getCurrentLanguage();
+            const messages: Record<string, string> = {
+                es: 'El Pomodoro se detendrá si abandonas esta página. ¿Estás seguro?',
+                en: 'The Pomodoro will stop if you leave this page. Are you sure?',
+                zh: '离开此页面将停止番茄钟，确定继续吗？',
+                pt: 'O Pomodoro será interrompido se você sair desta página. Tem certeza?',
+            };
+            e.returnValue = messages[lang] || messages.es;
             return e.returnValue;
         };
         window.addEventListener('beforeunload', beforeUnloadHandler);
@@ -2074,19 +2176,40 @@ if (document.readyState === 'loading') {
 
         // Settings modal
         if (settingsBtn && modal) {
-            settingsBtn.addEventListener('click', async () => {
+            settingsBtn.addEventListener('click', async (e) => {
+                e.preventDefault();
+                // Don't open modal in concentration mode
+                if (document.body.classList.contains('concentration-mode')) {
+                    return;
+                }
                 // Populate form fields with current settings
                 if (workInput) workInput.value = String(settings.workMinutes);
                 if (shortInput) shortInput.value = String(settings.shortBreakMinutes);
                 if (longInput) longInput.value = String(settings.longBreakMinutes);
                 if (cyclesInput) cyclesInput.value = String(settings.cyclesBeforeLongBreak);
                 await loadSubjectsToSelect();
-                if (modal) modal.style.display = 'flex';
+                if (modal) {
+                    modal.style.display = 'flex';
+                    // Render lucide icons after modal is shown
+                    if (typeof lucide !== 'undefined') {
+                        setTimeout(() => lucide.createIcons(), 10);
+                    }
+                }
             });
         }
 
-        // Close modal button
+        // Close modal buttons
         if (modalCancel && modal) modalCancel.addEventListener('click', () => { if (modal) modal.style.display = 'none'; });
+        const closeBtn = document.getElementById('pomodoroSettingsCloseBtn');
+        if (closeBtn && modal) closeBtn.addEventListener('click', () => { if (modal) modal.style.display = 'none'; });
+        // Close modal when clicking outside
+        if (modal) {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
+        }
 
         // Settings form submission
         if (settingsForm && modal) settingsForm.addEventListener('submit', (e) => {

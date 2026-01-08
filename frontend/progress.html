@@ -161,39 +161,39 @@
         <nav class="flex-1 px-4 space-y-2 mt-2">
             <a href="dashboard.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gradient-to-r hover:from-purple-500/10 hover:via-fuchsia-500/10 hover:to-purple-500/10 text-gray-400 hover:text-purple-300 transition-all duration-300">
                 <i data-lucide="home" class="w-5 h-5"></i>
-                <span>Inicio</span>
+                <span data-i18n="nav.home">Inicio</span>
             </a>
             <a href="planner.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gradient-to-r hover:from-purple-500/10 hover:via-fuchsia-500/10 hover:to-purple-500/10 text-gray-400 hover:text-purple-300 transition-all duration-300">
                 <i data-lucide="calendar" class="w-5 h-5"></i>
-                <span>Planificador</span>
+                <span data-i18n="nav.planner">Planificador</span>
             </a>
             <a href="subjects.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gradient-to-r hover:from-purple-500/10 hover:via-fuchsia-500/10 hover:to-purple-500/10 text-gray-400 hover:text-purple-300 transition-all duration-300">
                 <i data-lucide="monitor" class="w-5 h-5"></i>
-                <span>Mi Sistema Académico</span>
+                <span data-i18n="nav.subjects">Mi Sistema Académico</span>
             </a>
             <a href="habits.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gradient-to-r hover:from-purple-500/10 hover:via-fuchsia-500/10 hover:to-purple-500/10 text-gray-400 hover:text-purple-300 transition-all duration-300">
                 <i data-lucide="target" class="w-5 h-5"></i>
-                <span>Hábitos</span>
+                <span data-i18n="nav.habits">Hábitos</span>
             </a>
             <a href="progress.html" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-gradient-to-r from-purple-600 via-fuchsia-500 to-purple-600 text-white shadow-[0_0_15px_rgba(168,85,247,0.5)] font-medium">
                 <i data-lucide="trending-up" class="w-5 h-5"></i>
-                <span>Progreso</span>
+                <span data-i18n="nav.progress">Progreso</span>
             </a>
         </nav>
 
         <div class="p-4 border-t border-gray-800/50 space-y-2">
-            <div class="text-xs font-semibold text-gray-500 uppercase px-4 mb-2">Ajustes</div>
+            <div class="text-xs font-semibold text-gray-500 uppercase px-4 mb-2" data-i18n="nav.settings">Ajustes</div>
             <a href="profile.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gradient-to-r hover:from-purple-500/10 hover:via-fuchsia-500/10 hover:to-purple-500/10 text-gray-400 hover:text-purple-300 transition-all duration-300">
                 <i data-lucide="settings" class="w-5 h-5"></i>
-                <span>Ajustes</span>
+                <span data-i18n="nav.settings">Ajustes</span>
             </a>
             <a href="#" class="flex items-center gap-3 px-4 py-2 rounded-xl hover:bg-gradient-to-r hover:from-yellow-500/10 hover:via-orange-500/10 hover:to-yellow-500/10 text-yellow-500 hover:text-yellow-400 transition-all duration-300">
                 <i data-lucide="sparkles" class="w-4 h-4"></i>
-                <span>Tema Premium</span>
+                <span data-i18n="nav.premium">Tema Premium</span>
             </a>
             <a href="#" id="logoutBtn" class="flex items-center gap-3 px-4 py-2 rounded-xl hover:bg-gradient-to-r hover:from-red-500/10 hover:via-pink-500/10 hover:to-red-500/10 text-red-400 hover:text-red-300 transition-all duration-300">
                 <i data-lucide="log-out" class="w-4 h-4"></i>
-                <span>Cerrar Sesión</span>
+                <span data-i18n="nav.logout">Cerrar Sesión</span>
             </a>
         </div>
     </aside>
@@ -202,10 +202,10 @@
         <div class="p-8 max-w-7xl mx-auto space-y-8">
             
             <header class="animate-on-load delay-200">
-                <h1 class="text-4xl font-bold text-white mb-2">
+                <h1 class="text-4xl font-bold text-white mb-2" data-i18n="progress.title">
                     Tu Evolución en StudyO
                 </h1>
-                <p class="text-gray-400 text-lg">
+                <p class="text-gray-400 text-lg" data-i18n="progress.subtitle">
                     Cada sesión de estudio es un paso más hacia tu <span class="text-purple-400 font-medium">dominio académico</span>.
                 </p>
             </header>
@@ -214,8 +214,8 @@
                 <div class="lg:col-span-2 bg-dark-card rounded-3xl p-6 relative animate-on-load delay-300" style="box-shadow: 0 0 0 1px rgba(168,85,247,0.2), 0 0 30px rgba(168,85,247,0.15), inset 0 0 20px rgba(168,85,247,0.03);">
                     <div class="flex justify-between items-start mb-6">
                         <div>
-                            <h2 class="text-xl font-bold text-white">Ritmo de Estudio Mensual</h2>
-                            <p class="text-gray-500 text-sm mt-1">Horas totales de estudio por mes.</p>
+                            <h2 class="text-xl font-bold text-white" data-i18n="progress.monthlyRhythm">Ritmo de Estudio Mensual</h2>
+                            <p class="text-gray-500 text-sm mt-1" data-i18n="progress.monthlyRhythmDesc">Horas totales de estudio por mes.</p>
                         </div>
                         <i data-lucide="trending-up" class="w-5 h-5 text-purple-400"></i>
                     </div>
@@ -228,11 +228,11 @@
 
                 <div class="bg-dark-card rounded-3xl p-6 flex flex-col items-center justify-center relative animate-on-load delay-400" style="box-shadow: 0 0 0 1px rgba(168,85,247,0.2), 0 0 30px rgba(168,85,247,0.15), inset 0 0 20px rgba(168,85,247,0.03);">
                     <div class="w-full flex justify-between items-start mb-4">
-                        <h2 class="text-lg font-bold text-white">Constancia Semanal</h2>
+                        <h2 class="text-lg font-bold text-white" data-i18n="progress.weeklyConsistency">Constancia Semanal</h2>
                         <i data-lucide="target" class="w-5 h-5 text-purple-400"></i>
                     </div>
 
-                    <p class="text-gray-500 text-xs mb-4 text-center w-full">Días con al menos una sesión de estudio en la última semana.</p>
+                    <p class="text-gray-500 text-xs mb-4 text-center w-full" data-i18n="progress.consistencyDesc">Días con al menos una sesión de estudio en la última semana.</p>
 
                     <div class="relative w-40 h-40 flex items-center justify-center my-4">
                         <svg class="absolute inset-0 w-full h-full transform -rotate-90">
@@ -260,8 +260,8 @@
             <div class="bg-dark-card rounded-3xl p-6 relative animate-on-load delay-500" style="box-shadow: 0 0 0 1px rgba(168,85,247,0.2), 0 0 30px rgba(168,85,247,0.15), inset 0 0 20px rgba(168,85,247,0.03);">
                 <div class="flex justify-between items-start mb-4">
                     <div>
-                        <h2 class="text-xl font-bold text-white">Mapa de Calor de Estudio</h2>
-                        <p class="text-gray-500 text-sm mt-1">Actividad de estudio en los últimos meses.</p>
+                        <h2 class="text-xl font-bold text-white" data-i18n="progress.heatmap">Mapa de Calor de Estudio</h2>
+                        <p class="text-gray-500 text-sm mt-1" data-i18n="progress.heatmapDesc">Actividad de estudio en los últimos meses.</p>
                     </div>
                     <i data-lucide="calendar" class="w-5 h-5 text-purple-400"></i>
                 </div>
@@ -276,7 +276,7 @@
                     </div>
                     
                     <div class="flex items-center justify-end gap-4 text-xs text-gray-500 mt-4">
-                        <span>Menos</span>
+                        <span data-i18n="progress.less">Menos</span>
                         <div class="flex gap-1">
                             <div class="w-3 h-3 rounded bg-gray-800"></div>
                             <div class="w-3 h-3 rounded bg-purple-900"></div>
@@ -284,7 +284,7 @@
                             <div class="w-3 h-3 rounded bg-purple-500"></div>
                             <div class="w-3 h-3 rounded bg-purple-400"></div>
                         </div>
-                        <span>Más</span>
+                        <span data-i18n="progress.more">Más</span>
                     </div>
                 </div>
             </div>
@@ -292,8 +292,8 @@
             <div class="bg-dark-card rounded-3xl p-6 flex flex-col relative animate-on-load delay-600" style="box-shadow: 0 0 0 1px rgba(168,85,247,0.2), 0 0 30px rgba(168,85,247,0.15), inset 0 0 20px rgba(168,85,247,0.03);">
                 <div class="flex justify-between items-start mb-4">
                     <div>
-                        <h2 class="text-xl font-bold text-white">Distribución de Enfoque Mensual</h2>
-                        <p class="text-gray-500 text-sm mt-1">Tiempo dedicado por materia.</p>
+                        <h2 class="text-xl font-bold text-white" data-i18n="progress.monthlyFocus">Distribución de Enfoque Mensual</h2>
+                        <p class="text-gray-500 text-sm mt-1" data-i18n="progress.monthlyFocusDesc">Tiempo dedicado por materia.</p>
                     </div>
                     <i data-lucide="pie-chart" class="w-5 h-5 text-purple-400"></i>
                 </div>
@@ -416,5 +416,6 @@
         });
     </script>
     <script type="module" src="dist/ts/progress.js"></script>
+    <script type="module" src="dist/ts/i18n-init.js"></script>
 </body>
 </html>
