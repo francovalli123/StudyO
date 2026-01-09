@@ -3,6 +3,7 @@ import { apiGet, apiPost, apiDelete, apiPut, getToken, getEvents, Event, getCurr
 import { initConfirmModal, showConfirmModal, showAlertModal } from "./confirmModal.js";
 import { t, getCurrentLanguage, setCurrentLanguage, applyTranslations } from "./i18n.js";
 
+
 // Declare lucide icons library for dynamic icon rendering
 declare const lucide: any;
 
@@ -404,6 +405,7 @@ async function loadWeeklyObjectives() {
         
         // Display empty state when no objectives exist
         if (objectives.length === 0) {  // If objectives array is empty, user has no weekly objectives
+            const trans = t();
             container.innerHTML = `
                 <div class="flex flex-col items-center justify-center py-12 text-center animate-fade animated">
                     
@@ -415,12 +417,11 @@ async function loadWeeklyObjectives() {
                     </div>
 
                     <h3 class="text-xl font-bold text-white mb-2 tracking-tight">
-                        Sin objetivos estratégicos
+                        ${trans.dashboard.emptyObjectivesTitle}
                     </h3>
                     
                     <p class="text-gray-500 text-sm max-w-[280px] mx-auto leading-relaxed mb-6">
-                        La semana te domina si no tienes un plan. <br>
-                        <span class="text-purple-400/80">Define tu primera victoria ahora.</span>
+                        ${trans.dashboard.emptyObjectivesDesc}
                     </p>
 
                     <div class="animate-bounce text-gray-700">
@@ -519,10 +520,16 @@ async function loadWeeklyObjectives() {
                             
                             // Change button text to "Update"
                             const submitBtn = document.getElementById('submitObjectiveBtn') as HTMLButtonElement;
-                            if (submitBtn) submitBtn.textContent = 'Actualizar Objetivo';
+                            if (submitBtn) {
+                                const trans = t();
+                                submitBtn.textContent = trans.dashboard.updateObjective;
+                            }
                             
                             // Store objective ID for edit mode
                             (window as any).editingObjectiveId = objId;
+                            
+                            // Apply translations to modal (in case language changed)
+                            applyTranslations();
                             
                             // Show modal
                             const modal = document.getElementById('objectiveModal');
@@ -567,10 +574,16 @@ async function loadWeeklyObjectives() {
                             
                             // Change button text to "Update"
                             const submitBtn = document.getElementById('submitObjectiveBtn') as HTMLButtonElement;
-                            if (submitBtn) submitBtn.textContent = 'Actualizar Objetivo';
+                            if (submitBtn) {
+                                const trans = t();
+                                submitBtn.textContent = trans.dashboard.updateObjective;
+                            }
                             
                             // Store objective ID for edit mode
                             (window as any).editingObjectiveId = objId;
+                            
+                            // Apply translations to modal (in case language changed)
+                            applyTranslations();
                             
                             // Show modal
                             const modal = document.getElementById('objectiveModal');
@@ -627,12 +640,16 @@ async function addObjective() {
         const subjects: Subject[] = await apiGet('/subjects/');
         const subjectSelect = document.getElementById('objectiveSubject') as HTMLSelectElement | null;
         if (subjectSelect) {
-            subjectSelect.innerHTML = '<option value="">-- Ninguna materia --</option>' + 
+            const trans = t();
+            subjectSelect.innerHTML = `<option value="">-- ${trans.habits.none} --</option>` + 
                 subjects.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
         }
     } catch (e) {
         console.warn('Could not load subjects for objective modal', e);
     }
+    
+    // Apply translations to modal (in case language changed)
+    applyTranslations();
     
     // Show modal
     modal.style.display = 'flex';
@@ -653,9 +670,12 @@ function closeObjectiveModal() {
     }
     // Reset editing state
     (window as any).editingObjectiveId = null;
-    // Restore button text to "Save"
+    // Restore button text to "Create"
     const submitBtn = document.getElementById('submitObjectiveBtn') as HTMLButtonElement;
-    if (submitBtn) submitBtn.textContent = 'Guardar Objetivo';
+    if (submitBtn) {
+        const trans = t();
+        submitBtn.textContent = trans.dashboard.createObjective;
+    }
 }
 
 /**
@@ -830,11 +850,12 @@ async function loadWeeklyStudyRhythm() {
         if (chartContainer && chartParent) {
             // Show empty state if no sessions this week
             if (weeklySessions.length === 0) {
+                const trans = t();
                 chartParent.innerHTML = `
                     <div class="flex flex-col items-center justify-center h-full py-8">
                         <i data-lucide="bar-chart-2" class="w-12 h-12 text-gray-600 mb-3"></i>
-                        <p class="text-gray-500 text-sm text-center">Aún no hay sesiones de Pomodoro esta semana</p>
-                        <p class="text-gray-600 text-xs text-center mt-1">Completá algunas sesiones para ver tu ritmo de estudio</p>
+                        <p class="text-gray-500 text-sm text-center">${trans.dashboard.emptyRhythmTitle}</p>
+                        <p class="text-gray-600 text-xs text-center mt-1">${trans.dashboard.emptyRhythmDesc}</p>
                     </div>
                 `;
                 if (typeof lucide !== 'undefined') lucide.createIcons();
@@ -1026,11 +1047,12 @@ async function loadFocusDistribution() {
         if (pieChart && pieChartParent) {
             // Show empty state if no data
             if (weeklySessions.length === 0 || subjectData.length === 0) {
+                const trans = t();
                 pieChartParent.innerHTML = `
                     <div class="flex flex-col items-center justify-center h-full py-8">
                         <i data-lucide="pie-chart" class="w-12 h-12 text-gray-600 mb-3"></i>
-                        <p class="text-gray-500 text-sm text-center">Aún no hay sesiones de Pomodoro</p>
-                        <p class="text-gray-600 text-xs text-center mt-1">Completá sesiones para ver la distribución</p>
+                        <p class="text-gray-500 text-sm text-center">${trans.dashboard.emptyDistributionTitle}</p>
+                        <p class="text-gray-600 text-xs text-center mt-1">${trans.dashboard.emptyDistributionDesc}</p>
                     </div>
                 `;
                 if (typeof lucide !== 'undefined') lucide.createIcons();
@@ -1081,108 +1103,127 @@ async function loadFocusDistribution() {
  */
 async function loadPeakProductivity() {
     try {
+        const trans = t();
+
         // Fetch all Pomodoro sessions
         const sessions: PomodoroSession[] = await apiGet("/pomodoro/");
-        
+
         // Get sessions from past 4 weeks
         const today = new Date();
         const fourWeeksAgo = new Date(today);
         fourWeeksAgo.setDate(fourWeeksAgo.getDate() - 28);
 
-        // Defensive: only consider sessions with valid start_time and positive duration,
-        // and ignore any sessions scheduled in the future.
         const recentSessions = sessions.filter(s => {
             if (!s || !s.start_time || typeof s.duration !== 'number') return false;
+
             const sessionDate = new Date(s.start_time);
             if (isNaN(sessionDate.getTime())) return false;
-            if (sessionDate > new Date()) return false; // ignore future sessions
-            if (s.duration <= 0) return false; // ignore zero/negative durations
+            if (sessionDate > new Date()) return false;
+            if (s.duration <= 0) return false;
+
             return sessionDate >= fourWeeksAgo;
         });
 
-        // If no valid sessions, show message and exit
-        if (recentSessions.length === 0) {
+        // Empty state
+        if (recentSessions.length < 3) {
             const peakEl = document.getElementById('peak-productivity-time');
             if (peakEl) {
-                peakEl.textContent = 'No hay datos suficientes';
+                peakEl.textContent = trans.dashboard.emptyPeakProductivityTitle;
             }
+
             const descriptionEl = document.getElementById('peak-productivity-desc');
             if (descriptionEl) {
-                descriptionEl.textContent = 'Completá algunas sesiones de Pomodoro para descubrir tu momento peak de productividad.';
+                descriptionEl.textContent = trans.dashboard.emptyPeakProductivityDesc;
             }
             return;
         }
 
-        // Require a minimum amount of real data to report a peak.
-        // Heuristics: at least 3 sessions and at least 60 minutes total across the window.
-        const totalMinutes = recentSessions.reduce((sum, s) => sum + (s.duration || 0), 0);
-        if (recentSessions.length < 3 || totalMinutes < 60) {
+        const totalMinutes = recentSessions.reduce(
+            (sum, s) => sum + (s.duration || 0),
+            0
+        );
+
+        if (totalMinutes < 60) {
             const peakEl = document.getElementById('peak-productivity-time');
-            if (peakEl) peakEl.textContent = 'No hay datos suficientes';
+            if (peakEl) {
+                peakEl.textContent = trans.dashboard.emptyPeakProductivityTitle;
+            }
+
             const descriptionEl = document.getElementById('peak-productivity-desc');
-            if (descriptionEl) descriptionEl.textContent = 'Completá algunas sesiones de Pomodoro para descubrir tu momento peak de productividad.';
+            if (descriptionEl) {
+                descriptionEl.textContent = trans.dashboard.emptyPeakProductivityDesc;
+            }
             return;
         }
 
-        // Group sessions by weekday and hour to find the (weekday, hour) with most minutes
-        const dayHourMinutes: { [key: string]: number } = {};
+        // Group by day + hour
+        const dayHourMinutes: Record<string, number> = {};
+
         recentSessions.forEach(session => {
-            const sessionDate = new Date(session.start_time);
-            const day = sessionDate.getDay(); // 0-6
-            const hour = sessionDate.getHours(); // 0-23
+            const date = new Date(session.start_time);
+            const day = date.getDay();   // 0–6
+            const hour = date.getHours(); // 0–23
             const key = `${day}-${hour}`;
-            if (!dayHourMinutes[key]) dayHourMinutes[key] = 0;
-            dayHourMinutes[key] += session.duration;
+
+            dayHourMinutes[key] = (dayHourMinutes[key] || 0) + session.duration;
         });
 
-        // Find best day-hour combo
         let bestDay = -1;
         let bestHour = -1;
         let maxMinutes = 0;
-        Object.keys(dayHourMinutes).forEach(k => {
-            const minutes = dayHourMinutes[k];
+
+        Object.entries(dayHourMinutes).forEach(([key, minutes]) => {
             if (minutes > maxMinutes) {
                 maxMinutes = minutes;
-                const parts = k.split('-').map(p => parseInt(p, 10));
-                bestDay = parts[0];
-                bestHour = parts[1];
+                const [day, hour] = key.split('-').map(Number);
+                bestDay = day;
+                bestHour = hour;
             }
         });
 
-        // If nothing meaningful found, show no-data state
-        if (bestDay === -1 || bestHour === -1 || maxMinutes === 0) {
+        if (bestDay === -1 || bestHour === -1) {
             const peakEl = document.getElementById('peak-productivity-time');
-            if (peakEl) peakEl.textContent = 'No hay datos suficientes';
+            if (peakEl) {
+                peakEl.textContent = trans.dashboard.emptyPeakProductivityTitle;
+            }
+
             const descriptionEl = document.getElementById('peak-productivity-desc');
-            if (descriptionEl) descriptionEl.textContent = 'Completá algunas sesiones de Pomodoro para descubrir tu momento peak de productividad.';
+            if (descriptionEl) {
+                descriptionEl.textContent = trans.dashboard.emptyPeakProductivityDesc;
+            }
             return;
         }
 
-        // Calculate 3-hour window around peak (1 hour before, peak, 1 hour after)
         const startHour = Math.max(0, bestHour - 1);
         const endHour = Math.min(23, bestHour + 1);
 
-        // Format hour for display
-        const formatHour = (h: number) => `${h.toString().padStart(2, '0')}:00`;
+        const formatHour = (h: number) =>
+            `${h.toString().padStart(2, '0')}:00`;
 
-        const dayNames = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
-        const bestDayName = dayNames[bestDay] || '—';
+        // Días (hardcodeados; si querés los hacemos i18n luego)
+        const dayNames = [
+            'Domingo',
+            'Lunes',
+            'Martes',
+            'Miércoles',
+            'Jueves',
+            'Viernes',
+            'Sábado'
+        ];
 
-        // Update UI with peak productivity info (based only on real sessions)
         const peakEl = document.getElementById('peak-productivity-time');
         if (peakEl) {
-            peakEl.textContent = `${bestDayName}, ${formatHour(startHour)} - ${formatHour(endHour)}`;
+            peakEl.textContent = `${dayNames[bestDay]}, ${formatHour(startHour)} - ${formatHour(endHour)}`;
         }
 
         const descriptionEl = document.getElementById('peak-productivity-desc');
         if (descriptionEl) {
-            descriptionEl.innerHTML = `
-                Datos de las últimas 4 semanas indican que esta es tu franja de máxima concentración. 
-                <span class="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent font-medium">¡Aprovechala al máximo para tareas complejas!</span>
-            `;
+            descriptionEl.textContent =
+                'Datos de las últimas 4 semanas indican que esta es tu franja de máxima concentración.';
         }
+
     } catch (error) {
-        console.error("Error loading peak productivity:", error);
+        console.error('Error loading peak productivity:', error);
     }
 }
 
@@ -1253,11 +1294,12 @@ async function loadWeeklyBalance() {
         if (balanceChart && balanceChartParent) {
             // Show empty state if no data
             if (weeklySessions.length === 0 || topSubjects.length === 0) {
+                const trans = t();
                 balanceChartParent.innerHTML = `
                     <div class="flex flex-col items-center justify-center h-full py-8">
                         <i data-lucide="pie-chart" class="w-10 h-10 text-gray-600 mb-3"></i>
-                        <p class="text-gray-500 text-xs text-center">Aún no hay sesiones esta semana</p>
-                        <p class="text-gray-600 text-[10px] text-center mt-1">Completá sesiones para ver el balance</p>
+                        <p class="text-gray-500 text-xs text-center">${trans.dashboard.emptyBalanceTitle}</p>
+                        <p class="text-gray-600 text-[10px] text-center mt-1">${trans.dashboard.emptyBalanceDesc}</p>
                     </div>
                 `;
                 if (typeof lucide !== 'undefined') lucide.createIcons();
@@ -1407,11 +1449,12 @@ async function loadKeyHabits() {
         
         // Show empty state if no key habits
         if (keyHabits.length === 0) {
+            const trans = t();
             keyHabitsContainer.innerHTML = `
                 <div class="text-center py-8 text-gray-500">
                     <i data-lucide="target" class="w-8 h-8 mx-auto mb-2 text-gray-600"></i>
-                    <p class="text-sm">No tenés hábitos clave configurados aún.</p>
-                    <p class="text-xs mt-1">Marcá algunos hábitos como clave en la página de hábitos.</p>
+                    <p class="text-sm">${trans.dashboard.emptyKeyHabitsTitle}</p>
+                    <p class="text-xs mt-1">${trans.dashboard.emptyKeyHabitsDesc}</p>
                 </div>
             `;
             if (typeof lucide !== 'undefined') lucide.createIcons();
@@ -1516,16 +1559,17 @@ async function loadNextEvent() {
         
         if (upcomingEvents.length === 0) {
             // Show empty state
+            const trans = t();
             container.innerHTML = `
                 <div class="flex flex-col items-center justify-center py-8">
                     <div class="w-16 h-16 rounded-full bg-gradient-to-br from-purple-500/20 via-fuchsia-500/20 to-purple-500/20 flex items-center justify-center mb-4" style="box-shadow: 0 0 0 1px rgba(168,85,247,0.3);">
                         <i data-lucide="calendar-x" class="w-8 h-8 text-purple-400"></i>
                     </div>
-                    <h3 class="text-lg font-bold text-white mb-2">No hay eventos próximos</h3>
-                    <p class="text-gray-400 text-sm mb-4 text-center">Organizá tu tiempo creando eventos en el planificador.</p>
+                    <h3 class="text-lg font-bold text-white mb-2">${trans.dashboard.emptyNextEventTitle}</h3>
+                    <p class="text-gray-400 text-sm mb-4 text-center">${trans.dashboard.emptyNextEventDesc}</p>
                     <a href="planner.html" class="px-4 py-2 rounded-lg bg-gradient-to-r from-purple-500/20 via-pink-500/20 to-purple-500/20 text-purple-400 text-sm hover:from-purple-500/30 hover:via-pink-500/30 hover:to-purple-500/30 transition-all border border-purple-500/30 inline-flex items-center gap-2">
                         <i data-lucide="plus" class="w-4 h-4"></i>
-                        <span>Crear mi primer evento</span>
+                        <span>${trans.dashboard.emptyNextEventAction}</span>
                     </a>
                 </div>
             `;
@@ -1577,16 +1621,17 @@ async function loadNextEvent() {
     } catch (error) {
         console.error("Error loading next event:", error);
         // Show empty state on error too
+        const trans = t();
         container.innerHTML = `
             <div class="flex flex-col items-center justify-center py-8">
                 <div class="w-16 h-16 rounded-full bg-gradient-to-br from-purple-500/20 via-fuchsia-500/20 to-purple-500/20 flex items-center justify-center mb-4" style="box-shadow: 0 0 0 1px rgba(168,85,247,0.3);">
                     <i data-lucide="calendar-x" class="w-8 h-8 text-purple-400"></i>
                 </div>
-                <h3 class="text-lg font-bold text-white mb-2">No hay eventos próximos</h3>
-                <p class="text-gray-400 text-sm mb-4 text-center">Organizá tu tiempo creando eventos en el planificador.</p>
+                <h3 class="text-lg font-bold text-white mb-2">${trans.dashboard.emptyNextEventTitle}</h3>
+                <p class="text-gray-400 text-sm mb-4 text-center">${trans.dashboard.emptyNextEventDesc}</p>
                 <a href="planner.html" class="px-4 py-2 rounded-lg bg-gradient-to-r from-purple-500/20 via-pink-500/20 to-purple-500/20 text-purple-400 text-sm hover:from-purple-500/30 hover:via-pink-500/30 hover:to-purple-500/30 transition-all border border-purple-500/30 inline-flex items-center gap-2">
                     <i data-lucide="plus" class="w-4 h-4"></i>
-                    <span>Crear mi primer evento</span>
+                    <span>${trans.dashboard.emptyNextEventAction}</span>
                 </a>
             </div>
         `;
