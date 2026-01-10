@@ -414,34 +414,37 @@
             class="bg-dark-card border border-gray-800 rounded-2xl p-6 w-full max-w-md mx-4 shadow-2xl shadow-purple-900/20 transform transition-all scale-100">
     
             <div class="flex justify-between items-center mb-5">
-                <h2 class="text-xl font-bold text-white tracking-tight" data-i18n="dashboard.newObjective">Nuevo Objetivo</h2>
+                <h2 class="text-xl font-bold text-white tracking-tight" data-i18n="dashboard.newObjective">Nuevo Objetivo
+                </h2>
                 <button id="closeObjectiveModalBtn"
-                    class="text-gray-500 hover:text-white transition-colors p-1 rounded-md hover:bg-white/5">
+                    class="text-gray-500 hover:text-black transition-colors p-1 rounded-md hover:bg-white/5">
                     <i data-lucide="x" class="w-5 h-5"></i>
                 </button>
             </div>
     
             <form id="objectiveForm" class="space-y-4">
                 <div>
-                    <label class="block text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wider" data-i18n="dashboard.objectiveTitle">Título de la Misión</label>
+                    <label class="block text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wider"
+                        data-i18n="dashboard.objectiveTitle">Título de la Misión</label>
                     <input type="text" id="objectiveTitle" name="title" required
-                        class="w-full bg-dark-input border border-gray-700 rounded-xl px-4 py-2.5 text-white text-sm focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all placeholder-gray-600"
+                        class="w-full bg-dark-input border border-gray-700 rounded-xl px-4 py-2.5 text-black text-sm focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all placeholder-gray-600"
                         data-i18n-placeholder="dashboard.objectiveTitlePlaceholder"
                         placeholder="Ej: Finalizar Módulo de Redes">
                 </div>
     
                 <div class="grid grid-cols-3 gap-3">
                     <div class="col-span-2">
-                        <label class="block text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wider" data-i18n="dashboard.objectiveArea">Área / Etiqueta</label>
+                        <label class="block text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wider"
+                            data-i18n="dashboard.objectiveArea">Área / Etiqueta</label>
                         <input type="text" id="objectiveArea" name="area"
-                            class="w-full bg-dark-input border border-gray-700 rounded-xl px-4 py-2.5 text-white text-sm focus:border-purple-500 outline-none transition-all placeholder-gray-600"
-                            data-i18n-placeholder="dashboard.objectiveAreaPlaceholder"
-                            placeholder="Ej: Ciberseguridad">
+                            class="w-full bg-dark-input border border-gray-700 rounded-xl px-4 py-2.5 text-black text-sm focus:border-purple-500 outline-none transition-all placeholder-gray-600"
+                            data-i18n-placeholder="dashboard.objectiveAreaPlaceholder" placeholder="Ej: Ciberseguridad">
                     </div>
                     <div class="col-span-1">
-                        <label class="block text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wider" data-i18n="dashboard.objectiveIcon">Icono</label>
+                        <label class="block text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wider"
+                            data-i18n="dashboard.objectiveIcon">Icono</label>
                         <select id="objectiveIcon" name="icon"
-                            class="w-full bg-dark-input border border-gray-700 rounded-xl px-2 py-2.5 text-white text-sm focus:border-purple-500 outline-none transition-all cursor-pointer appearance-none text-center">
+                            class="w-full bg-dark-input border border-gray-700 rounded-xl px-2 py-2.5 text-black text-sm focus:border-purple-500 outline-none transition-all cursor-pointer appearance-none text-center">
                             <option value="⚡">⚡</option>
                             <option value="🧠">🧠</option>
                             <option value="🛡️">🛡️</option>
@@ -455,30 +458,31 @@
                 </div>
     
                 <div>
-                    <label class="block text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wider" data-i18n="dashboard.objectiveDetails">Detalles Tácticos</label>
+                    <label class="block text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wider"
+                        data-i18n="dashboard.objectiveDetails">Detalles Tácticos</label>
                     <textarea id="objectiveDetail" name="detail" rows="3"
-                        class="w-full bg-dark-input border border-gray-700 rounded-xl px-4 py-2.5 text-white text-sm focus:border-purple-500 outline-none resize-none transition-all placeholder-gray-600"
+                        class="w-full bg-dark-input border border-gray-700 rounded-xl px-4 py-2.5 text-black text-sm focus:border-purple-500 outline-none resize-none transition-all placeholder-gray-600"
                         data-i18n-placeholder="dashboard.objectiveDetailsPlaceholder"
                         placeholder="¿Qué pasos específicos vas a tomar?"></textarea>
                 </div>
     
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label
-                            class="block text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wider" data-i18n="dashboard.objectivePriority">Prioridad</label>
+                        <label class="block text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wider"
+                            data-i18n="dashboard.objectivePriority">Prioridad</label>
                         <select id="objectivePriority" name="priority"
-                            class="w-full bg-dark-input border border-gray-700 rounded-xl px-4 py-2.5 text-white text-sm focus:border-purple-500 outline-none transition-all appearance-none">
-                            <option value="1">Prioridad Alta 🔥</option>
-                            <option value="2" selected>Exploración Clave ✨</option>
-                            <option value="3">Complementario 🍃</option>
+                            class="w-full bg-dark-input border border-gray-700 rounded-xl px-4 py-2.5 text-black text-sm focus:border-purple-500 outline-none transition-all appearance-none">
+                            <option value="1" data-i18n="dashboard.highPriority">Prioridad Alta 🔥</option>
+                            <option value="2" data-i18n="dashboard.keyExploration">Exploración Clave ✨</option>
+                            <option value="3" data-i18n="dashboard.complementary">Complementario 🍃</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wider" data-i18n="dashboard.objectivePomodoroGoal">Meta Pomodoro</label>
+                        <label class="block text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wider"
+                            data-i18n="dashboard.objectivePomodoroGoal">Meta Pomodoro</label>
                         <input type="text" id="objectiveNotes" name="notes"
-                            class="w-full bg-dark-input border border-gray-700 rounded-xl px-4 py-2.5 text-white text-sm focus:border-purple-500 outline-none transition-all placeholder-gray-600"
-                            data-i18n-placeholder="dashboard.objectivePomodoroGoalPlaceholder"
-                            placeholder="Ej: 3 bloques">
+                            class="w-full bg-dark-input border border-gray-700 rounded-xl px-4 py-2.5 text-black text-sm focus:border-purple-500 outline-none transition-all placeholder-gray-600"
+                            data-i18n-placeholder="dashboard.objectivePomodoroGoalPlaceholder" placeholder="Ej: 3 bloques">
                     </div>
                 </div>
     
@@ -489,7 +493,7 @@
                         Cancelar
                     </button>
                     <button type="submit" id="submitObjectiveBtn"
-                        class="flex-1 px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-fuchsia-600 text-white text-sm font-bold hover:shadow-[0_0_20px_rgba(168,85,247,0.4)] transition-all transform hover:scale-[1.02]"
+                        class="flex-1 px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-fuchsia-600 text-black text-sm font-bold hover:shadow-[0_0_20px_rgba(168,85,247,0.4)] transition-all transform hover:scale-[1.02]"
                         data-i18n="dashboard.createObjective">
                         Crear Objetivo
                     </button>
@@ -501,7 +505,7 @@
     <div id="pomodoroSettingsModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center transition-all duration-300" style="display:none; z-index: 1000;">
         <div class="bg-dark-card border border-gray-800 rounded-2xl p-6 w-full max-w-lg mx-4 shadow-2xl shadow-purple-900/20 transform transition-all scale-100">
             <div class="flex justify-between items-center mb-5">
-                <h2 class="text-xl font-bold text-white tracking-tight">Ajustes Pomodoro</h2>
+                <h2 class="text-xl font-bold text-white tracking-tight" data-i18n="dashboard.pomodoroSettings">Ajustes Pomodoro</h2>
                 <button id="pomodoroSettingsCloseBtn" class="text-gray-500 hover:text-white transition-colors p-1 rounded-md hover:bg-white/5">
                     <i data-lucide="x" class="w-5 h-5"></i>
                 </button>
@@ -509,7 +513,7 @@
             
             <form id="pomodoroSettingsForm" class="space-y-4">
                 <div>
-                    <label class="block text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wider">Duración Enfoque (min)</label>
+                    <label class="block text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wider" data-i18n="dashboard.pomodoroFocusLength">Duración Enfoque (min)</label>
                     <input type="number" name="workMinutes" id="workMinutes" min="1" 
                         class="w-full bg-dark-input border border-gray-700 rounded-xl px-4 py-2.5 text-sm focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all placeholder-gray-600"
                         style="color: #000000 !important; background-color: #ffffff !important;"
@@ -518,14 +522,14 @@
                 
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wider">Descanso Corto (min)</label>
+                        <label class="block text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wider" data-i18n="dashboard.pomodoroShortBreak">Descanso Corto (min)</label>
                         <input type="number" name="shortBreakMinutes" id="shortBreakMinutes" min="1" 
                             class="w-full bg-dark-input border border-gray-700 rounded-xl px-4 py-2.5 text-sm focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all placeholder-gray-600"
                             style="color: #000000 !important; background-color: #ffffff !important;"
                             placeholder="Ej: 5">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wider">Descanso Largo (min)</label>
+                        <label class="block text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wider" data-i18n="dashboard.pomodoroLongBreak">Descanso Largo (min)</label>
                         <input type="number" name="longBreakMinutes" id="longBreakMinutes" min="1" 
                             class="w-full bg-dark-input border border-gray-700 rounded-xl px-4 py-2.5 text-sm focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all placeholder-gray-600"
                             style="color: #000000 !important; background-color: #ffffff !important;"
@@ -534,7 +538,7 @@
                 </div>
                 
                 <div>
-                    <label class="block text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wider">Ciclos Antes de Descanso Largo</label>
+                    <label class="block text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wider" data-i18n="dashboard.cyclesBeforeLongBreak">Ciclos Antes de Descanso Largo</label>
                     <input type="number" name="cyclesBeforeLongBreak" id="cyclesBeforeLongBreak" min="1" 
                         class="w-full bg-dark-input border border-gray-700 rounded-xl px-4 py-2.5 text-sm focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all placeholder-gray-600"
                         style="color: #000000 !important; background-color: #ffffff !important;"
@@ -542,21 +546,17 @@
                 </div>
                 
                 <div>
-                    <label class="block text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wider">Materia por Defecto (opcional)</label>
+                    <label class="block text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wider" data-i18n="dashboard.pomodoroOptionalDefaultSubject">Materia (opcional)</label>
                     <select id="pomodoroDefaultSubjectSelect" 
                         class="w-full bg-dark-input border border-gray-700 rounded-xl px-4 py-2.5 text-sm focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all appearance-none cursor-pointer"
                         style="color: #000000 !important; background-color: #ffffff !important;">
-                        <option value="" style="color: #000000; background-color: #ffffff;">-- Ninguna --</option>
+                        <option value="" style="color: #000000; background-color: #ffffff;" data-i18n="dashboard.noPomodoroSubject">-- Ninguna --</option>
                     </select>
                 </div>
 
                 <div class="flex gap-3 pt-4 border-t border-gray-800/50 mt-2">
-                    <button type="button" id="pomodoroSettingsCancel" 
-                        class="flex-1 px-4 py-2.5 rounded-xl bg-transparent border border-gray-700 text-gray-300 text-sm font-medium hover:bg-gray-800 transition-all">
-                        Cancelar
-                    </button>
-                    <button type="submit" id="pomodoroSettingsSave" 
-                        class="flex-1 px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-fuchsia-600 text-white text-sm font-bold hover:shadow-[0_0_20px_rgba(168,85,247,0.4)] transition-all transform hover:scale-[1.02]">
+                    <button type="button" id="pomodoroSettingsCancel" class="flex-1 px-4 py-2.5 rounded-xl bg-transparent border border-gray-700 text-gray-300 text-sm font-medium hover:bg-gray-800 transition-all" data-i18n="dashboard.pomodoroSettingsCancel"> Cancelar </button>
+                    <button type="submit" id="pomodoroSettingsSave" class="flex-1 px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-fuchsia-600 text-white text-sm font-bold hover:shadow-[0_0_20px_rgba(168,85,247,0.4)] transition-all transform hover:scale-[1.02]" data-i18n="dashboard.pomodoroSettingsSave">
                         Guardar
                     </button>
                 </div>

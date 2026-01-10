@@ -87,13 +87,28 @@ export interface Translations {
         greetingSubtitle: string;
         weeklyObjectives: string;
         weeklyObjectivesDesc: string;
+        highPriority: string;
+        keyExploration: string;
+        complementary: string;
         addObjective: string;
         pomodoroZone: string;
+        pomodoroSettings: string;
+        pomodoroFocusLength: string;
+        pomodoroShortBreak: string;
+        pomodoroLongBreak: string;
+        cyclesBeforeLongBreak: string;
+        pomodoroOptionalDefaultSubject: string;
+        pomodoroSettingsCancel: string;
+        pomodoroSettingsSave: string;
+        noPomodoroSubject: string;
         focus: string;
         weeklyRhythm: string;
         weeklyRhythmDesc: string;
+        weekDaysAbbrebiation: string[];
+        weekDays: string[];
         focusDistribution: string;
         focusDistributionDesc: string;
+        focusDistributionNoSubject: string;
         nextEvent: string;
         weeklyChallenge: string;
         weeklyInfo1: string;
@@ -102,15 +117,23 @@ export interface Translations {
         weeklyReward1: string;
         weeklyReward2: string;
         peakProductivity: string;
+        days: string[];
+        peakProductivityAnalysisDesc: string;
         weeklyBalance: string;
         weeklyBalanceDesc: string;
         keyHabits: string;
         keyHabitsDesc: string;
+        keyHabitsStreak: string;
         dailyProgress: string;
         concentrationEnterTitle: string;
         concentrationEnterBody: string;
         concentrationExitTitle: string;
         concentrationExitBody: string;
+        plannerFull: string;
+        eventTypeStudyBlock: string;
+        eventTypeExam: string;
+        eventTypeImportantTask: string;
+        eventTypePersonal: string;
         // Empty states
         emptyObjectivesTitle: string;
         emptyObjectivesDesc: string;
@@ -191,6 +214,7 @@ export interface Translations {
         exam: string;
         importantTask: string;
         personal: string;
+
     };
     // Subjects
     subjects: {
@@ -313,16 +337,33 @@ export const translations: Record<Language, Translations> = {
             greetingSubtitle: 'es hora de diseñar tu obra maestra de estudio.',
             weeklyObjectives: 'Plan de Dominación Semanal',
             weeklyObjectivesDesc: 'Definí tus objetivos cruciales por área. Claridad es poder.',
+            highPriority: 'Alta prioridad 🔥',
+            keyExploration: 'Exploración clave ✨',
+            complementary: 'Complementario 🍃',
             addObjective: 'Añadir Objetivo Estratégico',
             pomodoroZone: 'Zona de Enfoque Pomodoro',
+            pomodoroSettings: 'Ajustes Pomodoro',
+            pomodoroFocusLength: 'Duración Enfoque (min)',
+            pomodoroShortBreak: 'Descanso Corto (min)',
+            pomodoroLongBreak: 'Descanso Largo (min)',
+            cyclesBeforeLongBreak: 'Ciclos Antes de Descanso Largo',
+            pomodoroOptionalDefaultSubject: 'Materia por Defecto (opcional)',
+            pomodoroSettingsCancel: 'Cancelar',
+            pomodoroSettingsSave: 'Guardar',
+            noPomodoroSubject: '-- Ninguna --',
             focus: 'Enfoque',
             weeklyRhythm: 'Ritmo de Estudio Semanal',
             weeklyRhythmDesc: 'Horas de estudio profundo registradas.',
+            weekDaysAbbrebiation: ['Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sá', 'Do'],
+            weekDays: ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'],
             focusDistribution: 'Distribución de Enfoque',
             focusDistributionDesc: 'Tiempo dedicado por área de estudio.',
+            focusDistributionNoSubject: 'Sin materia',
             nextEvent: 'Próximo Evento',
             weeklyChallenge: 'Desafío Semanal Activo',
             peakProductivity: 'Tu Momento Peak de Productividad',
+            days: ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'],
+            peakProductivityAnalysisDesc: "Datos de las últimas 4 semanas indican que esta es tu franja de máxima concentración.",    
             weeklyBalance: 'Revisión de Balance Semanal',
             weeklyBalanceDesc: 'Analizá tu distribución de tiempo y ajustá tu estrategia.',
             weeklyInfo1: 'Racha de Enfoque Élite',
@@ -332,11 +373,17 @@ export const translations: Record<Language, Translations> = {
             weeklyReward2: 'Acceso Beta: Sonidos Binaurales Avanzados',
             keyHabits: 'Impulso de Hábitos Clave',
             keyHabitsDesc: 'Pequeñas victorias diarias, grandes resultados.',
+            keyHabitsStreak: 'Racha: ',
             dailyProgress: 'Progreso Diario General',
             concentrationEnterTitle: 'Modo Enfoque Absoluto Activado.',
             concentrationEnterBody: 'Tu espacio de concentración. Sin distracciones.',
             concentrationExitTitle: 'Modo Enfoque Desactivado.',
             concentrationExitBody: 'Bienvenido de nuevo a tu centro de mando.',
+            plannerFull: 'Ver todos los eventos →',
+            eventTypeStudyBlock: 'Bloque de estudio',
+            eventTypeExam: 'Examen',
+            eventTypeImportantTask: 'Tarea importante',
+            eventTypePersonal: 'Personal',
             // Empty states
             emptyObjectivesTitle: 'Sin objetivos estratégicos',
             emptyObjectivesDesc: 'La semana te domina si no tienes un plan. Define tu primera victoria ahora.',
@@ -533,13 +580,28 @@ export const translations: Record<Language, Translations> = {
             greetingSubtitle: 'it\'s time to design your study masterpiece.',
             weeklyObjectives: 'Weekly Domination Plan',
             weeklyObjectivesDesc: 'Define your crucial objectives by area. Clarity is power.',
+            highPriority: 'High priority 🔥',
+            keyExploration: 'Key exploration ✨',
+            complementary: 'Complementary 🍃',
             addObjective: 'Add Strategic Objective',
             pomodoroZone: 'Pomodoro Focus Zone',
+            pomodoroSettings: 'Pomodoro Settings',
+            pomodoroFocusLength: 'Focus Duration (min)',
+            pomodoroShortBreak: 'Short Break (min)',
+            pomodoroLongBreak: 'Long Break (min)',
+            cyclesBeforeLongBreak: 'Cycles Before Long Break',
+            pomodoroOptionalDefaultSubject: 'Default Subject (optional)',
+            pomodoroSettingsCancel: 'Cancel',
+            pomodoroSettingsSave: 'Save',
+            noPomodoroSubject: '-- None --',
             focus: 'Focus',
             weeklyRhythm: 'Weekly Study Rhythm',
             weeklyRhythmDesc: 'Deep study hours recorded.',
+            weekDaysAbbrebiation: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+            weekDays: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
             focusDistribution: 'Focus Distribution',
             focusDistributionDesc: 'Time dedicated per study area.',
+            focusDistributionNoSubject: 'No subject', 
             nextEvent: 'Next Event',
             weeklyChallenge: 'Active Weekly Challenge',
             weeklyInfo1: 'Elite Focus Streak',
@@ -548,15 +610,23 @@ export const translations: Record<Language, Translations> = {
             weeklyReward1: 'Reward: ',
             weeklyReward2: 'Beta Access: Advanced Binaural Sounds',
             peakProductivity: 'Your Peak Productivity Moment',
+            days: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+            peakProductivityAnalysisDesc: "Data from the last 4 weeks indicates this is your peak focus time.",
             weeklyBalance: 'Weekly Balance Review',
             weeklyBalanceDesc: 'Analyze your time distribution and adjust your strategy.',
             keyHabits: 'Key Habits Boost',
             keyHabitsDesc: 'Small daily wins, big results.',
+            keyHabitsStreak: 'Streak: ',
             dailyProgress: 'General Daily Progress',
             concentrationEnterTitle: 'Full Focus Mode enabled.',
             concentrationEnterBody: 'Your concentration space. No distractions.',
             concentrationExitTitle: 'Focus Mode disabled.',
             concentrationExitBody: 'Welcome back to your command center.',
+            plannerFull: 'View all events →',
+            eventTypeStudyBlock: 'Study block',
+            eventTypeExam: 'Exam',
+            eventTypeImportantTask: 'Important task',
+            eventTypePersonal: 'Personal',
             // Empty states
             emptyObjectivesTitle: 'No strategic objectives',
             emptyObjectivesDesc: 'The week dominates you if you don\'t have a plan. Define your first victory now.',
@@ -753,13 +823,28 @@ export const translations: Record<Language, Translations> = {
             greetingSubtitle: '是时候设计你的学习杰作了。',
             weeklyObjectives: '每周主导计划',
             weeklyObjectivesDesc: '按领域定义你的关键目标。清晰就是力量。',
+            highPriority: '高优先级 🔥',
+            keyExploration: '关键探索 ✨',
+            complementary: '补充内容 🍃',
             addObjective: '添加战略目标',
             pomodoroZone: '番茄工作法专注区',
+            pomodoroSettings: '番茄钟设置',
+            pomodoroFocusLength: '专注时长 (分钟)',
+            pomodoroShortBreak: '短休息 (分钟)',
+            pomodoroLongBreak: '长休息 (分钟)',
+            cyclesBeforeLongBreak: '长休息前循环次数',
+            pomodoroOptionalDefaultSubject: '默认科目 (可选)',
+            pomodoroSettingsCancel: '取消',
+            pomodoroSettingsSave: '保存',
+            noPomodoroSubject: '-- 无 --',
             focus: '专注',
             weeklyRhythm: '每周学习节奏',
             weeklyRhythmDesc: '记录的深度学习时间。',
+            weekDaysAbbrebiation: ['周一', '周二', '周三', '周四', '周五', '周六', '周日'],
+            weekDays: ['星期一', '星期二', '星期三', '星期四', '星期五', '星期六', '星期日'],
             focusDistribution: '专注分布',
             focusDistributionDesc: '每个学习领域的时间分配。',
+            focusDistributionNoSubject: '無主題', 
             nextEvent: '下一个活动',
             weeklyChallenge: '活跃的每周挑战',
             weeklyInfo1: '精英专注连胜',
@@ -768,15 +853,23 @@ export const translations: Record<Language, Translations> = {
             weeklyReward1: '奖励：',
             weeklyReward2: '测试版权限：高级双耳节拍音效',
             peakProductivity: '你的最佳生产力时刻',
+            days: ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"],
+            peakProductivityAnalysisDesc: "过去4周的数据显示，这是您注意力最集中的时段。",
             weeklyBalance: '每周平衡回顾',
             weeklyBalanceDesc: '分析你的时间分配，并调整你的策略。',
             keyHabits: '关键习惯推动',
             keyHabitsDesc: '每日小胜，带来巨大成果。',
+            keyHabitsStreak: '连续: ',
             dailyProgress: '总体每日进度',
             concentrationEnterTitle: '专注模式已启用。',
             concentrationEnterBody: '你的专注空间，没有干扰。',
             concentrationExitTitle: '专注模式已关闭。',
             concentrationExitBody: '欢迎回到你的控制中心。',
+            plannerFull: '查看所有事件 →',
+            eventTypeStudyBlock: '学习时段', 
+            eventTypeExam: '考试',
+            eventTypeImportantTask: '重要任务',
+            eventTypePersonal: '个人',
             // Empty states
             emptyObjectivesTitle: '没有战略目标',
             emptyObjectivesDesc: '如果你没有计划，这一周就会控制你。现在就定义你的第一次胜利。',
@@ -974,16 +1067,33 @@ export const translations: Record<Language, Translations> = {
             greetingSubtitle: 'é hora de projetar sua obra-prima de estudo.',
             weeklyObjectives: 'Plano de Dominação Semanal',
             weeklyObjectivesDesc: 'Defina seus objetivos cruciais por área. Clareza é poder.',
+            highPriority: 'Alta prioridade 🔥',
+            keyExploration: 'Exploração chave ✨',
+            complementary: 'Complementar 🍃',
             addObjective: 'Adicionar Objetivo Estratégico',
             pomodoroZone: 'Zona de Foco Pomodoro',
+            pomodoroSettings: 'Configurações Pomodoro',
+            pomodoroFocusLength: 'Duração do Foco (min)',
+            pomodoroShortBreak: 'Pausa Curta (min)',
+            pomodoroLongBreak: 'Pausa Longa (min)',
+            cyclesBeforeLongBreak: 'Ciclos Antes da Pausa Longa',
+            pomodoroOptionalDefaultSubject: 'Matéria Padrão (opcional)',
+            pomodoroSettingsCancel: 'Cancelar',
+            pomodoroSettingsSave: 'Salvar',
+            noPomodoroSubject: '-- Nenhuma --',
             focus: 'Foco',
             weeklyRhythm: 'Ritmo de Estudo Semanal',
             weeklyRhythmDesc: 'Horas de estudo profundo registradas.',
+            weekDaysAbbrebiation: ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'],
+            weekDays: ['Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado', 'Domingo'],
             focusDistribution: 'Distribuição de Foco',
             focusDistributionDesc: 'Tempo dedicado por área de estudo.',
+            focusDistributionNoSubject: 'Sin materia',
             nextEvent: 'Próximo Evento',
             weeklyChallenge: 'Desafio Semanal Ativo',
             peakProductivity: 'Seu Momento de Pico de Produtividade',
+            days: ["Domingo", "Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado"],
+            peakProductivityAnalysisDesc: "Dados das últimas 4 semanas indicam que este é o seu horário de maior concentração.",
             weeklyBalance: 'Revisão de Equilíbrio Semanal',
             weeklyBalanceDesc: 'Analise sua distribuição de tempo e ajuste sua estratégia.',
             weeklyInfo1: 'Sequência de Foco Elite',
@@ -993,11 +1103,17 @@ export const translations: Record<Language, Translations> = {
             weeklyReward2: 'Acesso Beta: Sons Binaurais Avançados',
             keyHabits: 'Impulso de Hábitos Chave',
             keyHabitsDesc: 'Pequenas vitórias diárias, grandes resultados.',
+            keyHabitsStreak: 'Sequência: ',
             dailyProgress: 'Progresso Diário Geral',
             concentrationEnterTitle: 'Modo Foco Total ativado.',
             concentrationEnterBody: 'Seu espaço de concentração. Sem distrações.',
             concentrationExitTitle: 'Modo Foco desativado.',
             concentrationExitBody: 'Bem-vindo de volta ao seu centro de comando.',
+            plannerFull: 'Ver todos os eventos →',
+            eventTypeStudyBlock: 'Bloco de estudo',
+            eventTypeExam: 'Exame',
+            eventTypeImportantTask: 'Tarefa importante',
+            eventTypePersonal: 'Pessoal',
             // Empty states
             emptyObjectivesTitle: 'Sem objetivos estratégicos',
             emptyObjectivesDesc: 'A semana te domina se você não tem um plano. Defina sua primeira vitória agora.',

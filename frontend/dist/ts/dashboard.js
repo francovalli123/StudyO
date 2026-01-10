@@ -754,6 +754,8 @@ function loadPomodoroStats() {
 function loadWeeklyStudyRhythm() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
+            // 1. Load translations at the beginning
+            const trans = t();
             // Fetch all Pomodoro sessions
             const sessions = yield apiGet("/pomodoro/");
             // Get sessions from the past week
@@ -771,8 +773,9 @@ function loadWeeklyStudyRhythm() {
                 const dayOfWeek = sessionDate.getDay();
                 dayMinutes[dayOfWeek] += session.duration;
             });
+            // 2. Get abbreviated days from translation (Mon, Tue, etc.)
+            const weekDaysAbbrebiation = trans.dashboard.weekDaysAbbrebiation;
             // Convert to array for chart (Monday to Sunday)
-            const weekDays = ['Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sá', 'Do'];
             const dataPoints = [
                 dayMinutes[1], // Monday
                 dayMinutes[2], // Tuesday
@@ -789,15 +792,27 @@ function loadWeeklyStudyRhythm() {
             const chartContainer = document.getElementById('weekly-rhythm-chart');
             const chartParent = chartContainer === null || chartContainer === void 0 ? void 0 : chartContainer.parentElement;
             if (chartContainer && chartParent) {
+                // Update the existing labels container in the HTML
+                // We select the div with specific classes found in your HTML
+                const labelsContainer = chartParent.querySelector('.absolute.bottom-0.flex');
+                if (labelsContainer) {
+                    labelsContainer.innerHTML = weekDaysAbbrebiation
+                        .map(day => `<span>${day}</span>`)
+                        .join('');
+                }
                 // Show empty state if no sessions this week
                 if (weeklySessions.length === 0) {
-                    const trans = t();
-                    chartParent.innerHTML = `
-                    <div class="flex flex-col items-center justify-center h-full py-8">
-                        <i data-lucide="bar-chart-2" class="w-12 h-12 text-gray-600 mb-3"></i>
-                        <p class="text-gray-500 text-sm text-center">${trans.dashboard.emptyRhythmTitle}</p>
-                        <p class="text-gray-600 text-xs text-center mt-1">${trans.dashboard.emptyRhythmDesc}</p>
-                    </div>
+                    // Keep the container structure but replace content or overlay message
+                    // Note: If you want to replace the WHOLE content including labels, do it here.
+                    // Assuming we want to show a message over the chart area:
+                    const svg = chartContainer;
+                    svg.innerHTML = `
+                    <foreignObject width="100%" height="100%">
+                         <div class="flex flex-col items-center justify-center h-full pb-6">
+                            <i data-lucide="bar-chart-2" class="w-8 h-8 text-gray-600 mb-2"></i>
+                            <p class="text-gray-500 text-xs text-center">${trans.dashboard.emptyRhythmTitle}</p>
+                        </div>
+                    </foreignObject>
                 `;
                     if (typeof lucide !== 'undefined')
                         lucide.createIcons();
@@ -831,7 +846,8 @@ function loadWeeklyStudyRhythm() {
                 else if (points.length === 1) {
                     pathD = `M ${points[0].x} ${points[0].y}`;
                 }
-                const weekDays = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+                // 3. Get full day names for tooltips
+                const weekDays = trans.dashboard.weekDays;
                 // Render SVG with path and data points
                 svg.innerHTML = `
                 <path d="${pathD}" fill="none" stroke="#c084fc" stroke-width="3" />
@@ -893,6 +909,7 @@ function loadWeeklyStudyRhythm() {
  */
 function loadFocusDistribution() {
     return __awaiter(this, void 0, void 0, function* () {
+        const trans = t();
         try {
             // Fetch sessions and subjects
             const sessions = yield apiGet("/pomodoro/");
@@ -943,7 +960,7 @@ function loadFocusDistribution() {
             if (subjectMinutes[-1] && subjectMinutes[-1] > 0) {
                 subjectData.push({
                     id: -1,
-                    name: 'Sin materia',
+                    name: trans.dashboard.focusDistributionNoSubject,
                     minutes: subjectMinutes[-1],
                     percentage: totalMinutes > 0 ? (subjectMinutes[-1] / totalMinutes) * 100 : 0
                 });
@@ -1101,24 +1118,16 @@ function loadPeakProductivity() {
             const startHour = Math.max(0, bestHour - 1);
             const endHour = Math.min(23, bestHour + 1);
             const formatHour = (h) => `${h.toString().padStart(2, '0')}:00`;
-            // Días (hardcodeados; si querés los hacemos i18n luego)
-            const dayNames = [
-                'Domingo',
-                'Lunes',
-                'Martes',
-                'Miércoles',
-                'Jueves',
-                'Viernes',
-                'Sábado'
-            ];
             const peakEl = document.getElementById('peak-productivity-time');
             if (peakEl) {
-                peakEl.textContent = `${dayNames[bestDay]}, ${formatHour(startHour)} - ${formatHour(endHour)}`;
+                // bestday is an index 0-6, which fits perfectly with the array in the JSON
+                const dayName = trans.dashboard.days[bestDay];
+                peakEl.textContent = `${dayName}, ${formatHour(startHour)} - ${formatHour(endHour)}`;
             }
             const descriptionEl = document.getElementById('peak-productivity-desc');
             if (descriptionEl) {
-                descriptionEl.textContent =
-                    'Datos de las últimas 4 semanas indican que esta es tu franja de máxima concentración.';
+                // Translation for the description
+                descriptionEl.textContent = trans.dashboard.peakProductivityAnalysisDesc;
             }
         }
         catch (error) {
@@ -1322,6 +1331,8 @@ function toggleHabitCompletion(habitId, complete) {
 function loadKeyHabits() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
+            // 1. Initialize translations at the start to use them globally within the function
+            const trans = t();
             // Fetch all habits
             const habits = yield apiGet("/habits/");
             // Filter only key habits
@@ -1331,7 +1342,6 @@ function loadKeyHabits() {
                 return;
             // Show empty state if no key habits
             if (keyHabits.length === 0) {
-                const trans = t();
                 keyHabitsContainer.innerHTML = `
                 <div class="text-center py-8 text-gray-500">
                     <i data-lucide="target" class="w-8 h-8 mx-auto mb-2 text-gray-600"></i>
@@ -1373,7 +1383,7 @@ function loadKeyHabits() {
                     <div class="flex items-center gap-1 text-xs bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
                         <i data-lucide="trending-up" class="w-3 h-3"></i>
                         <p class="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent font-semibold">
-                            Racha: ${habit.streak}
+                            ${trans.dashboard.keyHabitsStreak || 'Streak:'} ${habit.streak}
                         </p>
                     </div>
                 </div>
@@ -1406,34 +1416,37 @@ function loadKeyHabits() {
         }
     });
 }
+// Make sure to import getCurrentLanguage at the top of your file:
+// import { t, translations, getCurrentLanguage } from "./i18n.js";
 /**
  * Load and display the next upcoming event
  */
 function loadNextEvent() {
     return __awaiter(this, void 0, void 0, function* () {
+        const trans = t();
         const container = document.getElementById('nextEventContainer');
         if (!container)
             return;
         try {
             const events = yield getEvents();
-            // Filter events that are today or in the future
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
+            // Get current date and time
+            const now = new Date();
             const upcomingEvents = events
                 .filter(event => {
-                const eventDate = new Date(event.date);
-                eventDate.setHours(0, 0, 0, 0);
-                return eventDate >= today;
+                // Create date object from event date and start time
+                // Assuming format YYYY-MM-DD and HH:MM
+                const eventStart = new Date(`${event.date}T${event.start_time}`);
+                // Filter events that are strictly in the future
+                return eventStart > now;
             })
                 .sort((a, b) => {
-                // Sort by date, then by start time
+                // Sort by date and time (ascending)
                 const dateA = new Date(`${a.date}T${a.start_time}`);
                 const dateB = new Date(`${b.date}T${b.start_time}`);
                 return dateA.getTime() - dateB.getTime();
             });
             if (upcomingEvents.length === 0) {
                 // Show empty state
-                const trans = t();
                 container.innerHTML = `
                 <div class="flex flex-col items-center justify-center py-8">
                     <div class="w-16 h-16 rounded-full bg-gradient-to-br from-purple-500/20 via-fuchsia-500/20 to-purple-500/20 flex items-center justify-center mb-4" style="box-shadow: 0 0 0 1px rgba(168,85,247,0.3);">
@@ -1452,15 +1465,40 @@ function loadNextEvent() {
                 return;
             }
             const nextEvent = upcomingEvents[0];
-            const eventDate = new Date(nextEvent.date);
+            // Format time for display
             const startTime = nextEvent.start_time.substring(0, 5);
             const endTime = nextEvent.end_time.substring(0, 5);
+            // --- Smart Date Display Logic ---
+            const lang = typeof getCurrentLanguage === 'function' ? getCurrentLanguage() : 'es';
+            // Create date objects resetting time to midnight for accurate day comparison
+            const eventDateObj = new Date(`${nextEvent.date}T00:00:00`);
+            const todayObj = new Date();
+            todayObj.setHours(0, 0, 0, 0);
+            let dateDisplayString;
+            // Check if event date is today
+            if (eventDateObj.getTime() === todayObj.getTime()) {
+                // Dictionary for "Today"
+                const todayTrans = {
+                    es: 'Hoy',
+                    en: 'Today',
+                    pt: 'Hoje',
+                    zh: '今天'
+                };
+                dateDisplayString = todayTrans[lang] || 'Hoy';
+            }
+            else {
+                // If not today, format full date (e.g., "Mon, Jan 12")
+                // We force uppercase first letter for aesthetics
+                const rawDate = eventDateObj.toLocaleDateString(lang, { weekday: 'short', day: 'numeric', month: 'short' });
+                dateDisplayString = rawDate.charAt(0).toUpperCase() + rawDate.slice(1);
+            }
+            // --------------------------------
             // Get event type display name
             const typeNames = {
-                1: 'Bloque de Estudio',
-                2: 'Examen',
-                3: 'Tarea Importante',
-                4: 'Personal'
+                1: trans.dashboard.eventTypeStudyBlock,
+                2: trans.dashboard.eventTypeExam,
+                3: trans.dashboard.eventTypeImportantTask,
+                4: trans.dashboard.eventTypePersonal
             };
             const typeClass = nextEvent.type === 2 ? 'exam' : nextEvent.type === 3 ? 'task' : nextEvent.type === 4 ? 'personal' : '';
             container.innerHTML = `
@@ -1473,7 +1511,7 @@ function loadNextEvent() {
                     <div class="flex items-center gap-4 text-sm text-gray-400">
                         <div class="flex items-center gap-1">
                             <i data-lucide="calendar" class="w-4 h-4"></i>
-                            <span>${formatDate(nextEvent.date)}</span>
+                            <span class="font-medium text-purple-300">${dateDisplayString}</span>
                         </div>
                         <div class="flex items-center gap-1">
                             <i data-lucide="clock" class="w-4 h-4"></i>
@@ -1483,7 +1521,7 @@ function loadNextEvent() {
                     ${nextEvent.notes ? `<p class="text-sm text-gray-500 mt-2">${nextEvent.notes}</p>` : ''}
                 </div>
                 <a href="planner.html" class="block text-center text-sm text-purple-400 hover:text-purple-300 transition-colors">
-                    Ver todos los eventos →
+                    ${trans.dashboard.plannerFull}
                 </a>
             </div>
         `;
@@ -1493,7 +1531,7 @@ function loadNextEvent() {
         catch (error) {
             console.error("Error loading next event:", error);
             // Show empty state on error too
-            const trans = t();
+            const trans = t(); // Ensure trans is available in catch block
             container.innerHTML = `
             <div class="flex flex-col items-center justify-center py-8">
                 <div class="w-16 h-16 rounded-full bg-gradient-to-br from-purple-500/20 via-fuchsia-500/20 to-purple-500/20 flex items-center justify-center mb-4" style="box-shadow: 0 0 0 1px rgba(168,85,247,0.3);">
@@ -2026,8 +2064,15 @@ else {
             if (!subjectSelect)
                 return;
             try {
+                // Get current translations to ensure immediate correct display
+                const trans = t();
                 const subjects = yield apiGet('/subjects/');
-                subjectSelect.innerHTML = '<option value="">-- Ninguna --</option>' + subjects.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+                // Re-render options ensuring the default one has the data-i18n attribute
+                // This prevents the translation from being lost when the list is refreshed
+                subjectSelect.innerHTML =
+                    `<option value="" data-i18n="dashboard.noPomodoroSubject">${trans.dashboard.noPomodoroSubject}</option>` +
+                        subjects.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+                // Restore previously selected subject if applicable
                 if (defaultSubjectId)
                     subjectSelect.value = defaultSubjectId.toString();
             }

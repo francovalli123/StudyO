@@ -1,6 +1,6 @@
 // Import API functions
 import { apiGet } from "./api.js";
-import { translations, getCurrentLanguage } from "./i18n.js";
+import { t, translations, getCurrentLanguage } from "./i18n.js";
 
 // Declare lucide icons library
 declare const lucide: {
@@ -38,13 +38,6 @@ interface Subject {
  * ==========================================
  */
 
-/**
- * Get Spanish month names
- */
-const monthNames = [
-    'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
-    'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'
-];
 
 /**
  * Format hours and minutes for display
@@ -82,7 +75,7 @@ function getHeatmapColor(hours: number): string {
  * Load and render monthly study rhythm line chart
  */
 async function loadMonthlyRhythm() {
-    try {
+try {
         const sessions: PomodoroSession[] = await apiGet("/pomodoro/");
         
         // Get last 6 months of data
@@ -99,10 +92,17 @@ async function loadMonthlyRhythm() {
         // Group by month
         const monthlyHours: { [key: string]: number } = {};
         
+        // Obtener el idioma actual una sola vez
+        const currentLang = getCurrentLanguage(); 
+
         recentSessions.forEach(session => {
             const sessionDate = new Date(session.start_time);
             const monthKey = `${sessionDate.getFullYear()}-${String(sessionDate.getMonth() + 1).padStart(2, '0')}`;
-            const monthLabel = `${monthNames[sessionDate.getMonth()]} ${sessionDate.getFullYear()}`;
+            
+            // --- CAMBIO I18N (Opcional: si usas monthLabel en otro lado) ---
+            // Ya no usamos el array hardcodeado
+            // const monthLabel = ... (esta variable no se usaba realmente en la lógica de agrupación, pero si la necesitas:)
+            // const monthLabel = sessionDate.toLocaleDateString(currentLang, { month: 'long', year: 'numeric' });
             
             if (!monthlyHours[monthKey]) {
                 monthlyHours[monthKey] = 0;
@@ -117,7 +117,18 @@ async function loadMonthlyRhythm() {
         
         sortedMonths.forEach(monthKey => {
             const [year, month] = monthKey.split('-');
-            monthLabels.push(`${monthNames[parseInt(month) - 1].substring(0, 3)}`);
+            
+            // --- CAMBIO I18N IMPORTANTE ---
+            // Creamos una fecha dummy con el año y mes del key para formatearla
+            const dateObj = new Date(parseInt(year), parseInt(month) - 1, 1);
+            
+            // Usamos toLocaleDateString para obtener el mes corto (ej: "Ene", "Jan", "Janv")
+            const localizedMonth = dateObj.toLocaleDateString(currentLang, { month: 'short' });
+            
+            // Capitalizamos la primera letra por estética (opcional, útil en español)
+            const formattedLabel = localizedMonth.charAt(0).toUpperCase() + localizedMonth.slice(1);
+
+            monthLabels.push(formattedLabel);
             monthValues.push(monthlyHours[monthKey]);
         });
         
@@ -393,6 +404,8 @@ async function loadWeeklyConsistency() {
  * Load and render monthly focus distribution donut chart
  */
 async function loadMonthlyFocusDistribution() {
+    const trans = t();
+
     try {
         const sessions: PomodoroSession[] = await apiGet("/pomodoro/");
         const subjects: Subject[] = await apiGet("/subjects/");
@@ -445,7 +458,7 @@ async function loadMonthlyFocusDistribution() {
         if (subjectMinutes[-1] && subjectMinutes[-1] > 0) {
             subjectData.push({
                 id: -1,
-                name: 'Sin materia',
+                name: trans.dashboard.focusDistributionNoSubject,
                 minutes: subjectMinutes[-1],
                 percentage: totalMinutes > 0 ? (subjectMinutes[-1] / totalMinutes) * 100 : 0
             });
@@ -654,8 +667,12 @@ async function loadStudyHeatmap() {
         weeks.forEach((week, weekIndex) => {
             // Check if this week starts a new month
             const monthLabel = monthLabels.find(m => m.weekIndex === weekIndex);
-            const monthName = monthLabel ? monthNames[monthLabel.month].substring(0, 3) : '';
-            
+            let monthName = '';
+            if (monthLabel) {
+                const dateObj = new Date(new Date().getFullYear(), monthLabel.month, 1);
+                const shortMonth = dateObj.toLocaleDateString(getCurrentLanguage(), { month: 'short' });
+                monthName = shortMonth.charAt(0).toUpperCase() + shortMonth.slice(1); // Ene, Feb...
+            }            
             heatmapHTML += '<div class="flex flex-col flex-shrink-0">';
             
             // Month label
