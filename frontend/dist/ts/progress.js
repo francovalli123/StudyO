@@ -55,6 +55,7 @@ function loadMonthlyRhythm() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const sessions = yield apiGet("/pomodoro/");
+            const trans = t();
             // Get last 6 months of data
             const today = new Date();
             const sixMonthsAgo = new Date(today);
@@ -71,10 +72,6 @@ function loadMonthlyRhythm() {
             recentSessions.forEach(session => {
                 const sessionDate = new Date(session.start_time);
                 const monthKey = `${sessionDate.getFullYear()}-${String(sessionDate.getMonth() + 1).padStart(2, '0')}`;
-                // --- CAMBIO I18N (Opcional: si usas monthLabel en otro lado) ---
-                // Ya no usamos el array hardcodeado
-                // const monthLabel = ... (esta variable no se usaba realmente en la lógica de agrupación, pero si la necesitas:)
-                // const monthLabel = sessionDate.toLocaleDateString(currentLang, { month: 'long', year: 'numeric' });
                 if (!monthlyHours[monthKey]) {
                     monthlyHours[monthKey] = 0;
                 }
@@ -86,7 +83,6 @@ function loadMonthlyRhythm() {
             const monthValues = [];
             sortedMonths.forEach(monthKey => {
                 const [year, month] = monthKey.split('-');
-                // --- CAMBIO I18N IMPORTANTE ---
                 // Creamos una fecha dummy con el año y mes del key para formatearla
                 const dateObj = new Date(parseInt(year), parseInt(month) - 1, 1);
                 // Usamos toLocaleDateString para obtener el mes corto (ej: "Ene", "Jan", "Janv")
@@ -225,7 +221,7 @@ function loadMonthlyRhythm() {
                     tooltip.className = 'fixed bg-dark-card border border-purple-500/30 rounded-lg px-3 py-2 text-sm text-white shadow-lg z-50 pointer-events-none';
                     tooltip.innerHTML = `
                     <div class="font-bold text-purple-400">${month}</div>
-                    <div class="text-gray-300">${hours.toFixed(1)} horas</div>
+                    <div class="text-gray-300">${hours.toFixed(1)} ${trans.progress.hours}</div>
                 `;
                     document.body.appendChild(tooltip);
                     updateTooltipPosition(tooltip, mouseEvent.clientX, mouseEvent.clientY);

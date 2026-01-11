@@ -278,7 +278,8 @@
                     <label class="block text-sm font-medium text-gray-300 mb-2" data-i18n="subjects.subjectName">Nombre de la Materia *</label>
                     <input type="text" name="name" required
                            class="w-full bg-dark-input border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all"
-                           placeholder="Ej: Cálculo I, Historia del Arte, etc.">
+                            data-i18n="[placeholder]subjects.namePlaceholder"                           
+                            placeholder="Ej: Cálculo I, Historia del Arte, etc.">
                 </div>
 
                 <div>
@@ -306,10 +307,11 @@
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-300 mb-2" data-i18n="subjects.weeklyTarget">Objetivo semanal (min)</label>
+                    <label class="block text-sm font-medium text-gray-300 mb-2" data-i18n="subjects.weeklyTarget">Objetivo semanal
+                        (min)</label>
                     <input type="number" name="weekly_target_minutes" min="0" step="10"
-                           class="w-full bg-dark-input border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all"
-                           placeholder="Ej: 300 (minutos por semana)">
+                        class="w-full bg-dark-input border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all"
+                        data-i18n="[placeholder]subjects.timePlaceholder" placeholder="Ej: 300 (minutos por semana)">
                 </div>
 
                 <div class="flex gap-3 pt-4">

@@ -179,6 +179,7 @@ export const translations = {
             createHabit: 'Crear Hábito',
             editHabit: 'Editar Hábito',
             streak: 'Racha',
+            habitPlaceholder: 'Ej: Estudiar 2 bloques Pomodoro',
         },
         planner: {
             title: 'Planificador',
@@ -230,6 +231,8 @@ export const translations = {
             weeklyMinutesLabel: '{done} / {target} minutos esta semana',
             editAction: 'Editar',
             deleteAction: 'Borrar',
+            namePlaceholder: 'Ej: Cálculo I, Historia del Arte, etc',
+            timePlaceholder: 'Ej: 300 (minutos por semana)',
         },
         progress: {
             title: 'Tu Evolución en StudyO',
@@ -244,6 +247,7 @@ export const translations = {
             more: 'Más',
             monthlyFocus: 'Distribución de Enfoque Mensual',
             monthlyFocusDesc: 'Tiempo dedicado por materia.',
+            hours: 'horas',
         },
     },
     en: {
@@ -422,6 +426,7 @@ export const translations = {
             createHabit: 'Create Habit',
             editHabit: 'Edit Habit',
             streak: 'Streak',
+            habitPlaceholder: 'Ex: Study 2 Pomodoro blocks',
         },
         planner: {
             title: 'Planner',
@@ -473,6 +478,8 @@ export const translations = {
             weeklyMinutesLabel: '{done} / {target} minutes this week',
             editAction: 'Edit',
             deleteAction: 'Delete',
+            namePlaceholder: 'Ex: Calculus I, Art History, etc.',
+            timePlaceholder: 'Ex: 300 (minutes per week)',
         },
         progress: {
             title: 'Your Evolution in StudyO',
@@ -487,6 +494,7 @@ export const translations = {
             more: 'More',
             monthlyFocus: 'Monthly Focus Distribution',
             monthlyFocusDesc: 'Time dedicated per subject.',
+            hours: 'hours',
         },
     },
     zh: {
@@ -665,6 +673,7 @@ export const translations = {
             createHabit: '创建习惯',
             editHabit: '编辑习惯',
             streak: '连续记录',
+            habitPlaceholder: '例如：学习 2 个番茄钟',
         },
         planner: {
             title: '计划器',
@@ -716,6 +725,8 @@ export const translations = {
             weeklyMinutesLabel: '{done} / {target} 分钟（本周）',
             editAction: '编辑',
             deleteAction: '删除',
+            namePlaceholder: '例如：微积分 I、艺术史等',
+            timePlaceholder: '例如：300（每周分钟数）',
         },
         progress: {
             title: '你在 StudyO 的演变',
@@ -730,6 +741,7 @@ export const translations = {
             more: '较多',
             monthlyFocus: '每月专注分布',
             monthlyFocusDesc: '各学科投入的时间。',
+            hours: '小时',
         },
     },
     pt: {
@@ -908,6 +920,7 @@ export const translations = {
             createHabit: 'Criar Hábito',
             editHabit: 'Editar Hábito',
             streak: 'Sequência',
+            habitPlaceholder: 'Ex: Estudar 2 blocos Pomodoro',
         },
         planner: {
             title: 'Planejador',
@@ -959,6 +972,8 @@ export const translations = {
             weeklyMinutesLabel: '{done} / {target} minutos nesta semana',
             editAction: 'Editar',
             deleteAction: 'Excluir',
+            namePlaceholder: 'Ex: Cálculo I, História da Arte, etc.',
+            timePlaceholder: 'Ex: 300 (minutos por semana)',
         },
         progress: {
             title: 'Sua Evolução no StudyO',
@@ -973,6 +988,7 @@ export const translations = {
             more: 'Mais',
             monthlyFocus: 'Distribuição de Foco Mensal',
             monthlyFocusDesc: 'Tempo dedicado por matéria.',
+            hours: 'horas',
         },
     },
 };
@@ -1012,9 +1028,14 @@ export function applyTranslations() {
     const trans = t();
     // Apply translations to elements with data-i18n attribute
     document.querySelectorAll('[data-i18n]').forEach((el) => {
-        const key = el.getAttribute('data-i18n');
+        let key = el.getAttribute('data-i18n');
         if (!key)
             return;
+        // Detect and clean the [placeholder] syntax
+        const isExplicitPlaceholder = key.startsWith('[placeholder]');
+        if (isExplicitPlaceholder) {
+            key = key.replace('[placeholder]', '');
+        }
         const keys = key.split('.');
         let value = trans;
         for (const k of keys) {
@@ -1022,19 +1043,22 @@ export function applyTranslations() {
         }
         if (value && typeof value === 'string') {
             if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement) {
+                // If it's a button, change the value
                 if (el.type === 'submit' || el.type === 'button') {
                     el.value = value;
                 }
-                else if (el.placeholder !== undefined) {
-                    // Don't change placeholder if it's user input
-                    // Only change if it's a label-like placeholder
+                // If explicitly requested via [placeholder] OR it's a text input, assign to placeholder
+                else if (isExplicitPlaceholder || el.placeholder !== undefined) {
+                    el.placeholder = value;
                 }
             }
             else {
+                // Standard elements (h1, span, label, etc.)
                 el.textContent = value;
             }
         }
     });
+    // Keep the rest of the code as is; serves as a fallback for data-i18n-placeholder
     // Apply translations to elements with data-i18n-placeholder
     document.querySelectorAll('[data-i18n-placeholder]').forEach((el) => {
         const key = el.getAttribute('data-i18n-placeholder');
