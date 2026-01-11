@@ -817,17 +817,15 @@ async function loadWeeklyStudyRhythm() {
         const weekAgo = new Date(today);
         weekAgo.setDate(weekAgo.getDate() - 7);
         
-        const weeklySessions = sessions.filter(s => {
-            const sessionDate = new Date(s.start_time);
-            return sessionDate >= weekAgo;
-        });
-        
+        const weeklySessions = sessions
+            .map(s => ({ ...s, date: new Date(s.start_time) }))
+            .filter(s => s.date >= weekAgo);
+
         // Group minutes by day of week (0 = Sunday, 1 = Monday, etc.)
         const dayMinutes: { [key: number]: number } = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 };
         
         weeklySessions.forEach(session => {
-            const sessionDate = new Date(session.start_time);
-            const dayOfWeek = sessionDate.getDay();
+            const dayOfWeek = session.date.getDay();
             dayMinutes[dayOfWeek] += session.duration;
         });
         
@@ -986,9 +984,6 @@ async function loadFocusDistribution() {
         const sessions: PomodoroSession[] = await apiGet("/pomodoro/");
         const subjects: Subject[] = await apiGet("/subjects/");
         
-        console.log('All sessions:', sessions);
-        console.log('All subjects:', subjects);
-        
         // Get sessions from the past week
         const today = new Date();
         const weekAgo = new Date(today);
@@ -1004,9 +999,6 @@ async function loadFocusDistribution() {
         let totalMinutes = 0;
         
         weeklySessions.forEach(session => {
-            // Debug: see what's incoming
-            console.log('Session:', session, 'Subject ID:', session.subject, 'Type:', typeof session.subject);
-            
             // Subject may be number, null, or undefined
             let subjectId: number | null = null;
             if (session.subject !== null && session.subject !== undefined) {
@@ -1024,9 +1016,6 @@ async function loadFocusDistribution() {
             totalMinutes += session.duration;
         });
         
-        console.log('Subject minutes:', subjectMinutes);
-        console.log('Total minutes:', totalMinutes);
-        
         // Create array of subjects with minutes (only those with real ID and study time)
         const subjectData = subjects
             .filter(s => subjectMinutes[s.id] && subjectMinutes[s.id] > 0)
@@ -1037,8 +1026,6 @@ async function loadFocusDistribution() {
                 percentage: totalMinutes > 0 ? (subjectMinutes[s.id] / totalMinutes) * 100 : 0
             }))
             .sort((a, b) => b.minutes - a.minutes);
-        
-            
 
         // Add "no subject" sessions if any
         if (subjectMinutes[-1] && subjectMinutes[-1] > 0) {
@@ -1054,17 +1041,16 @@ async function loadFocusDistribution() {
         const colors = ['#a855f7', '#60a5fa', '#34d399', '#fbbf24', '#ec4899', '#8b5cf6'];
         
         // Generate conic gradient
-        let conicGradient = '';
         let currentPercent = 0;
-        
-        subjectData.forEach((subject, index) => {
-            const color = colors[index % colors.length];
-            const startPercent = currentPercent;
-            const endPercent = currentPercent + subject.percentage;
-            conicGradient += `${color} ${startPercent}% ${endPercent}%, `;
-            currentPercent = endPercent;
-        });
-        
+        const conicGradient = subjectData
+            .map((subject, index) => {
+                const color = colors[index % colors.length];
+                const start = currentPercent;
+                currentPercent += subject.percentage;
+                return `${color} ${start}% ${currentPercent}%`;
+            })
+            .join(', ');
+
         // Update distribution chart
         const pieChart = document.getElementById('focus-distribution-chart');
         const pieChartParent = pieChart?.parentElement;
@@ -1072,7 +1058,6 @@ async function loadFocusDistribution() {
         if (pieChart && pieChartParent) {
             // Show empty state if no data
             if (weeklySessions.length === 0 || subjectData.length === 0) {
-                const trans = t();
                 pieChartParent.innerHTML = `
                     <div class="flex flex-col items-center justify-center h-full py-8">
                         <i data-lucide="pie-chart" class="w-12 h-12 text-gray-600 mb-3"></i>
@@ -1128,29 +1113,35 @@ async function loadFocusDistribution() {
  */
 async function loadPeakProductivity() {
     try {
+        // Load translations once
         const trans = t();
+
+        // Constants for readability and maintainability
+        const DAYS_ANALYZED = 28;
+        const MIN_SESSIONS = 3;
+        const MIN_TOTAL_MINUTES = 60;
 
         // Fetch all Pomodoro sessions
         const sessions: PomodoroSession[] = await apiGet("/pomodoro/");
 
-        // Get sessions from past 4 weeks
+        // Calculate date range (last 4 weeks)
         const today = new Date();
         const fourWeeksAgo = new Date(today);
-        fourWeeksAgo.setDate(fourWeeksAgo.getDate() - 28);
+        fourWeeksAgo.setDate(fourWeeksAgo.getDate() - DAYS_ANALYZED);
 
-        const recentSessions = sessions.filter(s => {
-            if (!s || !s.start_time || typeof s.duration !== 'number') return false;
+        // Filter valid sessions and attach parsed Date to avoid recreating it later
+        const recentSessions = sessions
+            .map(s => ({ ...s, date: new Date(s.start_time) }))
+            .filter(s => {
+                if (!s || !s.start_time || typeof s.duration !== 'number') return false;
+                if (isNaN(s.date.getTime())) return false;
+                if (s.date > today) return false;
+                if (s.duration <= 0) return false;
+                return s.date >= fourWeeksAgo;
+            });
 
-            const sessionDate = new Date(s.start_time);
-            if (isNaN(sessionDate.getTime())) return false;
-            if (sessionDate > new Date()) return false;
-            if (s.duration <= 0) return false;
-
-            return sessionDate >= fourWeeksAgo;
-        });
-
-        // Empty state
-        if (recentSessions.length < 3) {
+        // Helper to render empty state (used in multiple places)
+        const renderEmptyState = () => {
             const peakEl = document.getElementById('peak-productivity-time');
             if (peakEl) {
                 peakEl.textContent = trans.dashboard.emptyPeakProductivityTitle;
@@ -1160,81 +1151,79 @@ async function loadPeakProductivity() {
             if (descriptionEl) {
                 descriptionEl.textContent = trans.dashboard.emptyPeakProductivityDesc;
             }
+        };
+
+        // Not enough data to analyze
+        if (recentSessions.length < MIN_SESSIONS) {
+            renderEmptyState();
             return;
         }
 
+        // Calculate total study minutes
         const totalMinutes = recentSessions.reduce(
-            (sum, s) => sum + (s.duration || 0),
+            (sum, s) => sum + s.duration,
             0
         );
 
-        if (totalMinutes < 60) {
-            const peakEl = document.getElementById('peak-productivity-time');
-            if (peakEl) {
-                peakEl.textContent = trans.dashboard.emptyPeakProductivityTitle;
-            }
-
-            const descriptionEl = document.getElementById('peak-productivity-desc');
-            if (descriptionEl) {
-                descriptionEl.textContent = trans.dashboard.emptyPeakProductivityDesc;
-            }
+        // Not enough total time to be meaningful
+        if (totalMinutes < MIN_TOTAL_MINUTES) {
+            renderEmptyState();
             return;
         }
 
-        // Group by day + hour
-        const dayHourMinutes: Record<string, number> = {};
+        // Group minutes by day and hour
+        // Structure: { [day]: { [hour]: minutes } }
+        const dayHourMinutes: Record<number, Record<number, number>> = {};
 
         recentSessions.forEach(session => {
-            const date = new Date(session.start_time);
-            const day = date.getDay();   // 0–6
-            const hour = date.getHours(); // 0–23
-            const key = `${day}-${hour}`;
+            const day = session.date.getDay();     // 0–6
+            const hour = session.date.getHours();  // 0–23
 
-            dayHourMinutes[key] = (dayHourMinutes[key] || 0) + session.duration;
+            dayHourMinutes[day] ??= {};
+            dayHourMinutes[day][hour] =
+                (dayHourMinutes[day][hour] || 0) + session.duration;
         });
 
+        // Determine peak productivity slot
         let bestDay = -1;
         let bestHour = -1;
         let maxMinutes = 0;
 
-        Object.entries(dayHourMinutes).forEach(([key, minutes]) => {
-            if (minutes > maxMinutes) {
-                maxMinutes = minutes;
-                const [day, hour] = key.split('-').map(Number);
-                bestDay = day;
-                bestHour = hour;
-            }
+        Object.entries(dayHourMinutes).forEach(([day, hours]) => {
+            Object.entries(hours).forEach(([hour, minutes]) => {
+                if (minutes > maxMinutes) {
+                    maxMinutes = minutes;
+                    bestDay = Number(day);
+                    bestHour = Number(hour);
+                }
+            });
         });
 
+        // Fallback safety check
         if (bestDay === -1 || bestHour === -1) {
-            const peakEl = document.getElementById('peak-productivity-time');
-            if (peakEl) {
-                peakEl.textContent = trans.dashboard.emptyPeakProductivityTitle;
-            }
-
-            const descriptionEl = document.getElementById('peak-productivity-desc');
-            if (descriptionEl) {
-                descriptionEl.textContent = trans.dashboard.emptyPeakProductivityDesc;
-            }
+            renderEmptyState();
             return;
         }
 
+        // Define peak range (±1 hour, clamped)
         const startHour = Math.max(0, bestHour - 1);
         const endHour = Math.min(23, bestHour + 1);
 
+        // Format hour for display
         const formatHour = (h: number) =>
             `${h.toString().padStart(2, '0')}:00`;
 
+        // Update peak productivity time element
         const peakEl = document.getElementById('peak-productivity-time');
         if (peakEl) {
-            // bestday is an index 0-6, which fits perfectly with the array in the JSON
+            // bestDay is 0–6 and matches the translation array order
             const dayName = trans.dashboard.days[bestDay];
             peakEl.textContent = `${dayName}, ${formatHour(startHour)} - ${formatHour(endHour)}`;
         }
 
+        // Update description text
         const descriptionEl = document.getElementById('peak-productivity-desc');
         if (descriptionEl) {
-            // Translation for the description
             descriptionEl.textContent = trans.dashboard.peakProductivityAnalysisDesc;
         }
 
@@ -1243,95 +1232,117 @@ async function loadPeakProductivity() {
     }
 }
 
+
 /**
  * Loads and displays weekly balance review
  * Shows distribution of study time among top 3 subjects
  */
 async function loadWeeklyBalance() {
     try {
+        // Load translations once
+        const trans = t();
+
+        // Semantic constants for readability
+        const DAYS_ANALYZED = 7;
+        const TOP_SUBJECTS = 3;
+
         // Fetch sessions and subjects
         const sessions: PomodoroSession[] = await apiGet("/pomodoro/");
         const subjects: Subject[] = await apiGet("/subjects/");
-        
-        // Get sessions from the past week
+
+        // Calculate date range (last week)
         const today = new Date();
         const weekAgo = new Date(today);
-        weekAgo.setDate(weekAgo.getDate() - 7);
-        
-        const weeklySessions = sessions.filter(s => {
-            const sessionDate = new Date(s.start_time);
-            return sessionDate >= weekAgo;
-        });
-        
-        // Group minutes by subject
-        const subjectMinutes: { [key: number]: number } = {};
+        weekAgo.setDate(weekAgo.getDate() - DAYS_ANALYZED);
+
+        // Filter weekly sessions and attach parsed Date to avoid recreating it
+        const weeklySessions = sessions
+            .map(s => ({ ...s, date: new Date(s.start_time) }))
+            .filter(s => s.date >= weekAgo);
+
+        // Accumulate study minutes per subject
+        const subjectMinutes: Record<number, number> = {};
         let totalMinutes = 0;
-        
+
         weeklySessions.forEach(session => {
-            const subjectId = session.subject || 0;
-            if (!subjectMinutes[subjectId]) {
-                subjectMinutes[subjectId] = 0;
-            }
-            subjectMinutes[subjectId] += session.duration;
+            // Use 0 as fallback key for sessions without subject
+            const subjectId =
+                session.subject !== null && session.subject !== undefined
+                    ? session.subject
+                    : 0;
+
+            subjectMinutes[subjectId] =
+                (subjectMinutes[subjectId] ?? 0) + session.duration;
+
             totalMinutes += session.duration;
         });
-        
-        // Get top 3 subjects by study time
+
+        // Get top subjects by study time
         const topSubjects = subjects
-            .filter(s => subjectMinutes[s.id])
-            .map(s => ({
-                id: s.id,
-                name: s.name,
-                minutes: subjectMinutes[s.id],
-                percentage: (subjectMinutes[s.id] / totalMinutes) * 100
+            .filter(subject => subjectMinutes[subject.id])
+            .map(subject => ({
+                id: subject.id,
+                name: subject.name,
+                minutes: subjectMinutes[subject.id],
+                percentage: totalMinutes > 0
+                    ? (subjectMinutes[subject.id] / totalMinutes) * 100
+                    : 0
             }))
             .sort((a, b) => b.minutes - a.minutes)
-            .slice(0, 3);
-        
-        // Colors for the chart
+            .slice(0, TOP_SUBJECTS);
+
+        // Chart color palette
         const colors = ['#c084fc', '#fbbf24', '#34d399'];
-        
-        // Generate conic gradient
-        let conicGradient = '';
+
+        // Generate conic-gradient string
         let currentPercent = 0;
-        
-        topSubjects.forEach((subject, index) => {
-            const color = colors[index % colors.length];
-            const startPercent = currentPercent;
-            const endPercent = currentPercent + subject.percentage;
-            conicGradient += `${color} ${startPercent}% ${endPercent}%, `;
-            currentPercent = endPercent;
-        });
-        
-        // Update balance chart
+        const conicGradient = topSubjects
+            .map((subject, index) => {
+                const color = colors[index % colors.length];
+                const start = currentPercent;
+                currentPercent += subject.percentage;
+                return `${color} ${start}% ${currentPercent}%`;
+            })
+            .join(', ');
+
+        // Get chart elements
         const balanceChart = document.getElementById('weekly-balance-chart');
         const balanceChartParent = balanceChart?.parentElement;
-        
-        if (balanceChart && balanceChartParent) {
-            // Show empty state if no data
-            if (weeklySessions.length === 0 || topSubjects.length === 0) {
-                const trans = t();
-                balanceChartParent.innerHTML = `
-                    <div class="flex flex-col items-center justify-center h-full py-8">
-                        <i data-lucide="pie-chart" class="w-10 h-10 text-gray-600 mb-3"></i>
-                        <p class="text-gray-500 text-xs text-center">${trans.dashboard.emptyBalanceTitle}</p>
-                        <p class="text-gray-600 text-[10px] text-center mt-1">${trans.dashboard.emptyBalanceDesc}</p>
-                    </div>
-                `;
-                if (typeof lucide !== 'undefined') lucide.createIcons();
-                return;
+
+        // Exit early if DOM structure is missing
+        if (!balanceChart || !balanceChartParent) return;
+
+        // Render empty state if there is no data
+        if (weeklySessions.length === 0 || topSubjects.length === 0) {
+            balanceChartParent.innerHTML = `
+                <div class="flex flex-col items-center justify-center h-full py-8">
+                    <i data-lucide="pie-chart" class="w-10 h-10 text-gray-600 mb-3"></i>
+                    <p class="text-gray-500 text-xs text-center">
+                        ${trans.dashboard.emptyBalanceTitle}
+                    </p>
+                    <p class="text-gray-600 text-[10px] text-center mt-1">
+                        ${trans.dashboard.emptyBalanceDesc}
+                    </p>
+                </div>
+            `;
+
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
             }
-            
-            // Apply conic gradient
-            (balanceChart as HTMLElement).style.background = `conic-gradient(${conicGradient.slice(0, -2)})`;
-            
-            // Update total hours display
-            const totalHoursEl = document.getElementById('weekly-balance-hours');
-            if (totalHoursEl) {
-                const totalHours = Math.round(totalMinutes / 60);
-                totalHoursEl.textContent = `${totalHours}h`;
-            }
+            return;
         }
+
+        // Apply conic gradient to the chart
+        (balanceChart as HTMLElement).style.background =
+            `conic-gradient(${conicGradient})`;
+
+        // Update total study hours display
+        const totalHoursEl = document.getElementById('weekly-balance-hours');
+        if (totalHoursEl) {
+            const totalHours = Math.round(totalMinutes / 60);
+            totalHoursEl.textContent = `${totalHours}h`;
+        }
+
     } catch (error) {
         console.error("Error loading weekly balance:", error);
     }
@@ -1987,25 +1998,31 @@ if (document.readyState === 'loading') {
     }
 
     /**
-     * Play beep sound on timer completion
+     * Play pomodoro completion sound
+     * Uses HTMLAudioElement instead of Web Audio Oscillator
      */
     function playBeep() {
         try {
-            const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
-            const o = ctx.createOscillator();
-            const g = ctx.createGain();
-            o.type = 'sine';
-            o.frequency.value = 880;
-            o.connect(g);
-            g.connect(ctx.destination);
-            g.gain.setValueAtTime(0.0001, ctx.currentTime);
-            g.gain.exponentialRampToValueAtTime(0.2, ctx.currentTime + 0.01);
-            o.start();
-            setTimeout(() => {
-                g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.15);
-                setTimeout(() => { try { o.stop(); ctx.close(); } catch (e) {} }, 200);
-            }, 150);
-        } catch (e) { console.warn('Audio not available', e); }
+            // Create audio instance
+            const audio = new Audio('public/sounds/pomodoroSound.mp3');
+
+            // Improve UX: allow quick replay and avoid overlapping issues
+            audio.currentTime = 0;
+            audio.volume = 0.8;
+
+            // Play sound (handle autoplay restrictions)
+            const playPromise = audio.play();
+
+            if (playPromise !== undefined) {
+                playPromise.catch(error => {
+                    // Autoplay restrictions or user gesture missing
+                    console.warn('Audio playback blocked by browser:', error);
+                });
+            }
+        } catch (e) {
+            // Fallback safety net (e.g. unsupported browser or missing file)
+            console.warn('Audio not available', e);
+        }
     }
 
     /**
@@ -2034,29 +2051,52 @@ if (document.readyState === 'loading') {
      */
     function finishTimer() {
         playBeep();
+
         if (timerInterval) {
             clearInterval(timerInterval);
             timerInterval = null;
         }
-        isRunning = false;
-        timerStartTime = null;
-        
-        // Remove navigation warning when timer stops
-        if (beforeUnloadHandler) {
-            window.removeEventListener('beforeunload', beforeUnloadHandler);
-            beforeUnloadHandler = null;
-        }
-        
+
         // Save session if work stage finished
         if (currentStage === 'work' && sessionStart) {
             const end = new Date();
             const durationMin = Math.round((end.getTime() - sessionStart.getTime()) / 60000);
-            saveWorkSession(sessionStart, end, durationMin, defaultSubjectId).catch(err => console.error('Error saving pomodoro session', err));
+            saveWorkSession(sessionStart, end, durationMin, defaultSubjectId)
+                .catch(err => console.error('Error saving pomodoro session', err));
             sessionStart = null;
             completedCycles += 1;
         }
-        // Advance to next stage
+
+        // Advance stage
         advanceStage();
+
+        // Restart automatically without changing button state
+        remainingSeconds =
+            (currentStage === 'work'
+                ? settings.workMinutes
+                : currentStage === 'short_break'
+                    ? settings.shortBreakMinutes
+                    : settings.longBreakMinutes) * 60;
+
+        timerStartTime = Date.now();
+        timerStartRemaining = remainingSeconds;
+
+        // Restart interval WITHOUT toggling isRunning
+        timerInterval = window.setInterval(() => {
+            syncTimer();
+
+            if (remainingSeconds > 0) {
+                remainingSeconds -= 1;
+            }
+
+            if (remainingSeconds <= 0) {
+                finishTimer();
+            }
+
+            updateDisplay();
+        }, 1000);
+
+        updateDisplay();
     }
 
     /**
