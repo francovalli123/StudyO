@@ -46,5 +46,3 @@ class WeeklyChallenge(models.Model):
             required = self.parameters.get('high_priority_tasks', 3)
             if self.progress >= required:
                 self.is_completed = True
-
-# Create your models here.
