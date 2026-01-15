@@ -48,6 +48,8 @@ class WeeklyObjective(models.Model):
     notes = models.TextField(blank=True)
     area = models.CharField(max_length=100, default='General', blank=True)  # Nombre del área/materia
     icon = models.CharField(max_length=10, default='⚡', blank=True)  # Emoji o icono
+    is_completed = models.BooleanField(default=False)  # Indica si la tarea está completada
+    completed_at = models.DateTimeField(null=True, blank=True)  # Fecha de completación
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

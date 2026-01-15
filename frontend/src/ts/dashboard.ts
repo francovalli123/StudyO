@@ -1,5 +1,5 @@
 // Import API functions for making HTTP requests and token management
-import { apiGet, apiPost, apiDelete, apiPut, getToken, getEvents, Event, getCurrentUser } from "./api.js";
+import { apiGet, apiPost, apiDelete, apiPut, apiPatch, getToken, getEvents, Event, getCurrentUser } from "./api.js";
 import { initConfirmModal, showConfirmModal, showAlertModal } from "./confirmModal.js";
 import { t, getCurrentLanguage, setCurrentLanguage, applyTranslations } from "./i18n.js";
 
@@ -27,6 +27,25 @@ interface Habit {
     created_at: string;
     is_key: boolean;
     completed_today: boolean;
+}
+
+/**
+ * WeeklyObjective interface - Represents a user's weekly strategic objectives
+ */
+interface WeeklyObjective {
+    id: number;
+    title: string;
+    detail: string;
+    priority: number | null;
+    notes: string;
+    subject: number | null;
+    subject_name: string;
+    area?: string;  // Category or area of focus
+    icon?: string;  // Emoji icon for visual representation
+    is_completed: boolean;
+    completed_at: string | null;
+    created_at: string;
+    updated_at: string;
 }
 
 // --- Concentration Mode Setup (global) ---
@@ -144,20 +163,7 @@ interface PomodoroSession {
     notes: string;
 }
 
-/**
- * WeeklyObjective interface - Represents a weekly strategic objective
- */
-interface WeeklyObjective {
-    id: number;
-    title: string;
-    detail: string;
-    priority: number | null;
-    notes: string;    
-    area?: string;  // Category or area of focus
-    icon?: string;  // Emoji icon for visual representation
-    subject: number | null;
-    created_at: string;
-}
+
 
 /**
  * ==========================================
@@ -484,11 +490,19 @@ async function loadWeeklyObjectives() {
                                     ${priorityConfig.name}
                                 </span>
                                 
-                                ${obj.notes ? `
-                                <div class="flex items-center gap-1.5 text-xs text-purple-400/80">
-                                    <i data-lucide="folder-open" class="w-3 h-3"></i>
-                                    <span class="italic truncate max-w-[120px]">${obj.notes}</span>
-                                </div>` : ''}
+                                <div class="flex items-center gap-2">
+                                    ${obj.notes ? `
+                                    <div class="flex items-center gap-1.5 text-xs text-purple-400/80">
+                                        <i data-lucide="folder-open" class="w-3 h-3"></i>
+                                        <span class="italic truncate max-w-[120px]">${obj.notes}</span>
+                                    </div>` : ''}
+                                    
+                                    <button class="complete-objective p-1.5 rounded-lg ${obj.is_completed ? 'text-green-400 bg-green-500/10' : 'text-gray-400 hover:text-green-400 hover:bg-green-500/10'} transition-all duration-200" 
+                                            data-id="${obj.id}" 
+                                            title="${obj.is_completed ? 'Marcar como pendiente' : 'Marcar como completado'}">
+                                        <i data-lucide="${obj.is_completed ? 'check-circle' : 'circle'}" class="w-4 h-4"></i>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     `;
@@ -546,6 +560,16 @@ async function loadWeeklyObjectives() {
                     e.preventDefault();
                     const id = (btn as HTMLElement).getAttribute('data-id');
                     if (id) await deleteObjective(Number(id));
+                });
+            });
+            
+            // Attach complete event handlers
+            container.querySelectorAll('.complete-objective').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    const id = (btn as HTMLElement).getAttribute('data-id');
+                    if (id) await toggleCompleteObjective(Number(id));
                 });
             });
             
@@ -623,6 +647,36 @@ async function deleteObjective(id: number) {
         console.error("Error deleting objective:", error);
         await showAlertModal(
             'Error al eliminar el objetivo. Por favor, intenta nuevamente.',
+            'Error'
+        );
+    }
+}
+
+/**
+ * Toggles the completion status of a weekly objective
+ * @param id - The ID of the objective to toggle
+ */
+async function toggleCompleteObjective(id: number) {
+    try {
+        // Get current objective data
+        const objectives: WeeklyObjective[] = JSON.parse(localStorage.getItem('weeklyObjectives') || '[]');
+        const objective = objectives.find(o => o.id === id);
+        if (!objective) return;
+
+        // Toggle completion status
+        const newCompleted = !objective.is_completed;
+
+        // Update via API
+        await apiPatch(`/weekly-objectives/${id}/`, {
+            is_completed: newCompleted
+        });
+
+        // Reload objectives to reflect change
+        loadWeeklyObjectives();
+    } catch (error) {
+        console.error("Error toggling objective completion:", error);
+        await showAlertModal(
+            'Error al actualizar el objetivo. Por favor, intenta nuevamente.',
             'Error'
         );
     }
@@ -2436,6 +2490,9 @@ if (document.readyState === 'loading') {
 
         // Load subjects in background
         loadSubjectsToSelect();
+        
+        // Load weekly objectives
+        loadWeeklyObjectives();
     });
 
 })();

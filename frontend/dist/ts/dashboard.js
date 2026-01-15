@@ -8,7 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 // Import API functions for making HTTP requests and token management
-import { apiGet, apiPost, apiDelete, apiPut, getToken, getEvents, getCurrentUser } from "./api.js";
+import { apiGet, apiPost, apiDelete, apiPut, apiPatch, getToken, getEvents, getCurrentUser } from "./api.js";
 import { initConfirmModal, showConfirmModal, showAlertModal } from "./confirmModal.js";
 import { t, getCurrentLanguage, setCurrentLanguage, applyTranslations } from "./i18n.js";
 // --- Concentration Mode Setup (global) ---
@@ -442,11 +442,19 @@ function loadWeeklyObjectives() {
                                     ${priorityConfig.name}
                                 </span>
                                 
-                                ${obj.notes ? `
-                                <div class="flex items-center gap-1.5 text-xs text-purple-400/80">
-                                    <i data-lucide="folder-open" class="w-3 h-3"></i>
-                                    <span class="italic truncate max-w-[120px]">${obj.notes}</span>
-                                </div>` : ''}
+                                <div class="flex items-center gap-2">
+                                    ${obj.notes ? `
+                                    <div class="flex items-center gap-1.5 text-xs text-purple-400/80">
+                                        <i data-lucide="folder-open" class="w-3 h-3"></i>
+                                        <span class="italic truncate max-w-[120px]">${obj.notes}</span>
+                                    </div>` : ''}
+                                    
+                                    <button class="complete-objective p-1.5 rounded-lg ${obj.is_completed ? 'text-green-400 bg-green-500/10' : 'text-gray-400 hover:text-green-400 hover:bg-green-500/10'} transition-all duration-200" 
+                                            data-id="${obj.id}" 
+                                            title="${obj.is_completed ? 'Marcar como pendiente' : 'Marcar como completado'}">
+                                        <i data-lucide="${obj.is_completed ? 'check-circle' : 'circle'}" class="w-4 h-4"></i>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     `;
@@ -504,6 +512,16 @@ function loadWeeklyObjectives() {
                         const id = btn.getAttribute('data-id');
                         if (id)
                             yield deleteObjective(Number(id));
+                    }));
+                });
+                // Attach complete event handlers
+                container.querySelectorAll('.complete-objective').forEach(btn => {
+                    btn.addEventListener('click', (e) => __awaiter(this, void 0, void 0, function* () {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        const id = btn.getAttribute('data-id');
+                        if (id)
+                            yield toggleCompleteObjective(Number(id));
                     }));
                 });
                 // Attach inline edit handlers for icon and area (opens modal)
@@ -580,6 +598,33 @@ function deleteObjective(id) {
         catch (error) {
             console.error("Error deleting objective:", error);
             yield showAlertModal('Error al eliminar el objetivo. Por favor, intenta nuevamente.', 'Error');
+        }
+    });
+}
+/**
+ * Toggles the completion status of a weekly objective
+ * @param id - The ID of the objective to toggle
+ */
+function toggleCompleteObjective(id) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            // Get current objective data
+            const objectives = JSON.parse(localStorage.getItem('weeklyObjectives') || '[]');
+            const objective = objectives.find(o => o.id === id);
+            if (!objective)
+                return;
+            // Toggle completion status
+            const newCompleted = !objective.is_completed;
+            // Update via API
+            yield apiPatch(`/weekly-objectives/${id}/`, {
+                is_completed: newCompleted
+            });
+            // Reload objectives to reflect change
+            loadWeeklyObjectives();
+        }
+        catch (error) {
+            console.error("Error toggling objective completion:", error);
+            yield showAlertModal('Error al actualizar el objetivo. Por favor, intenta nuevamente.', 'Error');
         }
     });
 }
@@ -2251,5 +2296,7 @@ else {
             });
         // Load subjects in background
         loadSubjectsToSelect();
+        // Load weekly objectives
+        loadWeeklyObjectives();
     });
 })();

@@ -2,6 +2,7 @@ from rest_framework import serializers
 from .models import Routine, WeeklyObjective
 from apps.routineBlock.serializers import RoutineBlockSerializer
 from apps.routineBlock.models import RoutineBlock
+from django.utils import timezone
 
 # El serializer define cómo se convierte la rutina en JSON (y viceversa), y qué campos mostrar
 class RoutineSerializer(serializers.ModelSerializer):
@@ -44,7 +45,7 @@ class WeeklyObjectiveSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = WeeklyObjective
-        fields = ['id', 'title', 'detail', 'priority', 'notes', 'subject', 'subject_name', 'area', 'icon', 'created_at', 'updated_at']
+        fields = ['id', 'title', 'detail', 'priority', 'notes', 'subject', 'subject_name', 'area', 'icon', 'is_completed', 'completed_at', 'created_at', 'updated_at']
         read_only_fields = ['created_at', 'updated_at', 'user']
 
     def create(self, validated_data):
@@ -52,3 +53,11 @@ class WeeklyObjectiveSerializer(serializers.ModelSerializer):
         validated_data.pop('user', None)
         user = self.context['request'].user
         return WeeklyObjective.objects.create(user=user, **validated_data)
+
+    def update(self, instance, validated_data):
+        # Si se marca como completado, setear completed_at
+        if validated_data.get('is_completed') and not instance.is_completed:
+            validated_data['completed_at'] = timezone.now()
+        elif not validated_data.get('is_completed', instance.is_completed):
+            validated_data['completed_at'] = None
+        return super().update(instance, validated_data)
