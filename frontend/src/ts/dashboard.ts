@@ -980,126 +980,175 @@ async function loadFocusDistribution() {
     const trans = t();
 
     try {
-        // Fetch sessions and subjects
+        // Fetch pomodoro sessions and subjects
         const sessions: PomodoroSession[] = await apiGet("/pomodoro/");
         const subjects: Subject[] = await apiGet("/subjects/");
-        
-        // Get sessions from the past week
+
+        // Calculate date range (past 7 days)
         const today = new Date();
         const weekAgo = new Date(today);
         weekAgo.setDate(weekAgo.getDate() - 7);
-        
+
+        // Filter sessions within the last week
         const weeklySessions = sessions.filter(s => {
             const sessionDate = new Date(s.start_time);
             return sessionDate >= weekAgo;
         });
-        
-        // Group minutes by subject
+
+        // Accumulate total minutes per subject
         const subjectMinutes: { [key: number]: number } = {};
         let totalMinutes = 0;
-        
+
         weeklySessions.forEach(session => {
-            // Subject may be number, null, or undefined
+            // Subject can be number, string, null or undefined
             let subjectId: number | null = null;
+
             if (session.subject !== null && session.subject !== undefined) {
-                // Convert to number if string
-                subjectId = typeof session.subject === 'string' ? parseInt(session.subject) : session.subject;
+                subjectId = typeof session.subject === 'string'
+                    ? parseInt(session.subject, 10)
+                    : session.subject;
             }
-            
-            // Use special key for "no subject" that won't collide with real IDs
-            const key = subjectId !== null && !isNaN(subjectId) ? subjectId : -1;
-            
-            if (!subjectMinutes[key]) {
+
+            // Use -1 as a safe key for "no subject"
+            const key =
+                subjectId !== null && !isNaN(subjectId)
+                    ? subjectId
+                    : -1;
+
+            // Initialize key only if it doesn't exist
+            if (subjectMinutes[key] === undefined) {
                 subjectMinutes[key] = 0;
             }
+
             subjectMinutes[key] += session.duration;
             totalMinutes += session.duration;
         });
-        
-        // Create array of subjects with minutes (only those with real ID and study time)
+
+        // Build subject data array (only subjects with study time)
         const subjectData = subjects
-            .filter(s => subjectMinutes[s.id] && subjectMinutes[s.id] > 0)
+            .filter(s => subjectMinutes[s.id] !== undefined && subjectMinutes[s.id] > 0)
             .map(s => ({
                 id: s.id,
                 name: s.name,
                 minutes: subjectMinutes[s.id],
-                percentage: totalMinutes > 0 ? (subjectMinutes[s.id] / totalMinutes) * 100 : 0
+                percentage:
+                    totalMinutes > 0
+                        ? (subjectMinutes[s.id] / totalMinutes) * 100
+                        : 0
             }))
             .sort((a, b) => b.minutes - a.minutes);
 
-        // Add "no subject" sessions if any
-        if (subjectMinutes[-1] && subjectMinutes[-1] > 0) {
+        // Append "no subject" data if present
+        if (subjectMinutes[-1] !== undefined && subjectMinutes[-1] > 0) {
             subjectData.push({
                 id: -1,
                 name: trans.dashboard.focusDistributionNoSubject,
                 minutes: subjectMinutes[-1],
-                percentage: totalMinutes > 0 ? (subjectMinutes[-1] / totalMinutes) * 100 : 0
+                percentage:
+                    totalMinutes > 0
+                        ? (subjectMinutes[-1] / totalMinutes) * 100
+                        : 0
             });
         }
-        
-        // Colors for the chart
-        const colors = ['#a855f7', '#60a5fa', '#34d399', '#fbbf24', '#ec4899', '#8b5cf6'];
-        
-        // Generate conic gradient
+
+        // Color palette for the pie chart
+        const colors = [
+            '#a855f7',
+            '#60a5fa',
+            '#34d399',
+            '#fbbf24',
+            '#ec4899',
+            '#8b5cf6'
+        ];
+
+        // Generate conic-gradient ensuring it always closes at 100%
         let currentPercent = 0;
+
         const conicGradient = subjectData
             .map((subject, index) => {
                 const color = colors[index % colors.length];
                 const start = currentPercent;
-                currentPercent += subject.percentage;
+
+                // Force the last segment to end exactly at 100%
+                const segmentPercent =
+                    index === subjectData.length - 1
+                        ? 100 - currentPercent
+                        : subject.percentage;
+
+                currentPercent += segmentPercent;
+
                 return `${color} ${start}% ${currentPercent}%`;
             })
             .join(', ');
 
-        // Update distribution chart
+        // Update pie chart DOM
         const pieChart = document.getElementById('focus-distribution-chart');
         const pieChartParent = pieChart?.parentElement;
-        
+
         if (pieChart && pieChartParent) {
-            // Show empty state if no data
+            // Render empty state when there is no data
             if (weeklySessions.length === 0 || subjectData.length === 0) {
                 pieChartParent.innerHTML = `
                     <div class="flex flex-col items-center justify-center h-full py-8">
                         <i data-lucide="pie-chart" class="w-12 h-12 text-gray-600 mb-3"></i>
-                        <p class="text-gray-500 text-sm text-center">${trans.dashboard.emptyDistributionTitle}</p>
-                        <p class="text-gray-600 text-xs text-center mt-1">${trans.dashboard.emptyDistributionDesc}</p>
+                        <p class="text-gray-500 text-sm text-center">
+                            ${trans.dashboard.emptyDistributionTitle}
+                        </p>
+                        <p class="text-gray-600 text-xs text-center mt-1">
+                            ${trans.dashboard.emptyDistributionDesc}
+                        </p>
                     </div>
                 `;
-                if (typeof lucide !== 'undefined') lucide.createIcons();
+
+                if (typeof lucide !== 'undefined') {
+                    lucide.createIcons();
+                }
                 return;
             }
-            
-            // Apply conic gradient to pie chart
-            (pieChart as HTMLElement).style.background = `conic-gradient(${conicGradient.slice(0, -2)})`;
-            
-            // Update total hours display
+
+            // Apply conic gradient (no slicing — fully valid CSS)
+            (pieChart as HTMLElement).style.background =
+                `conic-gradient(${conicGradient})`;
+
+            // Update total time label (center of the chart)
             const totalHoursEl = document.getElementById('focus-total-hours');
+
             if (totalHoursEl) {
                 if (totalMinutes < 60) {
                     totalHoursEl.textContent = `${totalMinutes}m`;
                 } else {
                     const hours = Math.floor(totalMinutes / 60);
                     const mins = totalMinutes % 60;
-                    if (mins === 0) {
-                        totalHoursEl.textContent = `${hours}h`;
-                    } else {
-                        totalHoursEl.textContent = `${hours}h ${mins}m`;
-                    }
+
+                    totalHoursEl.textContent =
+                        mins === 0
+                            ? `${hours}h`
+                            : `${hours}h ${mins}m`;
                 }
             }
-            
-            // Update legend
+
+            // Update legend (limit to top 4 subjects)
             const legendContainer = document.getElementById('focus-legend');
+
             if (legendContainer) {
-                legendContainer.innerHTML = subjectData.slice(0, 4).map((subject, index) => {
-                    const color = colors[index % colors.length];
-                    return `
-                        <div class="flex items-center gap-1">
-                            <span class="w-2 h-2 rounded-full" style="background-color: ${color}"></span>
-                            <span class="text-[10px] text-gray-400">${subject.name}</span>
-                        </div>
-                    `;
-                }).join('');
+                legendContainer.innerHTML = subjectData
+                    .slice(0, 4)
+                    .map((subject, index) => {
+                        const color = colors[index % colors.length];
+
+                        return `
+                            <div class="flex items-center gap-1">
+                                <span
+                                    class="w-2 h-2 rounded-full"
+                                    style="background-color: ${color}">
+                                </span>
+                                <span class="text-[10px] text-gray-400">
+                                    ${subject.name}
+                                </span>
+                            </div>
+                        `;
+                    })
+                    .join('');
             }
         }
     } catch (error) {
