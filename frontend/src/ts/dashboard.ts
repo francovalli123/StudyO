@@ -1,5 +1,5 @@
 // Import API functions for making HTTP requests and token management
-import { apiGet, apiPost, apiDelete, apiPut, getToken, getEvents, Event, getCurrentUser } from "./api.js";
+import { apiGet, apiPost, apiDelete, apiPut, apiPatch, getToken, getEvents, Event, getCurrentUser } from "./api.js";
 import { initConfirmModal, showConfirmModal, showAlertModal } from "./confirmModal.js";
 import { t, getCurrentLanguage, setCurrentLanguage, applyTranslations } from "./i18n.js";
 
@@ -156,6 +156,7 @@ interface WeeklyObjective {
     area?: string;  // Category or area of focus
     icon?: string;  // Emoji icon for visual representation
     subject: number | null;
+    is_completed: boolean;
     created_at: string;
 }
 
@@ -461,6 +462,9 @@ async function loadWeeklyObjectives() {
                                 </div>
                                 
                                 <div class="flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                    <button class="complete-objective p-1.5 rounded-lg text-gray-400 hover:text-green-400 hover:bg-green-500/10 transition-all duration-200" data-id="${obj.id}" title="Completar">
+                                        <i data-lucide="check" class="w-4 h-4"></i>
+                                    </button>
                                     <button class="edit-objective p-1.5 rounded-lg text-gray-400 hover:text-purple-400 hover:bg-purple-500/10 transition-all duration-200" data-id="${obj.id}" title="Editar">
                                         <i data-lucide="edit-3" class="w-4 h-4"></i>
                                     </button>
@@ -470,7 +474,7 @@ async function loadWeeklyObjectives() {
                                 </div>
                             </div>
 
-                            <div class="text-white text-base font-semibold mb-2 leading-snug">
+                            <div class="text-white text-base font-semibold mb-2 leading-snug ${obj.is_completed ? 'line-through text-gray-500' : ''}">
                                 ${obj.title}
                             </div>
                             
@@ -549,6 +553,16 @@ async function loadWeeklyObjectives() {
                 });
             });
             
+            // Attach complete event handlers
+            container.querySelectorAll('.complete-objective').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    const id = (btn as HTMLElement).getAttribute('data-id');
+                    if (id) await toggleObjectiveCompletion(Number(id));
+                });
+            });
+            
             // Attach inline edit handlers for icon and area (opens modal)
             container.querySelectorAll('.icon-display, .area-display').forEach(el => {
                 el.addEventListener('click', async (e) => {
@@ -623,6 +637,37 @@ async function deleteObjective(id: number) {
         console.error("Error deleting objective:", error);
         await showAlertModal(
             'Error al eliminar el objetivo. Por favor, intenta nuevamente.',
+            'Error'
+        );
+    }
+}
+
+/**
+ * Toggles completion status of a weekly objective
+ * @param id - The ID of the objective to toggle
+ */
+async function toggleObjectiveCompletion(id: number) {
+    const token = getToken();
+    if (!token) return;
+
+    try {
+        // First, get current objective to know current completion status
+        const objectives: WeeklyObjective[] = await apiGet("/weekly-objectives/");
+        const objective = objectives.find(o => o.id === id);
+        if (!objective) return;
+
+        // Toggle the completion status
+        const newCompleted = !objective.is_completed;
+
+        // Update via API
+        await apiPatch(`/weekly-objectives/${id}/`, { is_completed: newCompleted });
+
+        // Reload objectives to reflect changes
+        await loadWeeklyObjectives();
+    } catch (error) {
+        console.error('Error toggling objective completion:', error);
+        await showAlertModal(
+            'Error al actualizar el objetivo. Por favor, intenta nuevamente.',
             'Error'
         );
     }

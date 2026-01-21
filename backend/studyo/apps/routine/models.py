@@ -46,6 +46,7 @@ class WeeklyObjective(models.Model):
     detail = models.TextField(blank=True)
     priority = models.IntegerField(choices=PRIORITY_CHOICES, null=True, blank=True)
     notes = models.TextField(blank=True)
+    is_completed = models.BooleanField(default=False)
     area = models.CharField(max_length=100, default='General', blank=True)  # Nombre del área/materia
     icon = models.CharField(max_length=10, default='⚡', blank=True)  # Emoji o icono
     created_at = models.DateTimeField(auto_now_add=True)
