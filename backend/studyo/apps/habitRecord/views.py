@@ -2,7 +2,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
-from datetime import date
+from django.utils import timezone
 from .models import Habit, HabitRecord
 from .serializers import HabitRecordSerializer
 
@@ -16,7 +16,7 @@ class CompleteHabitView(APIView):
         except Habit.DoesNotExist:
             return Response({'error': 'Hábito no encontrado.'}, status=status.HTTP_404_NOT_FOUND)
 
-        today = date.today()
+        today = timezone.localdate()
 
         if HabitRecord.objects.filter(habit=habit, date=today).exists():
             return Response({'detail': 'Ya marcaste este hábito como completado hoy.'}, status=status.HTTP_200_OK)
@@ -46,7 +46,7 @@ class CompleteHabitView(APIView):
         except Habit.DoesNotExist:
             return Response({'error': 'Hábito no encontrado.'}, status=status.HTTP_404_NOT_FOUND)
 
-        today = date.today()
+        today = timezone.localdate()
 
         try:
             record = HabitRecord.objects.get(habit=habit, date=today)
