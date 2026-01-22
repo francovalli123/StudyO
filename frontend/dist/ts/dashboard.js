@@ -979,25 +979,24 @@ function loadFocusDistribution() {
                 subjectMinutes[key] += session.duration;
                 totalMinutes += session.duration;
             });
-            // Create array of subjects with minutes (only those with real ID and study time)
-            const subjectData = subjects
-                .filter(s => subjectMinutes[s.id] && subjectMinutes[s.id] > 0)
-                .map(s => ({
-                id: s.id,
-                name: s.name,
-                minutes: subjectMinutes[s.id],
-                percentage: totalMinutes > 0 ? (subjectMinutes[s.id] / totalMinutes) * 100 : 0
-            }))
+            // Create array of subjects with minutes (include all subjects that have study time, even if not in subjects list)
+            const subjectData = Object.entries(subjectMinutes)
+                .filter(([id, minutes]) => minutes > 0)
+                .map(([id, minutes]) => {
+                const subjectId = parseInt(id);
+                let name = trans.dashboard.focusDistributionNoSubject;
+                if (subjectId !== -1) {
+                    const subject = subjects.find(s => s.id === subjectId);
+                    name = subject ? subject.name : `Materia ${subjectId}`;
+                }
+                return {
+                    id: subjectId,
+                    name,
+                    minutes,
+                    percentage: totalMinutes > 0 ? (minutes / totalMinutes) * 100 : 0
+                };
+            })
                 .sort((a, b) => b.minutes - a.minutes);
-            // Add "no subject" sessions if any
-            if (subjectMinutes[-1] && subjectMinutes[-1] > 0) {
-                subjectData.push({
-                    id: -1,
-                    name: trans.dashboard.focusDistributionNoSubject,
-                    minutes: subjectMinutes[-1],
-                    percentage: totalMinutes > 0 ? (subjectMinutes[-1] / totalMinutes) * 100 : 0
-                });
-            }
             // Colors for the chart
             const colors = ['#a855f7', '#60a5fa', '#34d399', '#fbbf24', '#ec4899', '#8b5cf6'];
             // Generate conic gradient
@@ -1028,7 +1027,7 @@ function loadFocusDistribution() {
                     return;
                 }
                 // Apply conic gradient to pie chart
-                pieChart.style.background = `conic-gradient(${conicGradient.slice(0, -2)})`;
+                pieChart.style.background = `conic-gradient(${conicGradient})`;
                 // Update total hours display
                 const totalHoursEl = document.getElementById('focus-total-hours');
                 if (totalHoursEl) {
