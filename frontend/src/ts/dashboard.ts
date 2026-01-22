@@ -1921,6 +1921,12 @@ if (document.readyState === 'loading') {
     let timerStartRemaining: number = 0; // Remaining seconds when timer started
     let visibilityHandler: (() => void) | null = null; // Handler for visibility changes
 
+    // =====================
+    // 🔊 Audio & Notifications
+    // =====================
+    let pomodoroAudio: HTMLAudioElement | null = null;
+    let notificationPermissionRequested = false;
+
     // DOM elements
     const circle = document.getElementById('pomodoroProgressCircle') as SVGCircleElement | null;
     const timerDisplay = document.getElementById('pomodoroTimerDisplay');
@@ -1955,6 +1961,23 @@ if (document.readyState === 'loading') {
                 settings = { ...settings, ...parsed };
             }
         } catch (e) { /* ignore parsing errors */ }
+    }
+
+    function initPomodoroAudio() {
+    if (pomodoroAudio) return;
+
+    pomodoroAudio = new Audio('public/sounds/pomodoroSound.mp3');
+    pomodoroAudio.volume = 0.8;
+
+    // Unlock audio via user gesture
+    pomodoroAudio.play()
+        .then(() => {
+            pomodoroAudio!.pause();
+            pomodoroAudio!.currentTime = 0;
+        })
+        .catch(() => {
+            // Normal: autoplay blocked until user interaction
+        });
     }
 
     /**
@@ -2047,28 +2070,16 @@ if (document.readyState === 'loading') {
      * Uses HTMLAudioElement instead of Web Audio Oscillator
      */
     function playBeep() {
+        if (!pomodoroAudio) return;
+
         try {
-            // Create audio instance
-            const audio = new Audio('public/sounds/pomodoroSound.mp3');
-
-            // Improve UX: allow quick replay and avoid overlapping issues
-            audio.currentTime = 0;
-            audio.volume = 0.8;
-
-            // Play sound (handle autoplay restrictions)
-            const playPromise = audio.play();
-
-            if (playPromise !== undefined) {
-                playPromise.catch(error => {
-                    // Autoplay restrictions or user gesture missing
-                    console.warn('Audio playback blocked by browser:', error);
-                });
-            }
+            pomodoroAudio.currentTime = 0;
+            pomodoroAudio.play().catch(() => {});
         } catch (e) {
-            // Fallback safety net (e.g. unsupported browser or missing file)
             console.warn('Audio not available', e);
         }
     }
+
 
     /**
      * Sync timer based on timestamps (useful when tab comes back into focus)
@@ -2096,6 +2107,10 @@ if (document.readyState === 'loading') {
      */
     function finishTimer() {
         playBeep();
+
+        if (document.visibilityState !== 'visible') {
+            notifyPomodoroFinished();
+        }
 
         if (timerInterval) {
             clearInterval(timerInterval);
@@ -2151,6 +2166,10 @@ if (document.readyState === 'loading') {
         if (isRunning) return;
         isRunning = true;
         updatePlayButtonState();
+
+        initPomodoroAudio();
+        requestNotificationPermission();
+
         if (!sessionStart && currentStage === 'work') sessionStart = new Date();
         
         // Save start timestamp for sync
@@ -2272,6 +2291,26 @@ if (document.readyState === 'loading') {
         }
         remainingSeconds = (currentStage === 'work' ? settings.workMinutes : (currentStage === 'short_break' ? settings.shortBreakMinutes : settings.longBreakMinutes)) * 60;
         updateDisplay();
+    }
+
+    function requestNotificationPermission() {
+        if (notificationPermissionRequested) return;
+        notificationPermissionRequested = true;
+
+        if ('Notification' in window && Notification.permission === 'default') {
+            Notification.requestPermission();
+        }
+    }
+    function notifyPomodoroFinished() {
+        if (
+            'Notification' in window &&
+            Notification.permission === 'granted'
+        ) {
+            new Notification('StudyO', {
+                body: 'Pomodoro finalizado.¡Hora de un descanso!',
+                silent: false,
+            });
+        }
     }
 
     /**
