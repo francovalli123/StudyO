@@ -126,6 +126,7 @@ export const translations = {
             eventTypeExam: 'Examen',
             eventTypeImportantTask: 'Tarea importante',
             eventTypePersonal: 'Personal',
+            averagePerDay: 'promedio por día',
             // Empty states
             emptyObjectivesTitle: 'Sin objetivos estratégicos',
             emptyObjectivesDesc: 'La semana te domina si no tienes un plan. Define tu primera victoria ahora.',
@@ -373,6 +374,7 @@ export const translations = {
             eventTypeExam: 'Exam',
             eventTypeImportantTask: 'Important task',
             eventTypePersonal: 'Personal',
+            averagePerDay: 'average per day',
             // Empty states
             emptyObjectivesTitle: 'No strategic objectives',
             emptyObjectivesDesc: 'The week dominates you if you don\'t have a plan. Define your first victory now.',
@@ -620,6 +622,7 @@ export const translations = {
             eventTypeExam: '考试',
             eventTypeImportantTask: '重要任务',
             eventTypePersonal: '个人',
+            averagePerDay: '每天平均值',
             // Empty states
             emptyObjectivesTitle: '没有战略目标',
             emptyObjectivesDesc: '如果你没有计划，这一周就会控制你。现在就定义你的第一次胜利。',
@@ -867,6 +870,7 @@ export const translations = {
             eventTypeExam: 'Exame',
             eventTypeImportantTask: 'Tarefa importante',
             eventTypePersonal: 'Pessoal',
+            averagePerDay: 'média por dia',
             // Empty states
             emptyObjectivesTitle: 'Sem objetivos estratégicos',
             emptyObjectivesDesc: 'A semana te domina se você não tem um plano. Defina sua primeira vitória agora.',

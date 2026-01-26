@@ -1,5 +1,6 @@
 // Import API functions
-import { apiGet } from "./api.js";
+import { apiGet, getCurrentUser} from "./api.js";
+
 import { t, translations, getCurrentLanguage } from "./i18n.js";
 
 // Declare lucide icons library
@@ -99,52 +100,53 @@ function formatDate(dateString: string): string {
  * Load and render monthly study rhythm line chart
  */
 async function loadMonthlyRhythm() {
-try {
+    const currentUser = await getCurrentUser();
+
+    const userTimezone: string = currentUser.timezone ?? 'UTC';
+    try {
         const sessions: PomodoroSession[] = await apiGet("/pomodoro/");
         const trans = t();
-        
-        // Get last 6 months of data
-        const today = new Date();
-        const sixMonthsAgo = new Date(today);
+        const currentLang = getCurrentLanguage();
+
+        // Fecha de hoy según timezone del usuario
+        const now = new Date();
+        const localNow = new Date(now.toLocaleString("en-US", { timeZone: currentUser.timezone }));
+
+        // Fecha de hace 6 meses, al inicio del mes
+        const sixMonthsAgo = new Date(localNow);
         sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
-        
-        // Filter sessions from last 6 months
-        const recentSessions = sessions.filter(s => {
-            const sessionDate = new Date(s.start_time);
+        sixMonthsAgo.setDate(1);
+        sixMonthsAgo.setHours(0, 0, 0, 0);
+
+        // Filtrar sesiones de los últimos 6 meses según timezone
+        const recentSessions = sessions.filter(session => {
+            const sessionDate = new Date(
+                new Date(session.start_time).toLocaleString("en-US", { timeZone: currentUser.timezone })
+            );
             return sessionDate >= sixMonthsAgo;
         });
-        
-        // Group by month
-        const monthlyHours: { [key: string]: number } = {};
-        
-        // Obtener el idioma actual una sola vez
-        const currentLang = getCurrentLanguage(); 
 
+        // Agrupar por mes calendario
+        const monthlyHours: { [key: string]: number } = {};
         recentSessions.forEach(session => {
-            const sessionDate = new Date(session.start_time);
-            const monthKey = `${sessionDate.getFullYear()}-${String(sessionDate.getMonth() + 1).padStart(2, '0')}`;
-            
-            if (!monthlyHours[monthKey]) {
-                monthlyHours[monthKey] = 0;
-            }
-            monthlyHours[monthKey] += session.duration / 60; // Convert minutes to hours
+            const sessionDate = new Date(
+                new Date(session.start_time).toLocaleString("en-US", { timeZone: currentUser.timezone })
+            );
+            const monthKey = `${sessionDate.getFullYear()}-${String(sessionDate.getMonth() + 1).padStart(2, "0")}`;
+            monthlyHours[monthKey] = (monthlyHours[monthKey] || 0) + session.duration / 60;
         });
-        
-        // Sort months chronologically
+
+        // Ordenar meses cronológicamente
         const sortedMonths = Object.keys(monthlyHours).sort();
         const monthLabels: string[] = [];
         const monthValues: number[] = [];
-        
+
         sortedMonths.forEach(monthKey => {
-            const [year, month] = monthKey.split('-');
-            
-            // Creamos una fecha dummy con el año y mes del key para formatearla
+            const [year, month] = monthKey.split("-");
             const dateObj = new Date(parseInt(year), parseInt(month) - 1, 1);
-            
-            // Usamos toLocaleDateString para obtener el mes corto (ej: "Ene", "Jan", "Janv")
-            const localizedMonth = dateObj.toLocaleDateString(currentLang, { month: 'short' });
-            
-            // Capitalizamos la primera letra por estética (opcional, útil en español)
+
+            // Formatear mes según idioma del usuario
+            const localizedMonth = dateObj.toLocaleDateString(currentLang, { month: "short" });
             const formattedLabel = localizedMonth.charAt(0).toUpperCase() + localizedMonth.slice(1);
 
             monthLabels.push(formattedLabel);
@@ -888,7 +890,6 @@ async function loadWeeklyObjectivesStats() {
  * Load all progress data
  */
 async function loadProgress() {
-    console.log('Loading progress data...');
     try {
         await Promise.all([
             loadMonthlyRhythm(),
@@ -897,7 +898,6 @@ async function loadProgress() {
             loadStudyHeatmap(),
             loadWeeklyObjectivesStats()
         ]);
-        console.log('Progress data loaded successfully');
     } catch (error) {
         console.error("Error loading progress:", error);
     }

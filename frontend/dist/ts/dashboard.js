@@ -788,24 +788,46 @@ function loadPomodoroStats() {
         }
     });
 }
+function getStartOfWeekInUserTZ(timezone) {
+    // Current time in user's timezone
+    const now = new Date(new Intl.DateTimeFormat('en-US', {
+        timeZone: timezone,
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false,
+    }).format(new Date()));
+    const day = now.getDay(); // 0 = Sunday, 1 = Monday
+    const diffToMonday = day === 0 ? 6 : day - 1;
+    const startOfWeek = new Date(now);
+    startOfWeek.setDate(now.getDate() - diffToMonday);
+    startOfWeek.setHours(0, 0, 0, 0);
+    return startOfWeek;
+}
 /**
  * Loads and displays weekly study rhythm based on Pomodoro sessions
  * Creates a line chart showing study time for each day of the week
  */
 function loadWeeklyStudyRhythm() {
     return __awaiter(this, void 0, void 0, function* () {
+        var _a;
+        const currentUser = yield getCurrentUser();
+        const userTimezone = (_a = currentUser.timezone) !== null && _a !== void 0 ? _a : 'UTC';
+        const startOfWeek = getStartOfWeekInUserTZ(userTimezone);
         try {
             // 1. Load translations at the beginning
             const trans = t();
             // Fetch all Pomodoro sessions
             const sessions = yield apiGet("/pomodoro/");
-            // Get sessions from the past week
-            const today = new Date();
-            const weekAgo = new Date(today);
-            weekAgo.setDate(weekAgo.getDate() - 7);
+            // Get start of current week in user's timezone
+            const startOfWeek = getStartOfWeekInUserTZ(userTimezone);
+            // Filter weekly sessions correctly
             const weeklySessions = sessions
-                .map(s => (Object.assign(Object.assign({}, s), { date: new Date(s.start_time) })))
-                .filter(s => s.date >= weekAgo);
+                .map(s => (Object.assign(Object.assign({}, s), { date: new Date(s.start_time) }))) // UTC → Date
+                .filter(s => s.date >= startOfWeek);
             // Group minutes by day of week (0 = Sunday, 1 = Monday, etc.)
             const dayMinutes = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 };
             weeklySessions.forEach(session => {
@@ -948,40 +970,39 @@ function loadWeeklyStudyRhythm() {
  */
 function loadFocusDistribution() {
     return __awaiter(this, void 0, void 0, function* () {
+        var _a;
         const trans = t();
         try {
-            // Fetch sessions and subjects
+            // 1. Fetch current user to get timezone
+            const currentUser = yield getCurrentUser();
+            const userTimezone = (_a = currentUser.timezone) !== null && _a !== void 0 ? _a : 'UTC';
+            // 2. Fetch sessions and subjects
             const sessions = yield apiGet("/pomodoro/");
             const subjects = yield apiGet("/subjects/");
-            // Get sessions from the past week
-            const today = new Date();
-            const weekAgo = new Date(today);
-            weekAgo.setDate(weekAgo.getDate() - 7);
+            // 3. Calculate start of the week in user's timezone
+            const startOfWeek = getStartOfWeekInUserTZ(userTimezone);
+            // 4. Filter sessions for current week
             const weeklySessions = sessions.filter(s => {
                 const sessionDate = new Date(s.start_time);
-                return sessionDate >= weekAgo;
+                return sessionDate >= startOfWeek;
             });
-            // Group minutes by subject
+            // 5. Group minutes by subject
             const subjectMinutes = {};
             let totalMinutes = 0;
             weeklySessions.forEach(session => {
-                // Subject may be number, null, or undefined
                 let subjectId = null;
                 if (session.subject !== null && session.subject !== undefined) {
-                    // Convert to number if string
                     subjectId = typeof session.subject === 'string' ? parseInt(session.subject) : session.subject;
                 }
-                // Use special key for "no subject" that won't collide with real IDs
                 const key = subjectId !== null && !isNaN(subjectId) ? subjectId : -1;
-                if (!subjectMinutes[key]) {
+                if (!subjectMinutes[key])
                     subjectMinutes[key] = 0;
-                }
                 subjectMinutes[key] += session.duration;
                 totalMinutes += session.duration;
             });
-            // Create array of subjects with minutes (include all subjects that have study time, even if not in subjects list)
+            // 6. Prepare data for chart
             const subjectData = Object.entries(subjectMinutes)
-                .filter(([id, minutes]) => minutes > 0)
+                .filter(([_, minutes]) => minutes > 0)
                 .map(([id, minutes]) => {
                 const subjectId = parseInt(id);
                 let name = trans.dashboard.focusDistributionNoSubject;
@@ -997,9 +1018,8 @@ function loadFocusDistribution() {
                 };
             })
                 .sort((a, b) => b.minutes - a.minutes);
-            // Colors for the chart
+            // 7. Render pie chart (colores y gradiente)
             const colors = ['#a855f7', '#60a5fa', '#34d399', '#fbbf24', '#ec4899', '#8b5cf6'];
-            // Generate conic gradient
             let currentPercent = 0;
             const conicGradient = subjectData
                 .map((subject, index) => {
@@ -1009,11 +1029,9 @@ function loadFocusDistribution() {
                 return `${color} ${start}% ${currentPercent}%`;
             })
                 .join(', ');
-            // Update distribution chart
             const pieChart = document.getElementById('focus-distribution-chart');
             const pieChartParent = pieChart === null || pieChart === void 0 ? void 0 : pieChart.parentElement;
             if (pieChart && pieChartParent) {
-                // Show empty state if no data
                 if (weeklySessions.length === 0 || subjectData.length === 0) {
                     pieChartParent.innerHTML = `
                     <div class="flex flex-col items-center justify-center h-full py-8">
@@ -1026,26 +1044,17 @@ function loadFocusDistribution() {
                         lucide.createIcons();
                     return;
                 }
-                // Apply conic gradient to pie chart
                 pieChart.style.background = `conic-gradient(${conicGradient})`;
-                // Update total hours display
                 const totalHoursEl = document.getElementById('focus-total-hours');
                 if (totalHoursEl) {
-                    if (totalMinutes < 60) {
+                    if (totalMinutes < 60)
                         totalHoursEl.textContent = `${totalMinutes}m`;
-                    }
                     else {
                         const hours = Math.floor(totalMinutes / 60);
                         const mins = totalMinutes % 60;
-                        if (mins === 0) {
-                            totalHoursEl.textContent = `${hours}h`;
-                        }
-                        else {
-                            totalHoursEl.textContent = `${hours}h ${mins}m`;
-                        }
+                        totalHoursEl.textContent = mins === 0 ? `${hours}h` : `${hours}h ${mins}m`;
                     }
                 }
-                // Update legend
                 const legendContainer = document.getElementById('focus-legend');
                 if (legendContainer) {
                     legendContainer.innerHTML = subjectData.slice(0, 4).map((subject, index) => {
@@ -1065,26 +1074,24 @@ function loadFocusDistribution() {
         }
     });
 }
-/**
- * Loads and displays peak productivity time
- * Analyzes 4 weeks of Pomodoro data to determine best time for focus
- */
 function loadPeakProductivity() {
     return __awaiter(this, void 0, void 0, function* () {
+        var _a;
         try {
-            // Load translations once
             const trans = t();
-            // Constants for readability and maintainability
             const DAYS_ANALYZED = 28;
             const MIN_SESSIONS = 3;
             const MIN_TOTAL_MINUTES = 60;
-            // Fetch all Pomodoro sessions
+            // 1. Fetch current user to get timezone
+            const currentUser = yield getCurrentUser();
+            const userTimezone = (_a = currentUser.timezone) !== null && _a !== void 0 ? _a : 'UTC';
+            // 2. Fetch sessions
             const sessions = yield apiGet("/pomodoro/");
-            // Calculate date range (last 4 weeks)
+            // 3. Calculate start of 4-week period in user's timezone
             const today = new Date();
-            const fourWeeksAgo = new Date(today);
-            fourWeeksAgo.setDate(fourWeeksAgo.getDate() - DAYS_ANALYZED);
-            // Filter valid sessions and attach parsed Date to avoid recreating it later
+            let startOfPeriod = getStartOfWeekInUserTZ(userTimezone); // start of current week
+            startOfPeriod.setDate(startOfPeriod.getDate() - 21); // go back 3 weeks to have 4 weeks total
+            // 4. Filter valid sessions in period
             const recentSessions = sessions
                 .map(s => (Object.assign(Object.assign({}, s), { date: new Date(s.start_time) })))
                 .filter(s => {
@@ -1096,43 +1103,35 @@ function loadPeakProductivity() {
                     return false;
                 if (s.duration <= 0)
                     return false;
-                return s.date >= fourWeeksAgo;
+                return s.date >= startOfPeriod;
             });
-            // Helper to render empty state (used in multiple places)
             const renderEmptyState = () => {
                 const peakEl = document.getElementById('peak-productivity-time');
-                if (peakEl) {
+                if (peakEl)
                     peakEl.textContent = trans.dashboard.emptyPeakProductivityTitle;
-                }
                 const descriptionEl = document.getElementById('peak-productivity-desc');
-                if (descriptionEl) {
+                if (descriptionEl)
                     descriptionEl.textContent = trans.dashboard.emptyPeakProductivityDesc;
-                }
             };
-            // Not enough data to analyze
             if (recentSessions.length < MIN_SESSIONS) {
                 renderEmptyState();
                 return;
             }
-            // Calculate total study minutes
             const totalMinutes = recentSessions.reduce((sum, s) => sum + s.duration, 0);
-            // Not enough total time to be meaningful
             if (totalMinutes < MIN_TOTAL_MINUTES) {
                 renderEmptyState();
                 return;
             }
-            // Group minutes by day and hour
-            // Structure: { [day]: { [hour]: minutes } }
+            // 5. Group minutes by day and hour
             const dayHourMinutes = {};
             recentSessions.forEach(session => {
                 var _a;
-                const day = session.date.getDay(); // 0–6
-                const hour = session.date.getHours(); // 0–23
+                const day = session.date.getDay();
+                const hour = session.date.getHours();
                 (_a = dayHourMinutes[day]) !== null && _a !== void 0 ? _a : (dayHourMinutes[day] = {});
-                dayHourMinutes[day][hour] =
-                    (dayHourMinutes[day][hour] || 0) + session.duration;
+                dayHourMinutes[day][hour] = (dayHourMinutes[day][hour] || 0) + session.duration;
             });
-            // Determine peak productivity slot
+            // 6. Find peak productivity
             let bestDay = -1;
             let bestHour = -1;
             let maxMinutes = 0;
@@ -1145,24 +1144,18 @@ function loadPeakProductivity() {
                     }
                 });
             });
-            // Fallback safety check
             if (bestDay === -1 || bestHour === -1) {
                 renderEmptyState();
                 return;
             }
-            // Define peak range (±1 hour, clamped)
             const startHour = Math.max(0, bestHour - 1);
             const endHour = Math.min(23, bestHour + 1);
-            // Format hour for display
             const formatHour = (h) => `${h.toString().padStart(2, '0')}:00`;
-            // Update peak productivity time element
             const peakEl = document.getElementById('peak-productivity-time');
             if (peakEl) {
-                // bestDay is 0–6 and matches the translation array order
                 const dayName = trans.dashboard.days[bestDay];
                 peakEl.textContent = `${dayName}, ${formatHour(startHour)} - ${formatHour(endHour)}`;
             }
-            // Update description text
             const descriptionEl = document.getElementById('peak-productivity-desc');
             if (descriptionEl) {
                 descriptionEl.textContent = trans.dashboard.peakProductivityAnalysisDesc;
@@ -1170,106 +1163,6 @@ function loadPeakProductivity() {
         }
         catch (error) {
             console.error('Error loading peak productivity:', error);
-        }
-    });
-}
-/**
- * Loads and displays weekly balance review
- * Shows distribution of study time among top 3 subjects
- */
-function loadWeeklyBalance() {
-    return __awaiter(this, void 0, void 0, function* () {
-        try {
-            // Load translations once
-            const trans = t();
-            // Semantic constants for readability
-            const DAYS_ANALYZED = 7;
-            const TOP_SUBJECTS = 3;
-            // Fetch sessions and subjects
-            const sessions = yield apiGet("/pomodoro/");
-            const subjects = yield apiGet("/subjects/");
-            // Calculate date range (last week)
-            const today = new Date();
-            const weekAgo = new Date(today);
-            weekAgo.setDate(weekAgo.getDate() - DAYS_ANALYZED);
-            // Filter weekly sessions and attach parsed Date to avoid recreating it
-            const weeklySessions = sessions
-                .map(s => (Object.assign(Object.assign({}, s), { date: new Date(s.start_time) })))
-                .filter(s => s.date >= weekAgo);
-            // Accumulate study minutes per subject
-            const subjectMinutes = {};
-            let totalMinutes = 0;
-            weeklySessions.forEach(session => {
-                var _a;
-                // Use 0 as fallback key for sessions without subject
-                const subjectId = session.subject !== null && session.subject !== undefined
-                    ? session.subject
-                    : 0;
-                subjectMinutes[subjectId] =
-                    ((_a = subjectMinutes[subjectId]) !== null && _a !== void 0 ? _a : 0) + session.duration;
-                totalMinutes += session.duration;
-            });
-            // Get top subjects by study time
-            const topSubjects = subjects
-                .filter(subject => subjectMinutes[subject.id])
-                .map(subject => ({
-                id: subject.id,
-                name: subject.name,
-                minutes: subjectMinutes[subject.id],
-                percentage: totalMinutes > 0
-                    ? (subjectMinutes[subject.id] / totalMinutes) * 100
-                    : 0
-            }))
-                .sort((a, b) => b.minutes - a.minutes)
-                .slice(0, TOP_SUBJECTS);
-            // Chart color palette
-            const colors = ['#c084fc', '#fbbf24', '#34d399'];
-            // Generate conic-gradient string
-            let currentPercent = 0;
-            const conicGradient = topSubjects
-                .map((subject, index) => {
-                const color = colors[index % colors.length];
-                const start = currentPercent;
-                currentPercent += subject.percentage;
-                return `${color} ${start}% ${currentPercent}%`;
-            })
-                .join(', ');
-            // Get chart elements
-            const balanceChart = document.getElementById('weekly-balance-chart');
-            const balanceChartParent = balanceChart === null || balanceChart === void 0 ? void 0 : balanceChart.parentElement;
-            // Exit early if DOM structure is missing
-            if (!balanceChart || !balanceChartParent)
-                return;
-            // Render empty state if there is no data
-            if (weeklySessions.length === 0 || topSubjects.length === 0) {
-                balanceChartParent.innerHTML = `
-                <div class="flex flex-col items-center justify-center h-full py-8">
-                    <i data-lucide="pie-chart" class="w-10 h-10 text-gray-600 mb-3"></i>
-                    <p class="text-gray-500 text-xs text-center">
-                        ${trans.dashboard.emptyBalanceTitle}
-                    </p>
-                    <p class="text-gray-600 text-[10px] text-center mt-1">
-                        ${trans.dashboard.emptyBalanceDesc}
-                    </p>
-                </div>
-            `;
-                if (typeof lucide !== 'undefined') {
-                    lucide.createIcons();
-                }
-                return;
-            }
-            // Apply conic gradient to the chart
-            balanceChart.style.background =
-                `conic-gradient(${conicGradient})`;
-            // Update total study hours display
-            const totalHoursEl = document.getElementById('weekly-balance-hours');
-            if (totalHoursEl) {
-                const totalHours = Math.round(totalMinutes / 60);
-                totalHoursEl.textContent = `${totalHours}h`;
-            }
-        }
-        catch (error) {
-            console.error("Error loading weekly balance:", error);
         }
     });
 }
@@ -1647,7 +1540,6 @@ function loadDashboard() {
                 loadWeeklyStudyRhythm(),
                 loadFocusDistribution(),
                 loadPeakProductivity(),
-                loadWeeklyBalance(),
                 loadKeyHabits(),
                 loadNextEvent()
             ]);

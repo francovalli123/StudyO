@@ -8,7 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 // Import API functions
-import { apiGet } from "./api.js";
+import { apiGet, getCurrentUser } from "./api.js";
 import { t, translations, getCurrentLanguage } from "./i18n.js";
 /**
  * ==========================================
@@ -63,41 +63,42 @@ function formatDate(dateString) {
  */
 function loadMonthlyRhythm() {
     return __awaiter(this, void 0, void 0, function* () {
+        var _a;
+        const currentUser = yield getCurrentUser();
+        const userTimezone = (_a = currentUser.timezone) !== null && _a !== void 0 ? _a : 'UTC';
         try {
             const sessions = yield apiGet("/pomodoro/");
             const trans = t();
-            // Get last 6 months of data
-            const today = new Date();
-            const sixMonthsAgo = new Date(today);
+            const currentLang = getCurrentLanguage();
+            // Fecha de hoy según timezone del usuario
+            const now = new Date();
+            const localNow = new Date(now.toLocaleString("en-US", { timeZone: currentUser.timezone }));
+            // Fecha de hace 6 meses, al inicio del mes
+            const sixMonthsAgo = new Date(localNow);
             sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
-            // Filter sessions from last 6 months
-            const recentSessions = sessions.filter(s => {
-                const sessionDate = new Date(s.start_time);
+            sixMonthsAgo.setDate(1);
+            sixMonthsAgo.setHours(0, 0, 0, 0);
+            // Filtrar sesiones de los últimos 6 meses según timezone
+            const recentSessions = sessions.filter(session => {
+                const sessionDate = new Date(new Date(session.start_time).toLocaleString("en-US", { timeZone: currentUser.timezone }));
                 return sessionDate >= sixMonthsAgo;
             });
-            // Group by month
+            // Agrupar por mes calendario
             const monthlyHours = {};
-            // Obtener el idioma actual una sola vez
-            const currentLang = getCurrentLanguage();
             recentSessions.forEach(session => {
-                const sessionDate = new Date(session.start_time);
-                const monthKey = `${sessionDate.getFullYear()}-${String(sessionDate.getMonth() + 1).padStart(2, '0')}`;
-                if (!monthlyHours[monthKey]) {
-                    monthlyHours[monthKey] = 0;
-                }
-                monthlyHours[monthKey] += session.duration / 60; // Convert minutes to hours
+                const sessionDate = new Date(new Date(session.start_time).toLocaleString("en-US", { timeZone: currentUser.timezone }));
+                const monthKey = `${sessionDate.getFullYear()}-${String(sessionDate.getMonth() + 1).padStart(2, "0")}`;
+                monthlyHours[monthKey] = (monthlyHours[monthKey] || 0) + session.duration / 60;
             });
-            // Sort months chronologically
+            // Ordenar meses cronológicamente
             const sortedMonths = Object.keys(monthlyHours).sort();
             const monthLabels = [];
             const monthValues = [];
             sortedMonths.forEach(monthKey => {
-                const [year, month] = monthKey.split('-');
-                // Creamos una fecha dummy con el año y mes del key para formatearla
+                const [year, month] = monthKey.split("-");
                 const dateObj = new Date(parseInt(year), parseInt(month) - 1, 1);
-                // Usamos toLocaleDateString para obtener el mes corto (ej: "Ene", "Jan", "Janv")
-                const localizedMonth = dateObj.toLocaleDateString(currentLang, { month: 'short' });
-                // Capitalizamos la primera letra por estética (opcional, útil en español)
+                // Formatear mes según idioma del usuario
+                const localizedMonth = dateObj.toLocaleDateString(currentLang, { month: "short" });
                 const formattedLabel = localizedMonth.charAt(0).toUpperCase() + localizedMonth.slice(1);
                 monthLabels.push(formattedLabel);
                 monthValues.push(monthlyHours[monthKey]);
@@ -788,7 +789,6 @@ function loadWeeklyObjectivesStats() {
  */
 function loadProgress() {
     return __awaiter(this, void 0, void 0, function* () {
-        console.log('Loading progress data...');
         try {
             yield Promise.all([
                 loadMonthlyRhythm(),
@@ -797,7 +797,6 @@ function loadProgress() {
                 loadStudyHeatmap(),
                 loadWeeklyObjectivesStats()
             ]);
-            console.log('Progress data loaded successfully');
         }
         catch (error) {
             console.error("Error loading progress:", error);

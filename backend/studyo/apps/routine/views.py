@@ -193,24 +193,28 @@ class WeeklyObjectiveDetailView(RetrieveUpdateDestroyAPIView):
 # ============================================================
 # WEEKLY OBJECTIVES STATS (TIMEZONE SAFE)
 # ============================================================
-
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def weekly_objectives_stats(request):
     """
     Estadísticas semanales basadas en la timezone del usuario.
+    Incluye: total/completados, completion rate, promedio diario y top objetivos pendientes.
     """
 
     user = request.user
 
-    current_week_start, current_week_end = get_user_week_range(user)
+    # Obtener rango de la semana actual del usuario
+    week_range = get_user_week_range(user)
+    current_week_start = week_range["week_start_utc"]
+    current_week_end = week_range["week_end_utc"]
 
+
+    # Objetivos actuales y del historial
     current_objectives = WeeklyObjective.objects.filter(
         user=user,
         created_at__gte=current_week_start,
         created_at__lte=current_week_end,
     )
-
     history = WeeklyObjectiveHistory.objects.filter(user=user)
 
     total_objectives = history.count() + current_objectives.count()
@@ -218,53 +222,71 @@ def weekly_objectives_stats(request):
         history.filter(is_completed=True).count()
         + current_objectives.filter(is_completed=True).count()
     )
+    completion_rate = (completed_objectives / total_objectives) * 100 if total_objectives else 0
 
-    completion_rate = (
-        (completed_objectives / total_objectives) * 100
-        if total_objectives > 0 else 0
-    )
-
+    # Weekly stats por semana
     weekly_stats = {}
 
+    # Función para obtener semana de un datetime
+    def get_week_range_from_datetime(dt):
+        start = dt - timedelta(days=dt.weekday())  # lunes
+        end = start + timedelta(days=6)           # domingo
+        return start.date(), end.date()
+
+    # Procesar historial
     for obj in history:
-        week_key = obj.week_start_date.isoformat()
+        week_start = obj.week_start_date
+        week_end = obj.week_end_date
+        week_key = week_start.isoformat()
 
         weekly_stats.setdefault(week_key, {
-            "week_start": obj.week_start_date.isoformat(),
-            "week_end": obj.week_end_date.isoformat(),
+            "week_start": week_start.isoformat(),
+            "week_end": week_end.isoformat(),
             "total": 0,
             "completed": 0,
             "completion_rate": 0,
+            "average_per_day": 0,
+            "pending_objectives": [],
         })
 
         weekly_stats[week_key]["total"] += 1
         if obj.is_completed:
             weekly_stats[week_key]["completed"] += 1
+        else:
+            weekly_stats[week_key]["pending_objectives"].append(obj.title or "Sin título")
 
-    current_week_key = current_week_start.date().isoformat()
-    weekly_stats.setdefault(current_week_key, {
-        "week_start": current_week_start.date().isoformat(),
-        "week_end": current_week_end.date().isoformat(),
-        "total": 0,
-        "completed": 0,
-        "completion_rate": 0,
-    })
-
+    # Procesar objetivos actuales
     for obj in current_objectives:
-        weekly_stats[current_week_key]["total"] += 1
+        week_start, week_end = get_week_range_from_datetime(obj.created_at)
+        week_key = week_start.isoformat()
+
+        weekly_stats.setdefault(week_key, {
+            "week_start": week_start.isoformat(),
+            "week_end": week_end.isoformat(),
+            "total": 0,
+            "completed": 0,
+            "completion_rate": 0,
+            "average_per_day": 0,
+            "pending_objectives": [],
+        })
+
+        weekly_stats[week_key]["total"] += 1
         if obj.is_completed:
-            weekly_stats[current_week_key]["completed"] += 1
+            weekly_stats[week_key]["completed"] += 1
+        else:
+            weekly_stats[week_key]["pending_objectives"].append(obj.title or "Sin título")
 
+    # Calcular completion rate y promedio diario
     for week in weekly_stats.values():
-        week["completion_rate"] = round(
-            (week["completed"] / week["total"]) * 100, 1
-        ) if week["total"] > 0 else 0
+        if week["total"] > 0:
+            week["completion_rate"] = round((week["completed"] / week["total"]) * 100, 1)
+            week["average_per_day"] = round(week["total"] / 7, 2)
+        else:
+            week["completion_rate"] = 0
+            week["average_per_day"] = 0
 
-    recent_weeks = sorted(
-        weekly_stats.values(),
-        key=lambda x: x["week_start"],
-        reverse=True
-    )[:12]
+    # Ordenar semanas recientes (máx 12)
+    recent_weeks = sorted(weekly_stats.values(), key=lambda x: x["week_start"], reverse=True)[:12]
 
     return Response({
         "total_objectives": total_objectives,
