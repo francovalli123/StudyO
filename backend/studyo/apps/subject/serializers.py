@@ -9,7 +9,7 @@ class SubjectSerializer(serializers.ModelSerializer):
     # `study_minutes_week` se puede anotar desde la view (aggregate Sum de PomodoroSession.duration)
     study_minutes_week = serializers.IntegerField(read_only=True)
     weekly_target_minutes = serializers.IntegerField()
-    progress = serializers.IntegerField(read_only=True, source='calculated_progress')
+    progress = serializers.IntegerField(read_only=True, source='computed_progress')
     user = serializers.PrimaryKeyRelatedField(read_only=True)
 
     class Meta:
