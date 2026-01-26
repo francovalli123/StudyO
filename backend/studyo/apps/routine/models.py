@@ -54,3 +54,25 @@ class WeeklyObjective(models.Model):
 
     def __str__(self):
         return f"{self.title}"
+
+
+class WeeklyObjectiveHistory(models.Model):
+    """Historial de objetivos semanales para estadísticas.
+    Se guarda cuando un objetivo semanal es eliminado al final de la semana.
+    """
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='weekly_objective_history'
+    )
+    title = models.CharField(max_length=150)
+    area = models.CharField(max_length=100, default='General', blank=True)
+    priority = models.IntegerField(choices=WeeklyObjective.PRIORITY_CHOICES, null=True, blank=True)
+    is_completed = models.BooleanField(default=False)
+    week_start_date = models.DateField()  # Fecha de inicio de la semana (lunes)
+    week_end_date = models.DateField()    # Fecha de fin de la semana (domingo)
+    created_at = models.DateTimeField()   # Fecha de creación del objetivo
+    completed_at = models.DateTimeField(null=True, blank=True)  # Fecha de completación si aplica
+
+    def __str__(self):
+        return f"{self.title} - {self.week_start_date} to {self.week_end_date}"

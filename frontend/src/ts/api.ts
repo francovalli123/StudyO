@@ -188,11 +188,11 @@ export async function login(username: string, password: string): Promise<{ token
     }
 }
 
-export async function register(username: string, email: string, password: string): Promise<any> {
+export async function register(username: string, email: string, password: string, firstName: string, lastName: string, country: string): Promise<any> {
     const response = await fetch(`${BASE_URL}/signup/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, email, password }),
+        body: JSON.stringify({ username, email, password, first_name: firstName, last_name: lastName, country }),
         credentials: "include"
     });
     return handleRequest(response);
@@ -227,6 +227,8 @@ export interface CurrentUser {
     photo?: string | null;
     profile_image?: string | null;
     preferences?: any;
+    timezone?: string;
+    country?: string;
 }
 
 export async function getCurrentUser(): Promise<CurrentUser> {

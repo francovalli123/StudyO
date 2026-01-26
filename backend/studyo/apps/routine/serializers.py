@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Routine, WeeklyObjective
+from .models import Routine, WeeklyObjective, WeeklyObjectiveHistory
 from apps.routineBlock.serializers import RoutineBlockSerializer
 from apps.routineBlock.models import RoutineBlock
 
@@ -52,3 +52,10 @@ class WeeklyObjectiveSerializer(serializers.ModelSerializer):
         validated_data.pop('user', None)
         user = self.context['request'].user
         return WeeklyObjective.objects.create(user=user, **validated_data)
+
+
+class WeeklyObjectiveHistorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = WeeklyObjectiveHistory
+        fields = ['id', 'title', 'area', 'priority', 'is_completed', 'week_start_date', 'week_end_date', 'created_at', 'completed_at']
+        read_only_fields = ['id', 'user']

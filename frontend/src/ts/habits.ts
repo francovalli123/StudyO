@@ -1,4 +1,4 @@
-import { apiGet, apiPost, apiPut, apiDelete, getToken } from './api.js';
+import { apiGet, apiPost, apiPut, apiDelete, getToken, getCurrentUser } from './api.js';
 import { initConfirmModal, showConfirmModal } from "./confirmModal.js";
 import { translations, getCurrentLanguage } from './i18n.js';
 
@@ -75,11 +75,15 @@ function getT() {
  * Local Storage Helpers
  */
 function getTodayKey(): string {
-    const localDate = new Date();
-    const year = localDate.getFullYear();
-    const month = String(localDate.getMonth() + 1).padStart(2, '0');
-    const day = String(localDate.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
+    const now = new Date();
+    const options: Intl.DateTimeFormatOptions = {
+        timeZone: userTimezone,
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+    };
+    const dateStr = now.toLocaleDateString('en-CA', options); // YYYY-MM-DD format
+    return dateStr;
 }
 
 function getTodayCompletions(): Set<number> {
@@ -107,6 +111,7 @@ let subjects: Subject[] = [];
 let editingHabitId: number | null = null;
 let selectedIcon = 'zap';
 let selectedColor = 'orange';
+let userTimezone = 'UTC';
 
 function updateDailyProgress(completed: number, total: number) {
     const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
@@ -132,6 +137,10 @@ async function loadHabits() {
             window.location.href = 'login.html';
             return;
         }
+
+        // Load current user to get timezone
+        const user = await getCurrentUser();
+        userTimezone = user.timezone || 'UTC';
 
         const habitsData: Habit[] = await apiGet('/habits/');
         todayCompletions = getTodayCompletions();

@@ -44,6 +44,16 @@ function getHeatmapColor(hours) {
     return '#c084fc'; // Purple-400 (brightest)
 }
 /**
+ * Format date string for display
+ */
+function formatDate(dateString) {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('es-ES', {
+        day: 'numeric',
+        month: 'short'
+    });
+}
+/**
  * ==========================================
  * Monthly Rhythm Chart (Line Chart)
  * ==========================================
@@ -713,17 +723,81 @@ function updateTooltipPosition(tooltip, mouseX, mouseY) {
  * ==========================================
  */
 /**
+ * Load weekly objectives statistics
+ */
+function loadWeeklyObjectivesStats() {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            console.log('Loading weekly objectives stats...');
+            const stats = yield apiGet("/weekly-objectives/stats/");
+            console.log('Weekly objectives stats loaded:', stats);
+            // Update summary cards
+            const totalEl = document.getElementById('weekly-objectives-total');
+            const completedEl = document.getElementById('weekly-objectives-completed');
+            const rateEl = document.getElementById('weekly-objectives-rate');
+            if (totalEl)
+                totalEl.textContent = stats.total_objectives.toString();
+            if (completedEl)
+                completedEl.textContent = stats.completed_objectives.toString();
+            if (rateEl)
+                rateEl.textContent = `${stats.completion_rate}%`;
+            // Update weekly history
+            const historyEl = document.getElementById('weekly-objectives-history');
+            if (historyEl) {
+                if (stats.weekly_stats.length === 0) {
+                    historyEl.innerHTML = `
+                    <div class="text-center text-gray-500 text-sm py-4">
+                        No hay datos de objetivos semanales aún
+                    </div>
+                `;
+                }
+                else {
+                    historyEl.innerHTML = stats.weekly_stats.map(week => `
+                    <div class="flex justify-between items-center bg-dark-input rounded-lg p-3">
+                        <div class="text-sm text-gray-300">
+                            ${formatDate(week.week_start)} - ${formatDate(week.week_end)}
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs text-gray-400">${week.completed}/${week.total}</span>
+                            <div class="w-16 bg-gray-700 rounded-full h-2">
+                                <div class="bg-purple-500 h-2 rounded-full transition-all duration-300"
+                                     style="width: ${week.completion_rate}%"></div>
+                            </div>
+                            <span class="text-xs font-medium text-purple-400">${week.completion_rate.toFixed(0)}%</span>
+                        </div>
+                    </div>
+                `).join('');
+                }
+            }
+        }
+        catch (error) {
+            console.error("Error loading weekly objectives stats:", error);
+            const historyEl = document.getElementById('weekly-objectives-history');
+            if (historyEl) {
+                historyEl.innerHTML = `
+                <div class="text-center text-gray-500 text-sm py-4">
+                    Error al cargar estadísticas: ${error}
+                </div>
+            `;
+            }
+        }
+    });
+}
+/**
  * Load all progress data
  */
 function loadProgress() {
     return __awaiter(this, void 0, void 0, function* () {
+        console.log('Loading progress data...');
         try {
             yield Promise.all([
                 loadMonthlyRhythm(),
                 loadWeeklyConsistency(),
                 loadMonthlyFocusDistribution(),
-                loadStudyHeatmap()
+                loadStudyHeatmap(),
+                loadWeeklyObjectivesStats()
             ]);
+            console.log('Progress data loaded successfully');
         }
         catch (error) {
             console.error("Error loading progress:", error);

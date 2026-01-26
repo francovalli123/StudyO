@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'apps.routineBlock',
     'corsheaders',
     'rest_framework.authtoken',
+    'django_apscheduler',
     'rest_framework',
     'apps.habitRecord.apps.HabitrecordConfig',
     'apps.events.apps.EventsConfig',

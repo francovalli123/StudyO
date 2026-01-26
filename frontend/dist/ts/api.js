@@ -192,12 +192,12 @@ export function login(username, password) {
         }
     });
 }
-export function register(username, email, password) {
+export function register(username, email, password, firstName, lastName, country) {
     return __awaiter(this, void 0, void 0, function* () {
         const response = yield fetch(`${BASE_URL}/signup/`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ username, email, password }),
+            body: JSON.stringify({ username, email, password, first_name: firstName, last_name: lastName, country }),
             credentials: "include"
         });
         return handleRequest(response);

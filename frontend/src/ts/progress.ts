@@ -32,6 +32,19 @@ interface Subject {
     professor_name: string | null;
 }
 
+interface WeeklyObjectivesStats {
+    total_objectives: number;
+    completed_objectives: number;
+    completion_rate: number;
+    weekly_stats: Array<{
+        week_start: string;
+        week_end: string;
+        total: number;
+        completed: number;
+        completion_rate: number;
+    }>;
+}
+
 /**
  * ==========================================
  * Utility Functions
@@ -63,6 +76,17 @@ function getHeatmapColor(hours: number): string {
     if (hours < 2) return '#7c3aed'; // Purple-700
     if (hours < 4) return '#a855f7'; // Purple-500
     return '#c084fc'; // Purple-400 (brightest)
+}
+
+/**
+ * Format date string for display
+ */
+function formatDate(dateString: string): string {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('es-ES', {
+        day: 'numeric',
+        month: 'short'
+    });
 }
 
 /**
@@ -803,16 +827,77 @@ function updateTooltipPosition(tooltip: HTMLElement, mouseX: number, mouseY: num
  */
 
 /**
+ * Load weekly objectives statistics
+ */
+async function loadWeeklyObjectivesStats() {
+    try {
+        console.log('Loading weekly objectives stats...');
+        const stats: WeeklyObjectivesStats = await apiGet("/weekly-objectives/stats/");
+        console.log('Weekly objectives stats loaded:', stats);
+
+        // Update summary cards
+        const totalEl = document.getElementById('weekly-objectives-total');
+        const completedEl = document.getElementById('weekly-objectives-completed');
+        const rateEl = document.getElementById('weekly-objectives-rate');
+
+        if (totalEl) totalEl.textContent = stats.total_objectives.toString();
+        if (completedEl) completedEl.textContent = stats.completed_objectives.toString();
+        if (rateEl) rateEl.textContent = `${stats.completion_rate}%`;
+
+        // Update weekly history
+        const historyEl = document.getElementById('weekly-objectives-history');
+        if (historyEl) {
+            if (stats.weekly_stats.length === 0) {
+                historyEl.innerHTML = `
+                    <div class="text-center text-gray-500 text-sm py-4">
+                        No hay datos de objetivos semanales aún
+                    </div>
+                `;
+            } else {
+                historyEl.innerHTML = stats.weekly_stats.map(week => `
+                    <div class="flex justify-between items-center bg-dark-input rounded-lg p-3">
+                        <div class="text-sm text-gray-300">
+                            ${formatDate(week.week_start)} - ${formatDate(week.week_end)}
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs text-gray-400">${week.completed}/${week.total}</span>
+                            <div class="w-16 bg-gray-700 rounded-full h-2">
+                                <div class="bg-purple-500 h-2 rounded-full transition-all duration-300"
+                                     style="width: ${week.completion_rate}%"></div>
+                            </div>
+                            <span class="text-xs font-medium text-purple-400">${week.completion_rate.toFixed(0)}%</span>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+    } catch (error) {
+        console.error("Error loading weekly objectives stats:", error);
+        const historyEl = document.getElementById('weekly-objectives-history');
+        if (historyEl) {
+            historyEl.innerHTML = `
+                <div class="text-center text-gray-500 text-sm py-4">
+                    Error al cargar estadísticas: ${error}
+                </div>
+            `;
+        }
+    }
+}
+
+/**
  * Load all progress data
  */
 async function loadProgress() {
+    console.log('Loading progress data...');
     try {
         await Promise.all([
             loadMonthlyRhythm(),
             loadWeeklyConsistency(),
             loadMonthlyFocusDistribution(),
-            loadStudyHeatmap()
+            loadStudyHeatmap(),
+            loadWeeklyObjectivesStats()
         ]);
+        console.log('Progress data loaded successfully');
     } catch (error) {
         console.error("Error loading progress:", error);
     }
