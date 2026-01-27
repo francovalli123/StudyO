@@ -261,62 +261,63 @@ function loadMonthlyRhythm() {
  * Weekly Consistency Card
  * ==========================================
  */
+function getDayOfWeekInTimezone(date, timeZone) {
+    // Convierte la fecha a la zona horaria del usuario
+    const utcDate = new Date(date.toLocaleString('en-US', { timeZone: 'UTC' }));
+    const tzDate = new Date(date.toLocaleString('en-US', { timeZone }));
+    const day = tzDate.getDay(); // 0 = domingo, 1 = lunes, ..., 6 = sábado
+    return day === 0 ? 7 : day; // hacemos que lunes=1 ... domingo=7
+}
 /**
  * Load and render weekly consistency percentage
  */
 function loadWeeklyConsistency() {
     return __awaiter(this, void 0, void 0, function* () {
+        var _a;
+        const currentUser = yield getCurrentUser();
         try {
             const sessions = yield apiGet("/pomodoro/");
-            // Get last 7 days
-            const today = new Date();
-            const weekAgo = new Date(today);
-            weekAgo.setDate(weekAgo.getDate() - 7);
-            weekAgo.setHours(0, 0, 0, 0);
-            // Count days with at least one session
+            // Obtener la fecha actual en timezone del usuario
+            const now = new Date();
+            const userTimezone = (_a = currentUser.timezone) !== null && _a !== void 0 ? _a : 'UTC';
+            const dayOfWeek = getDayOfWeekInTimezone(now, userTimezone);
+            // Calcular lunes de esta semana
+            const mondayDate = new Date(now);
+            const diff = dayOfWeek - 1; // cuántos días restar para llegar al lunes
+            mondayDate.setDate(now.getDate() - diff);
+            mondayDate.setHours(0, 0, 0, 0);
+            // Contar días con al menos una sesión desde lunes
             const daysWithStudy = new Set();
             sessions.forEach(session => {
                 const sessionDate = new Date(session.start_time);
-                sessionDate.setHours(0, 0, 0, 0);
-                if (sessionDate >= weekAgo && sessionDate <= today) {
-                    const dayKey = sessionDate.toISOString().split('T')[0];
+                // Convertir sessionDate a timezone del usuario
+                const sessionFormatter = new Intl.DateTimeFormat('en-US', {
+                    timeZone: userTimezone,
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                });
+                const dayKey = sessionFormatter.format(sessionDate);
+                const sessionDateOnly = new Date(dayKey);
+                if (sessionDateOnly >= mondayDate && sessionDateOnly <= now) {
                     daysWithStudy.add(dayKey);
                 }
             });
-            // Calculate percentage (days with study / 7)
+            // Número de días hasta hoy desde lunes
+            const totalDays = (Math.floor((now.getTime() - mondayDate.getTime()) / (1000 * 60 * 60 * 24)) + 1);
             const consistencyPercentage = Math.round((daysWithStudy.size / 7) * 100);
-            // Update circular progress
+            // === Actualizar UI ===
             const consistencyCard = document.querySelector('.bg-dark-card.animate-on-load.delay-400');
             const circle = document.getElementById('consistency-progress-circle');
             const percentageEl = document.getElementById('consistency-percentage');
             const feedbackEl = document.getElementById('consistency-feedback');
-            // Show empty state if no data
-            if (sessions.length === 0 && consistencyCard) {
-                const trans = translations[getCurrentLanguage()];
-                const cardContent = consistencyCard.querySelector('.flex.flex-col');
-                if (cardContent) {
-                    cardContent.innerHTML = `
-                    <div class="flex flex-col items-center justify-center h-full py-12">
-                        <div class="w-16 h-16 rounded-full bg-gradient-to-br from-purple-500/20 via-fuchsia-500/20 to-purple-500/20 flex items-center justify-center mb-4" style="box-shadow: 0 0 0 1px rgba(168,85,247,0.3);">
-                            <i data-lucide="target" class="w-8 h-8 text-purple-400"></i>
-                        </div>
-                        <h3 class="text-lg font-bold text-white mb-2">${trans.progress.weeklyConsistency}</h3>
-                        <p class="text-gray-400 text-sm text-center max-w-xs">${trans.progress.consistencyDesc}</p>
-                    </div>
-                `;
-                    if (typeof lucide !== 'undefined')
-                        lucide.createIcons();
-                    return;
-                }
-            }
             if (circle) {
-                const circumference = 2 * Math.PI * 70; // radius = 70
+                const circumference = 2 * Math.PI * 70;
                 const offset = circumference - (consistencyPercentage / 100) * circumference;
                 circle.setAttribute('stroke-dashoffset', offset.toString());
             }
-            if (percentageEl) {
+            if (percentageEl)
                 percentageEl.textContent = `${consistencyPercentage}%`;
-            }
             if (feedbackEl) {
                 const lang = getCurrentLanguage();
                 const feedbackMap = {
@@ -327,21 +328,16 @@ function loadWeeklyConsistency() {
                 };
                 const texts = feedbackMap[lang] || feedbackMap.es;
                 let feedback = '';
-                if (consistencyPercentage >= 85) {
+                if (consistencyPercentage >= 85)
                     feedback = texts[0];
-                }
-                else if (consistencyPercentage >= 70) {
+                else if (consistencyPercentage >= 70)
                     feedback = texts[1];
-                }
-                else if (consistencyPercentage >= 50) {
+                else if (consistencyPercentage >= 50)
                     feedback = texts[2];
-                }
-                else if (consistencyPercentage >= 30) {
+                else if (consistencyPercentage >= 30)
                     feedback = texts[3];
-                }
-                else {
+                else
                     feedback = texts[4];
-                }
                 feedbackEl.textContent = feedback;
             }
         }
@@ -357,29 +353,40 @@ function loadWeeklyConsistency() {
  */
 /**
  * Load and render monthly focus distribution donut chart
+ * Reinicia cada mes según el timezone del usuario
  */
 function loadMonthlyFocusDistribution() {
     return __awaiter(this, void 0, void 0, function* () {
+        var _a;
         const trans = t();
+        const currentUser = yield getCurrentUser();
         try {
             const sessions = yield apiGet("/pomodoro/");
             const subjects = yield apiGet("/subjects/");
-            // Use current calendar month (dynamically computed) — updates automatically on day 1
-            const today = new Date();
-            const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
-            // Filter sessions that belong to the same month/year as today (local timezone).
-            // Defensive: validate date and ignore future sessions or non-positive durations.
+            const userTimezone = (_a = currentUser.timezone) !== null && _a !== void 0 ? _a : 'UTC';
+            const now = new Date();
+            // Helper: obtener año, mes y día en timezone del usuario
+            function getYearMonthDay(date, timeZone) {
+                const tzDate = new Date(date.toLocaleString('en-US', { timeZone }));
+                return {
+                    year: tzDate.getFullYear(),
+                    month: tzDate.getMonth(), // 0 = enero
+                    day: tzDate.getDate()
+                };
+            }
+            const { year: currentYear, month: currentMonth } = getYearMonthDay(now, userTimezone);
+            // Filtrar sesiones que pertenezcan al mes actual del usuario
             const monthlySessions = sessions.filter(s => {
                 if (!s || !s.start_time || typeof s.duration !== 'number')
                     return false;
                 const sessionDate = new Date(s.start_time);
                 if (isNaN(sessionDate.getTime()))
                     return false;
-                if (sessionDate > new Date())
-                    return false; // ignore future
-                return sessionDate.getFullYear() === today.getFullYear() && sessionDate.getMonth() === today.getMonth();
+                // Convertir sesión a timezone del usuario
+                const { year, month } = getYearMonthDay(sessionDate, userTimezone);
+                return year === currentYear && month === currentMonth;
             });
-            // Group minutes by subject
+            // Agrupar minutos por materia
             const subjectMinutes = {};
             let totalMinutes = 0;
             monthlySessions.forEach(session => {
@@ -388,13 +395,12 @@ function loadMonthlyFocusDistribution() {
                     subjectId = typeof session.subject === 'string' ? parseInt(session.subject) : session.subject;
                 }
                 const key = subjectId !== null && !isNaN(subjectId) ? subjectId : -1;
-                if (!subjectMinutes[key]) {
+                if (!subjectMinutes[key])
                     subjectMinutes[key] = 0;
-                }
                 subjectMinutes[key] += session.duration;
                 totalMinutes += session.duration;
             });
-            // Create array of subjects with minutes
+            // Crear array de materias con minutos y porcentaje
             const subjectData = subjects
                 .filter(s => subjectMinutes[s.id] && subjectMinutes[s.id] > 0)
                 .map(s => ({
@@ -404,7 +410,7 @@ function loadMonthlyFocusDistribution() {
                 percentage: totalMinutes > 0 ? (subjectMinutes[s.id] / totalMinutes) * 100 : 0
             }))
                 .sort((a, b) => b.minutes - a.minutes);
-            // Add "no subject" sessions if any
+            // Añadir sesiones "sin materia" si hay
             if (subjectMinutes[-1] && subjectMinutes[-1] > 0) {
                 subjectData.push({
                     id: -1,
@@ -413,25 +419,24 @@ function loadMonthlyFocusDistribution() {
                     percentage: totalMinutes > 0 ? (subjectMinutes[-1] / totalMinutes) * 100 : 0
                 });
             }
-            // Colors for the chart
+            // Colores para el gráfico
             const colors = ['#a855f7', '#60a5fa', '#34d399', '#fbbf24', '#ec4899', '#8b5cf6', '#f97316', '#06b6d4'];
-            // Generate conic gradient
+            // Generar conic gradient
             let conicGradient = '';
             let currentPercent = 0;
             subjectData.forEach((subject, index) => {
-                const color = subject.id === -1 ? '#4b5563' : colors[index % colors.length]; // Gray for "Sin materia"
+                const color = subject.id === -1 ? '#4b5563' : colors[index % colors.length];
                 const startPercent = currentPercent;
                 const endPercent = currentPercent + subject.percentage;
                 conicGradient += `${color} ${startPercent}% ${endPercent}%, `;
                 currentPercent = endPercent;
             });
-            // Update distribution chart
+            // Actualizar gráfico
             const donutChart = document.getElementById('focus-distribution-donut');
             const donutChartParent = donutChart === null || donutChart === void 0 ? void 0 : donutChart.parentElement;
             if (donutChart && donutChartParent) {
-                // Show empty state if no data
+                // Estado vacío si no hay sesiones del mes
                 if (monthlySessions.length === 0 || subjectData.length === 0) {
-                    const trans = translations[getCurrentLanguage()];
                     donutChartParent.innerHTML = `
                     <div class="flex flex-col items-center justify-center h-full py-12">
                         <div class="w-16 h-16 rounded-full bg-gradient-to-br from-purple-500/20 via-fuchsia-500/20 to-purple-500/20 flex items-center justify-center mb-4" style="box-shadow: 0 0 0 1px rgba(168,85,247,0.3);">
@@ -445,14 +450,13 @@ function loadMonthlyFocusDistribution() {
                         lucide.createIcons();
                     return;
                 }
-                // Apply conic gradient to donut chart
+                // Aplicar conic gradient
                 donutChart.style.background = `conic-gradient(${conicGradient.slice(0, -2)})`;
-                // Update total hours display
+                // Actualizar horas totales
                 const totalHoursEl = document.getElementById('focus-total-hours-month');
-                if (totalHoursEl) {
+                if (totalHoursEl)
                     totalHoursEl.textContent = formatHours(totalMinutes);
-                }
-                // Update legend
+                // Actualizar leyenda
                 const legendContainer = document.getElementById('focus-legend-month');
                 if (legendContainer) {
                     legendContainer.innerHTML = subjectData.map((subject, index) => {
@@ -477,213 +481,199 @@ function loadMonthlyFocusDistribution() {
  * Study Heatmap
  * ==========================================
  */
-/**
- * Load and render study heatmap (GitHub-style: last year or 3 months)
- */
+// Load and render study heatmap (Fixed: Dec on Right & Strict Year Labels)
 function loadStudyHeatmap() {
     return __awaiter(this, void 0, void 0, function* () {
+        var _a;
+        const currentUser = yield getCurrentUser();
         try {
             const sessions = yield apiGet("/pomodoro/");
-            // Get last year of data (or 3 months if preferred)
-            const today = new Date();
-            today.setHours(23, 59, 59, 999);
-            const startDate = new Date(today);
-            startDate.setFullYear(startDate.getFullYear() - 1);
-            startDate.setDate(startDate.getDate() - startDate.getDay()); // Start from Sunday of that week
-            // Group sessions by date
-            const dailyHours = {};
-            let totalContributions = 0;
-            sessions.forEach(session => {
-                const sessionDate = new Date(session.start_time);
-                if (sessionDate >= startDate && sessionDate <= today) {
-                    const dateKey = sessionDate.toISOString().split('T')[0];
-                    if (!dailyHours[dateKey]) {
-                        dailyHours[dateKey] = 0;
-                    }
-                    const hours = session.duration / 60;
-                    dailyHours[dateKey] += hours;
-                }
-            });
-            // Count days with activity
-            totalContributions = Object.values(dailyHours).filter(hours => hours > 0).length;
+            const userTimezone = (_a = currentUser.timezone) !== null && _a !== void 0 ? _a : 'UTC';
             const heatmapContainer = document.getElementById('heatmap-container');
-            const heatmapGrid = document.getElementById('heatmap-grid');
-            const heatmapTotal = document.getElementById('heatmap-total');
-            if (!heatmapContainer || !heatmapGrid)
+            const oldTotal = document.getElementById('heatmap-total');
+            if (oldTotal)
+                oldTotal.style.display = 'none';
+            if (!heatmapContainer)
                 return;
-            // Show empty state if no data
-            if (Object.keys(dailyHours).length === 0 || sessions.length === 0) {
-                const trans = translations[getCurrentLanguage()];
-                heatmapContainer.innerHTML = `
-                <div class="flex flex-col items-center justify-center py-12 w-full">
-                    <div class="w-16 h-16 rounded-full bg-gradient-to-br from-purple-500/20 via-fuchsia-500/20 to-purple-500/20 flex items-center justify-center mb-4" style="box-shadow: 0 0 0 1px rgba(168,85,247,0.3);">
-                        <i data-lucide="calendar" class="w-8 h-8 text-purple-400"></i>
+            // --- Helper fecha ---
+            function getYearMonthDay(date, timeZone) {
+                const tzDate = new Date(date.toLocaleString('en-US', { timeZone }));
+                return {
+                    year: tzDate.getFullYear(),
+                    month: tzDate.getMonth(),
+                    day: tzDate.getDate()
+                };
+            }
+            const now = new Date();
+            const { year: currentYear } = getYearMonthDay(now, userTimezone);
+            // ---------------------------------------------------------
+            // Función de Renderizado
+            // ---------------------------------------------------------
+            const render = (yearToRender) => {
+                const startDate = new Date(Date.UTC(yearToRender, 0, 1, 0, 0, 0));
+                const endDate = new Date(Date.UTC(yearToRender, 11, 31, 23, 59, 59));
+                // Procesar datos
+                const dailyHours = {};
+                sessions.forEach(session => {
+                    if (!session || !session.start_time || typeof session.duration !== 'number')
+                        return;
+                    const sessionDate = new Date(session.start_time);
+                    const { year, month, day } = getYearMonthDay(sessionDate, userTimezone);
+                    if (year !== yearToRender)
+                        return;
+                    const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                    if (!dailyHours[dateKey])
+                        dailyHours[dateKey] = 0;
+                    dailyHours[dateKey] += session.duration / 60;
+                });
+                const totalContributions = Object.values(dailyHours).filter(h => h > 0).length;
+                const lang = getCurrentLanguage();
+                const transMap = {
+                    es: { title: 'días con estudio en el año', mon: 'Lun', wed: 'Mié', fri: 'Vie', less: 'Menos', more: 'Más' },
+                    en: { title: 'days with study in the year', mon: 'Mon', wed: 'Wed', fri: 'Fri', less: 'Less', more: 'More' },
+                    pt: { title: 'dias com estudo no ano', mon: 'Seg', wed: 'Qua', fri: 'Sex', less: 'Menos', more: 'Mais' },
+                    zh: { title: '天有学习记录', mon: '一', wed: '三', fri: '五', less: '少', more: '多' }
+                };
+                const t = transMap[lang] || transMap.es;
+                // --- Construcción de Semanas ---
+                const weeks = [];
+                let currentDate = new Date(startDate);
+                const dayOfWeek = currentDate.getUTCDay();
+                // Retroceder al domingo anterior para empezar la grilla correctamente
+                currentDate.setUTCDate(currentDate.getUTCDate() - dayOfWeek);
+                while (currentDate <= endDate || weeks.length < 53) {
+                    const week = [];
+                    for (let i = 0; i < 7; i++) {
+                        week.push(new Date(currentDate));
+                        currentDate.setUTCDate(currentDate.getUTCDate() + 1);
+                    }
+                    weeks.push(week);
+                    if (week[0] > endDate)
+                        break;
+                }
+                // --- Etiquetas de Meses (CORREGIDO: Solo año actual) ---
+                const monthLabels = [];
+                weeks.forEach((week, idx) => {
+                    // Buscamos si el día 1 de CUALQUIER mes cae en esta semana
+                    // Y IMPORTANTE: Que ese día 1 pertenezca al año que estamos renderizando (yearToRender)
+                    // Esto evita que "Diciembre" del año anterior aparezca a la izquierda.
+                    const firstDayOfTargetYearMonth = week.find(d => d.getUTCDate() === 1 &&
+                        d.getUTCFullYear() === yearToRender);
+                    if (firstDayOfTargetYearMonth) {
+                        const mName = firstDayOfTargetYearMonth.toLocaleDateString(lang === 'es' ? 'es-AR' : lang, { month: 'short' });
+                        monthLabels.push({ name: mName, weekIdx: idx });
+                    }
+                });
+                // Grid HTML
+                let gridHTML = `<div class="flex flex-col gap-1 w-full min-w-max">`;
+                // 1. Fila de etiquetas de MESES
+                gridHTML += `<div class="flex gap-[2px] text-[10px] text-gray-400 mb-1 pl-8">`;
+                weeks.forEach((_, idx) => {
+                    const label = monthLabels.find(m => m.weekIdx === idx);
+                    // width: 10px coincide con la celda
+                    gridHTML += `<div style="width: 10px; overflow:visible; white-space:nowrap;">${label ? label.name : ''}</div>`;
+                });
+                gridHTML += `</div>`;
+                gridHTML += `<div class="flex items-start">`;
+                // 2. Columna etiquetas DÍAS (Sticky left, sin fondo)
+                gridHTML += `<div class="flex flex-col gap-[3px] pr-2 text-[10px] text-gray-500 pt-[14px] flex-shrink-0 sticky left-0 z-10">`;
+                const dayNames = ['', t.mon, '', t.wed, '', t.fri, ''];
+                dayNames.forEach(d => {
+                    gridHTML += `<div style="height: 10px; line-height: 10px;">${d}</div>`;
+                });
+                gridHTML += `</div>`;
+                // 3. Celdas (Semanas como columnas)
+                gridHTML += `<div class="flex gap-[2px]">`;
+                weeks.forEach(week => {
+                    gridHTML += `<div class="flex flex-col gap-[2px]">`;
+                    week.forEach(dayObj => {
+                        const { year, month, day } = getYearMonthDay(dayObj, userTimezone);
+                        const isTargetYear = year === yearToRender;
+                        const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                        const hours = (isTargetYear && dailyHours[dateKey]) ? dailyHours[dateKey] : 0;
+                        let color = isTargetYear ? getHeatmapColor(hours) : 'rgba(255,255,255,0.03)';
+                        if (hours === 0 && isTargetYear)
+                            color = 'rgba(255,255,255,0.08)';
+                        const dateStr = dayObj.toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' });
+                        gridHTML += `
+                        <div class="heatmap-cell rounded-[2px]" 
+                             style="width: 10px; height: 10px; background-color: ${color};"
+                             data-date="${dateKey}"
+                             data-hours="${hours.toFixed(1)}"
+                             title="${dateStr}: ${hours.toFixed(1)}h">
+                        </div>
+                    `;
+                    });
+                    gridHTML += `</div>`;
+                });
+                gridHTML += `</div></div></div>`;
+                // --- Layout Principal ---
+                const mainLayout = `
+                <div class="flex flex-col w-full">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-white font-semibold text-sm">
+                            ${totalContributions} ${t.title}
+                        </h3>
                     </div>
-                    <h3 class="text-lg font-bold text-white mb-2">${trans.progress.heatmap}</h3>
-                    <p class="text-gray-400 text-sm text-center max-w-xs">${trans.progress.heatmapDesc}</p>
+
+                    <div class="w-full overflow-x-auto pb-2">
+                            ${gridHTML}
+                    </div>
+
+                    <div class="flex items-center justify-between mt-3 text-xs text-gray-500">
+                        <a href="#" class="hover:text-purple-400 transition-colors">Learn how we count contributions</a>
+                        <div class="flex items-center gap-1">
+                            <span>${t.less}</span>
+                            <div style="width:10px; height:10px; background-color: rgba(255,255,255,0.08);" class="rounded-[2px]"></div>
+                            <div style="width:10px; height:10px; background-color: ${getHeatmapColor(0.5)};" class="rounded-[2px]"></div>
+                            <div style="width:10px; height:10px; background-color: ${getHeatmapColor(2)};" class="rounded-[2px]"></div>
+                            <div style="width:10px; height:10px; background-color: ${getHeatmapColor(4)};" class="rounded-[2px]"></div>
+                            <div style="width:10px; height:10px; background-color: ${getHeatmapColor(8)};" class="rounded-[2px]"></div>
+                            <span>${t.more}</span>
+                        </div>
+                    </div>
                 </div>
             `;
-                if (typeof lucide !== 'undefined')
-                    lucide.createIcons();
-                return;
+                heatmapContainer.innerHTML = mainLayout;
+                attachTooltips(heatmapContainer, lang);
+            };
+            render(currentYear);
+            function attachTooltips(container, lang) {
+                const heatmapCells = container.querySelectorAll('.heatmap-cell');
+                heatmapCells.forEach(cell => {
+                    cell.addEventListener('mouseenter', (e) => {
+                        const mouseEvent = e;
+                        let tooltip = document.getElementById('heatmap-tooltip');
+                        if (!tooltip) {
+                            tooltip = document.createElement('div');
+                            tooltip.id = 'heatmap-tooltip';
+                            tooltip.className = 'fixed bg-slate-900 border border-slate-700 rounded-md px-3 py-2 text-xs text-white shadow-xl z-50 pointer-events-none transform -translate-x-1/2 -translate-y-full mt-[-8px]';
+                            document.body.appendChild(tooltip);
+                        }
+                        const date = cell.getAttribute('data-date');
+                        const hours = cell.getAttribute('data-hours');
+                        if (date) {
+                            const dateObj = new Date(date);
+                            const utcDate = new Date(dateObj.getUTCFullYear(), dateObj.getUTCMonth(), dateObj.getUTCDate());
+                            const locale = lang === 'en' ? 'en-US' : lang === 'pt' ? 'pt-BR' : lang === 'zh' ? 'zh-CN' : 'es-AR';
+                            const dateStr = utcDate.toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' });
+                            const hoursNum = parseFloat(hours || '0');
+                            tooltip.innerHTML = `<span class="font-semibold text-white">${hoursNum > 0 ? hoursNum.toFixed(1) + ' hours' : 'No study'}</span> <span class="text-gray-400">on ${dateStr}</span>`;
+                            updateTooltipPosition(tooltip, mouseEvent.clientX, mouseEvent.clientY);
+                        }
+                    });
+                    cell.addEventListener('mouseleave', () => {
+                        const tooltip = document.getElementById('heatmap-tooltip');
+                        if (tooltip)
+                            tooltip.remove();
+                    });
+                    cell.addEventListener('mousemove', (e) => {
+                        const t = document.getElementById('heatmap-tooltip');
+                        if (t)
+                            updateTooltipPosition(t, e.clientX, e.clientY);
+                    });
+                });
             }
-            // Update total contributions
-            if (heatmapTotal) {
-                const totalHours = Object.values(dailyHours).reduce((sum, hours) => sum + hours, 0);
-                const lang = getCurrentLanguage();
-                const suffixMap = {
-                    es: 'días con estudio en el último año',
-                    en: 'days with study in the last year',
-                    zh: '天在过去一年有学习记录',
-                    pt: 'dias com estudo no último ano',
-                };
-                heatmapTotal.textContent = `${totalContributions} ${suffixMap[lang] || ''}`;
-            }
-            // Organize by weeks (Sunday to Saturday)
-            const weeks = [];
-            const currentDate = new Date(startDate);
-            while (currentDate <= today) {
-                const week = [];
-                // Get Sunday of this week
-                const weekStart = new Date(currentDate);
-                weekStart.setDate(weekStart.getDate() - weekStart.getDay());
-                // Add all 7 days of the week
-                for (let i = 0; i < 7; i++) {
-                    const day = new Date(weekStart);
-                    day.setDate(day.getDate() + i);
-                    if (day <= today) {
-                        week.push(day);
-                    }
-                }
-                if (week.length > 0) {
-                    weeks.push(week);
-                }
-                // Move to next week
-                currentDate.setDate(currentDate.getDate() + 7);
-            }
-            // Get month labels
-            const monthLabels = [];
-            const seenMonths = new Set();
-            weeks.forEach((week, weekIndex) => {
-                const firstDay = week[0];
-                const month = firstDay.getMonth();
-                if (!seenMonths.has(month) || weekIndex === 0) {
-                    monthLabels.push({ month, weekIndex });
-                    seenMonths.add(month);
-                }
-            });
-            // Build heatmap HTML
-            let heatmapHTML = '<div class="flex items-start gap-1 w-full">';
-            // Day labels column
-            heatmapHTML += '<div class="flex flex-col gap-1 pt-5 flex-shrink-0">';
-            const lang = getCurrentLanguage();
-            const dayLabels = lang === 'en' ? ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
-                : lang === 'pt' ? ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
-                    : lang === 'zh' ? ['日', '一', '二', '三', '四', '五', '六']
-                        : ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
-            dayLabels.forEach((label, dayIndex) => {
-                if (dayIndex % 2 === 0) { // Show only some days to save space
-                    heatmapHTML += `<div class="heatmap-day-label" style="height: 11px; line-height: 11px; padding-top: 1px;">${label}</div>`;
-                }
-                else {
-                    heatmapHTML += `<div class="heatmap-day-label" style="height: 11px;"></div>`;
-                }
-            });
-            heatmapHTML += '</div>';
-            // Weeks and months
-            heatmapHTML += '<div class="flex gap-0.5 flex-1 min-w-0">';
-            weeks.forEach((week, weekIndex) => {
-                // Check if this week starts a new month
-                const monthLabel = monthLabels.find(m => m.weekIndex === weekIndex);
-                let monthName = '';
-                if (monthLabel) {
-                    const dateObj = new Date(new Date().getFullYear(), monthLabel.month, 1);
-                    const shortMonth = dateObj.toLocaleDateString(getCurrentLanguage(), { month: 'short' });
-                    monthName = shortMonth.charAt(0).toUpperCase() + shortMonth.slice(1); // Ene, Feb...
-                }
-                heatmapHTML += '<div class="flex flex-col flex-shrink-0">';
-                // Month label
-                if (monthLabel) {
-                    heatmapHTML += `<div class="heatmap-month-label">${monthName}</div>`;
-                }
-                else {
-                    heatmapHTML += '<div class="heatmap-month-label"></div>';
-                }
-                // Week column
-                heatmapHTML += '<div class="heatmap-week">';
-                // Week should already have 7 days (Sunday to Saturday)
-                week.forEach(day => {
-                    const dateKey = day.toISOString().split('T')[0];
-                    const hours = dailyHours[dateKey] || 0;
-                    const color = getHeatmapColor(hours);
-                    const dateStr = day.toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' });
-                    heatmapHTML += `
-                    <div class="heatmap-cell" 
-                         style="background-color: ${color};" 
-                         data-date="${dateKey}"
-                         data-hours="${hours.toFixed(1)}"
-                         title="${dateStr}: ${hours.toFixed(1)}h estudiadas">
-                    </div>
-                `;
-                });
-                heatmapHTML += '</div>'; // End week
-                heatmapHTML += '</div>'; // End week column
-            });
-            heatmapHTML += '</div>'; // End weeks container
-            heatmapHTML += '</div>'; // End main container
-            heatmapGrid.innerHTML = heatmapHTML;
-            // Add tooltips on hover
-            const heatmapCells = heatmapGrid.querySelectorAll('.heatmap-cell');
-            heatmapCells.forEach(cell => {
-                cell.addEventListener('mouseenter', (e) => {
-                    const mouseEvent = e;
-                    const tooltip = document.createElement('div');
-                    tooltip.id = 'heatmap-tooltip';
-                    tooltip.className = 'fixed bg-dark-card border border-purple-500/30 rounded-lg px-3 py-2 text-sm text-white shadow-lg z-50 pointer-events-none';
-                    const date = cell.getAttribute('data-date');
-                    const hours = cell.getAttribute('data-hours');
-                    if (date) {
-                        const dateObj = new Date(date);
-                        const lang = getCurrentLanguage();
-                        const locale = lang === 'en' ? 'en-US' : lang === 'pt' ? 'pt-BR' : lang === 'zh' ? 'zh-CN' : 'es-AR';
-                        const dateStr = dateObj.toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' });
-                        const hoursNum = parseFloat(hours || '0');
-                        const noStudyMap = {
-                            es: 'Sin estudio',
-                            en: 'No study',
-                            zh: '无学习',
-                            pt: 'Sem estudo',
-                        };
-                        const studiedSuffixMap = {
-                            es: 'h estudiadas',
-                            en: 'h studied',
-                            zh: '小时学习',
-                            pt: 'h estudadas',
-                        };
-                        const titleText = hoursNum > 0
-                            ? `${hoursNum.toFixed(1)}${studiedSuffixMap[lang] || studiedSuffixMap.es}`
-                            : noStudyMap[lang] || noStudyMap.es;
-                        tooltip.innerHTML = `
-                        <div class="font-bold text-purple-400">${titleText}</div>
-                        <div class="text-gray-300">${dateStr}</div>
-                    `;
-                    }
-                    document.body.appendChild(tooltip);
-                    updateTooltipPosition(tooltip, mouseEvent.clientX, mouseEvent.clientY);
-                });
-                cell.addEventListener('mouseleave', () => {
-                    const tooltip = document.getElementById('heatmap-tooltip');
-                    if (tooltip)
-                        tooltip.remove();
-                });
-                cell.addEventListener('mousemove', (e) => {
-                    const mouseEvent = e;
-                    const tooltip = document.getElementById('heatmap-tooltip');
-                    if (tooltip) {
-                        updateTooltipPosition(tooltip, mouseEvent.clientX, mouseEvent.clientY);
-                    }
-                });
-            });
         }
         catch (error) {
             console.error("Error loading study heatmap:", error);
@@ -784,6 +774,47 @@ function loadWeeklyObjectivesStats() {
         }
     });
 }
+/**
+ * ==========================================
+ * Scheduler for Weekly Stats
+ * ==========================================
+ */
+function scheduleWeeklyStats(userTimezone) {
+    const now = new Date();
+    const userNow = new Date(now.toLocaleString("en-US", { timeZone: userTimezone }));
+    // Próxima medianoche del usuario
+    const nextMidnight = new Date(userNow);
+    nextMidnight.setHours(24, 0, 0, 0);
+    const delay = nextMidnight.getTime() - userNow.getTime();
+    console.log(`Scheduling weekly stats in ${delay} ms`);
+    setTimeout(() => {
+        loadWeeklyObjectivesStats();
+        // Repetir cada 7 días
+        setInterval(loadWeeklyObjectivesStats, 7 * 24 * 60 * 60 * 1000);
+    }, delay);
+}
+/**
+ * ==========================================
+ * Initialize
+ * ==========================================
+ */
+(function initWeeklyStats() {
+    return __awaiter(this, void 0, void 0, function* () {
+        var _a;
+        try {
+            const currentUser = yield getCurrentUser();
+            const userTimezone = (_a = currentUser.timezone) !== null && _a !== void 0 ? _a : 'UTC';
+            // Programamos scheduler semanal
+            scheduleWeeklyStats(userTimezone);
+            // Carga inicial de stats
+            yield loadWeeklyObjectivesStats();
+        }
+        catch (error) {
+            console.error("Error initializing weekly stats:", error);
+            yield loadWeeklyObjectivesStats(); // al menos cargamos stats aunque falle el usuario
+        }
+    });
+})();
 /**
  * Load all progress data
  */

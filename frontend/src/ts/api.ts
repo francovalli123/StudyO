@@ -219,6 +219,8 @@ export interface CurrentUser {
     id: number;
     username: string;
     email: string;
+    created_at: string;
+    updated_at: string;
     first_name?: string | null;
     last_name?: string | null;
     // Possible avatar/photo fields returned by different backends

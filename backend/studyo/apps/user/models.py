@@ -4,6 +4,8 @@ import pytz
 
 class User(AbstractUser):
     email = models.EmailField(unique=True) # Campo para el correo del usuario
+    created_at = models.DateTimeField(auto_now_add=True)  # Se setea al crear
+    updated_at = models.DateTimeField(auto_now=True)      # Se actualiza cada vez que se guarda
     notification_preferences = models.JSONField(default=dict, blank=True)
     avatar = models.ImageField(upload_to='avatars/', null=True, blank=True)
     language = models.CharField(max_length=5, default="es", help_text="User preferred UI language")

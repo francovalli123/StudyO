@@ -74,7 +74,7 @@ function getT() {
 /**
  * Local Storage Helpers
  */
-function getTodayKey(): string {
+function getTodayKey(userTimezone: string): string {
     const now = new Date();
     const options: Intl.DateTimeFormatOptions = {
         timeZone: userTimezone,
@@ -82,28 +82,29 @@ function getTodayKey(): string {
         month: '2-digit',
         day: '2-digit'
     };
-    const dateStr = now.toLocaleDateString('en-CA', options); // YYYY-MM-DD format
-    return dateStr;
+    return now.toLocaleDateString('en-CA', options); // YYYY-MM-DD
 }
 
-function getTodayCompletions(): Set<number> {
-    const currentKey = `habit_completions_${getTodayKey()}`;
+function getTodayCompletions(userTimezone: string): Set<number> {
+    const currentKey = `habit_completions_${getTodayKey(userTimezone)}`;
+
+    // Limpia las keys de días anteriores
     for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
         if (key && key.startsWith('habit_completions_') && key !== currentKey) {
             localStorage.removeItem(key);
         }
     }
+
     const stored = localStorage.getItem(currentKey);
     return stored ? new Set(JSON.parse(stored)) : new Set();
 }
 
-function saveTodayCompletions(completions: Set<number>) {
-    const key = `habit_completions_${getTodayKey()}`;
+function saveTodayCompletions(completions: Set<number>, userTimezone: string) {
+    const key = `habit_completions_${getTodayKey(userTimezone)}`;
     localStorage.setItem(key, JSON.stringify([...completions]));
 }
 
-let todayCompletions = getTodayCompletions();
 
 // Global state variables
 let habits: HabitWithStatus[] = [];
@@ -112,6 +113,8 @@ let editingHabitId: number | null = null;
 let selectedIcon = 'zap';
 let selectedColor = 'orange';
 let userTimezone = 'UTC';
+let todayCompletions: Set<number> = new Set(); // inicial vacío
+
 
 function updateDailyProgress(completed: number, total: number) {
     const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
@@ -137,13 +140,14 @@ async function loadHabits() {
             window.location.href = 'login.html';
             return;
         }
+        // Obtenemos timezone del usuario
+        const currentUser = await getCurrentUser();
+        userTimezone = currentUser.timezone ?? 'UTC';
 
-        // Load current user to get timezone
-        const user = await getCurrentUser();
-        userTimezone = user.timezone || 'UTC';
+        // Inicializamos todayCompletions con el timezone correcto
+        todayCompletions = getTodayCompletions(userTimezone);
 
         const habitsData: Habit[] = await apiGet('/habits/');
-        todayCompletions = getTodayCompletions();
 
         habits = habitsData.map(h => {
             const serverSaysCompleted = h.completed_today || false;
@@ -159,13 +163,14 @@ async function loadHabits() {
             };
         });
 
-        saveTodayCompletions(todayCompletions);
+        saveTodayCompletions(todayCompletions, userTimezone);
         renderHabits();
         updateDailyProgress(habits.filter(h => h.completedToday).length, habits.length);
     } catch (error) {
         console.error("Error loading habits:", error);
     }
 }
+
 
 async function loadSubjects() {
     try {
@@ -406,7 +411,7 @@ async function toggleHabitCompletion(habitId: number, complete: boolean) {
         if (complete) todayCompletions.add(habitId);
         else todayCompletions.delete(habitId);
 
-        saveTodayCompletions(todayCompletions);
+        saveTodayCompletions(todayCompletions, userTimezone);
         updateDailyProgress(habits.filter(h => h.completedToday).length, habits.length);
         renderHabits();
 
