@@ -348,111 +348,123 @@ function loadSubjectsStats() {
         }
     });
 }
-/**
- * Loads and displays weekly objectives/goals on the dashboard
- * Fetches all objectives from API and renders them in a container
- * Supports inline editing of icon and area, as well as delete functionality
- */
+let currentWeeklyFilter = 'all'; // Estado de filtro activo
 function loadWeeklyObjectives() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            // Fetch weekly objectives from API
-            const objectives = yield apiGet("/weekly-objectives/"); // Wait for API response
+            const objectives = yield apiGet("/weekly-objectives/");
             const container = document.getElementById("weeklyObjectivesContainer");
             if (!container)
                 return;
-            // Store in localStorage for offline reference
             localStorage.setItem('weeklyObjectives', JSON.stringify(objectives));
-            // Display empty state when no objectives exist
-            if (objectives.length === 0) { // If objectives array is empty, user has no weekly objectives
+            // FILTRAR OBJETIVOS SEGÚN EL BOTÓN ACTIVO
+            let filteredObjectives = objectives;
+            if (currentWeeklyFilter === 'completed') {
+                filteredObjectives = objectives.filter(obj => obj.is_completed);
+            }
+            else if (currentWeeklyFilter === 'incomplete') {
+                filteredObjectives = objectives.filter(obj => !obj.is_completed);
+            }
+            if (filteredObjectives.length === 0) {
                 const trans = t();
+                let emptyTitle = trans.dashboard.emptyObjectivesTitle;
+                let emptyDesc = trans.dashboard.emptyObjectivesDesc;
+                // Empty state personalizado según filtro
+                let showAddVisual = true; // Mostrar crosshair + flechita solo para 'all'
+                if (currentWeeklyFilter === 'completed') {
+                    emptyTitle = "¡Nada completado aún!";
+                    emptyDesc = "Aún no has completado ningún objetivo. Vamos, ¡podés lograrlo!";
+                    showAddVisual = false;
+                }
+                else if (currentWeeklyFilter === 'incomplete') {
+                    emptyTitle = "¡Todo completado!";
+                    emptyDesc = "No hay objetivos pendientes. Disfrutá de tu progreso.";
+                    showAddVisual = false;
+                }
                 container.innerHTML = `
-                <div class="flex flex-col items-center justify-center py-12 text-center animate-fade animated">
-                    
-                    <div class="relative mb-5 group cursor-pointer" onclick="document.getElementById('addObjectiveBtn').click()">
-                        <div class="absolute inset-0 bg-purple-500/20 rounded-full blur-xl group-hover:bg-purple-500/30 transition-all duration-500"></div>
-                        <div class="relative w-20 h-20 bg-[#1a1d26] rounded-full flex items-center justify-center border border-gray-800 group-hover:border-purple-500/50 group-hover:scale-105 transition-all duration-300 shadow-xl">
-                            <i data-lucide="crosshair" class="w-10 h-10 text-gray-500 group-hover:text-purple-400 transition-colors duration-300"></i>
-                        </div>
-                    </div>
-
-                    <h3 class="text-xl font-bold text-white mb-2 tracking-tight">
-                        ${trans.dashboard.emptyObjectivesTitle}
-                    </h3>
-                    
-                    <p class="text-gray-500 text-sm max-w-[280px] mx-auto leading-relaxed mb-6">
-                        ${trans.dashboard.emptyObjectivesDesc}
-                    </p>
-
-                    <div class="animate-bounce text-gray-700">
-                        <i data-lucide="arrow-down" class="w-5 h-5"></i>
-                    </div>
+        <div class="flex flex-col items-center justify-center py-12 text-center animate-fade animated">
+            ${showAddVisual ? `
+            <div class="relative mb-5 group cursor-pointer" onclick="document.getElementById('addObjectiveBtn').click()">
+                <div class="absolute inset-0 bg-purple-500/20 rounded-full blur-xl group-hover:bg-purple-500/30 transition-all duration-500"></div>
+                <div class="relative w-20 h-20 bg-[#1a1d26] rounded-full flex items-center justify-center border border-gray-800 group-hover:border-purple-500/50 group-hover:scale-105 transition-all duration-300 shadow-xl">
+                    <i data-lucide="crosshair" class="w-10 h-10 text-gray-500 group-hover:text-purple-400 transition-colors duration-300"></i>
                 </div>
-            `;
+            </div>
+
+            <div class="animate-bounce text-gray-700">
+                <i data-lucide="arrow-down" class="w-5 h-5"></i>
+            </div>` : ''}
+
+            <h3 class="text-xl font-bold text-white mb-2 tracking-tight">
+                ${emptyTitle}
+            </h3>
+
+            <p class="text-gray-500 text-sm max-w-[280px] mx-auto leading-relaxed mb-6">
+                ${emptyDesc}
+            </p>
+        </div>
+    `;
             }
             else {
-                // Render objectives when data exists
-                container.innerHTML = objectives.map(obj => {
-                    // Priority color configuration for visual distinction
+                container.innerHTML = filteredObjectives.map(obj => {
                     const priorityMap = {
                         1: { name: 'MÁXIMA PRIORIDAD', color: '#ef4444', bg: 'rgba(239, 68, 68, 0.1)', border: 'rgba(239, 68, 68, 0.2)' },
                         2: { name: 'EXPLORACIÓN CLAVE', color: '#f59e0b', bg: 'rgba(245, 158, 11, 0.1)', border: 'rgba(245, 158, 11, 0.2)' },
                         3: { name: 'COMPLEMENTARIO', color: '#10b981', bg: 'rgba(16, 185, 129, 0.1)', border: 'rgba(16, 185, 129, 0.2)' }
                     };
                     const priorityConfig = priorityMap[obj.priority || 2] || priorityMap[2];
-                    // Use stored data or fallback defaults
-                    const displayIcon = obj.icon || '⚡'; // Default icon
-                    const displayArea = obj.area || 'General'; // Default category label
+                    const displayIcon = obj.icon || '⚡';
+                    const displayArea = obj.area || 'General';
                     return `
-                        <div class="objective-item bg-dark-input rounded-2xl p-5 relative group transition-all duration-300 hover:bg-[#1f222e] hover:translate-y-[-2px]" 
-                            data-objective-id="${obj.id}" 
-                            style="box-shadow: 0 0 0 1px rgba(255,255,255,0.05);">
-                            
-                            <div class="flex justify-between items-start mb-3">
-                                <div class="flex items-center gap-2.5 flex-1">
-                                    <span class="text-lg filter drop-shadow-md icon-display cursor-pointer hover:text-2xl transition-all" data-id="${obj.id}" title="Haz clic para editar" data-field="icon">
-                                        ${displayIcon}
-                                    </span>
-                                    <span class="text-sm font-bold text-transparent bg-clip-text bg-gradient-to-r from-gray-200 to-gray-400 tracking-wide area-display cursor-pointer hover:opacity-80 transition-all" data-id="${obj.id}" title="Haz clic para editar" data-field="area">
-                                        ${displayArea}
-                                    </span>
-                                </div>
-                                
-                                <div class="flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                                    <button class="complete-objective p-1.5 rounded-lg text-gray-400 hover:text-green-400 hover:bg-green-500/10 transition-all duration-200" data-id="${obj.id}" title="Completar">
-                                        <i data-lucide="check" class="w-4 h-4"></i>
-                                    </button>
-                                    <button class="edit-objective p-1.5 rounded-lg text-gray-400 hover:text-purple-400 hover:bg-purple-500/10 transition-all duration-200" data-id="${obj.id}" title="Editar">
-                                        <i data-lucide="edit-3" class="w-4 h-4"></i>
-                                    </button>
-                                    <button class="delete-objective p-1.5 rounded-lg text-gray-400 hover:text-red-400 hover:bg-red-500/10 transition-all duration-200" data-id="${obj.id}" title="Eliminar">
-                                        <i data-lucide="trash-2" class="w-4 h-4"></i>
-                                    </button>
-                                </div>
-                            </div>
-
-                            <div class="text-white text-base font-semibold mb-2 leading-snug ${obj.is_completed ? 'line-through text-gray-500' : ''}">
-                                ${obj.title}
-                            </div>
-                            
-                            <p class="text-gray-500 text-xs mb-4 leading-relaxed line-clamp-2">
-                                ${obj.detail}
-                            </p>
-                            
-                            <div class="flex items-center justify-between mt-auto pt-3 border-t border-gray-800/50">
-                                <span class="text-[10px] font-bold px-2 py-1 rounded tracking-wider" 
-                                    style="color: ${priorityConfig.color}; background: ${priorityConfig.bg}; border: 1px solid ${priorityConfig.border}">
-                                    ${priorityConfig.name}
+                    <div class="objective-item bg-dark-input rounded-2xl p-5 relative group transition-all duration-300 hover:bg-[#1f222e] hover:translate-y-[-2px]" 
+                        data-objective-id="${obj.id}" 
+                        style="box-shadow: 0 0 0 1px rgba(255,255,255,0.05);">
+                        
+                        <div class="flex justify-between items-start mb-3">
+                            <div class="flex items-center gap-2.5 flex-1">
+                                <span class="text-lg filter drop-shadow-md icon-display cursor-pointer hover:text-2xl transition-all" data-id="${obj.id}" title="Haz clic para editar" data-field="icon">
+                                    ${displayIcon}
                                 </span>
-                                
-                                ${obj.notes ? `
-                                <div class="flex items-center gap-1.5 text-xs text-purple-400/80">
-                                    <i data-lucide="folder-open" class="w-3 h-3"></i>
-                                    <span class="italic truncate max-w-[120px]">${obj.notes}</span>
-                                </div>` : ''}
+                                <span class="text-sm font-bold text-transparent bg-clip-text bg-gradient-to-r from-gray-200 to-gray-400 tracking-wide area-display cursor-pointer hover:opacity-80 transition-all" data-id="${obj.id}" title="Haz clic para editar" data-field="area">
+                                    ${displayArea}
+                                </span>
+                            </div>
+                            
+                            <div class="flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                <button class="complete-objective p-1.5 rounded-lg text-gray-400 hover:text-green-400 hover:bg-green-500/10 transition-all duration-200" data-id="${obj.id}" title="Completar">
+                                    <i data-lucide="check" class="w-4 h-4"></i>
+                                </button>
+                                <button class="edit-objective p-1.5 rounded-lg text-gray-400 hover:text-purple-400 hover:bg-purple-500/10 transition-all duration-200" data-id="${obj.id}" title="Editar">
+                                    <i data-lucide="edit-3" class="w-4 h-4"></i>
+                                </button>
+                                <button class="delete-objective p-1.5 rounded-lg text-gray-400 hover:text-red-400 hover:bg-red-500/10 transition-all duration-200" data-id="${obj.id}" title="Eliminar">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                </button>
                             </div>
                         </div>
-                    `;
+
+                        <div class="text-white text-base font-semibold mb-2 leading-snug ${obj.is_completed ? 'line-through text-gray-500' : ''}">
+                            ${obj.title}
+                        </div>
+                        
+                        <p class="text-gray-500 text-xs mb-4 leading-relaxed line-clamp-2">
+                            ${obj.detail}
+                        </p>
+                        
+                        <div class="flex items-center justify-between mt-auto pt-3 border-t border-gray-800/50">
+                            <span class="text-[10px] font-bold px-2 py-1 rounded tracking-wider" 
+                                style="color: ${priorityConfig.color}; background: ${priorityConfig.bg}; border: 1px solid ${priorityConfig.border}">
+                                ${priorityConfig.name}
+                            </span>
+                            
+                            ${obj.notes ? `
+                            <div class="flex items-center gap-1.5 text-xs text-purple-400/80">
+                                <i data-lucide="folder-open" class="w-3 h-3"></i>
+                                <span class="italic truncate max-w-[120px]">${obj.notes}</span>
+                            </div>` : ''}
+                        </div>
+                    </div>
+                `;
                 }).join("");
                 // Attach edit event handlers
                 container.querySelectorAll('.edit-objective').forEach(btn => {
@@ -565,12 +577,32 @@ function loadWeeklyObjectives() {
                     }));
                 });
             }
-            // Important: Render icons for newly injected content (if library is available)
             if (typeof lucide !== 'undefined')
                 lucide.createIcons();
         }
         catch (error) {
-            console.error("Error loading weekly objectives:", error); // Error handling: displays error when loading objectives
+            console.error("Error loading weekly objectives:", error);
+        }
+    });
+}
+// --- FILTROS ---
+function initWeeklyObjectivesFilters() {
+    const buttons = document.querySelectorAll('#weeklyObjectivesFilters .filter-btn');
+    buttons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            buttons.forEach(b => b.classList.remove('bg-purple-500', 'text-white'));
+            buttons.forEach(b => b.classList.add('bg-gray-700', 'text-white'));
+            btn.classList.add('bg-purple-500', 'text-white');
+            const filter = btn.getAttribute('data-filter');
+            currentWeeklyFilter = filter;
+            loadWeeklyObjectives();
+        });
+    });
+    // Estado inicial: "Todo" activo
+    buttons.forEach(b => {
+        if (b.getAttribute('data-filter') === 'all') {
+            b.classList.add('bg-purple-500', 'text-white');
+            b.classList.remove('bg-gray-700');
         }
     });
 }
@@ -1600,6 +1632,9 @@ if (document.readyState === 'loading') {
 else {
     // DOM already loaded, execute immediately
     loadDashboard();
+    // --- Llamar al inicializar ---
+    initWeeklyObjectivesFilters();
+    loadWeeklyObjectives();
     const addBtn = document.getElementById('addObjectiveBtn');
     if (addBtn) {
         addBtn.addEventListener('click', addObjective);

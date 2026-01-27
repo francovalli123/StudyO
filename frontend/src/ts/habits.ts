@@ -72,23 +72,29 @@ function getT() {
 }
 
 /**
- * Local Storage Helpers
+ * Devuelve un objeto con "hoy" y "mañana" en timezone del usuario
  */
-function getTodayKey(userTimezone: string): string {
-    const now = new Date();
-    const options: Intl.DateTimeFormatOptions = {
-        timeZone: userTimezone,
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit'
-    };
-    return now.toLocaleDateString('en-CA', options); // YYYY-MM-DD
+function getUserToday(userTimezone: string) {
+    // Obtenemos la hora actual en la timezone del usuario
+    const nowStr = new Date().toLocaleString('en-US', { timeZone: userTimezone });
+    const now = new Date(nowStr); // ahora "now" está ajustado a la timezone del usuario
+
+    // Obtenemos la fecha YYYY-MM-DD
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+
+    const todayKey = `${year}-${month}-${day}`;
+
+    return { now, todayKey };
 }
 
-function getTodayCompletions(userTimezone: string): Set<number> {
-    const currentKey = `habit_completions_${getTodayKey(userTimezone)}`;
 
-    // Limpia las keys de días anteriores
+function getTodayCompletions(userTimezone: string): Set<number> {
+    const { todayKey } = getUserToday(userTimezone);
+    const currentKey = `habit_completions_${todayKey}`;
+
+    // Limpiamos keys anteriores
     for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
         if (key && key.startsWith('habit_completions_') && key !== currentKey) {
@@ -101,7 +107,8 @@ function getTodayCompletions(userTimezone: string): Set<number> {
 }
 
 function saveTodayCompletions(completions: Set<number>, userTimezone: string) {
-    const key = `habit_completions_${getTodayKey(userTimezone)}`;
+    const { todayKey } = getUserToday(userTimezone);
+    const key = `habit_completions_${todayKey}`;
     localStorage.setItem(key, JSON.stringify([...completions]));
 }
 
