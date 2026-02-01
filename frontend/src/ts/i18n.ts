@@ -262,6 +262,8 @@ export interface Translations {
         monthlyFocus: string;
         monthlyFocusDesc: string;
         hours: string;
+        noStudy: string;
+        on: string;
     };
 }
 
@@ -512,6 +514,8 @@ export const translations: Record<Language, Translations> = {
             monthlyFocus: 'Distribución de Enfoque Mensual',
             monthlyFocusDesc: 'Tiempo dedicado por materia.',
             hours: 'horas',
+            noStudy: 'Sin estudio',
+            on: 'en',
         },
     },
     en: {
@@ -760,6 +764,8 @@ export const translations: Record<Language, Translations> = {
             monthlyFocus: 'Monthly Focus Distribution',
             monthlyFocusDesc: 'Time dedicated per subject.',
             hours: 'hours',
+            noStudy: 'No study',
+            on: 'on',
         },
     },
     zh: {
@@ -1008,6 +1014,8 @@ export const translations: Record<Language, Translations> = {
             monthlyFocus: '每月专注分布',
             monthlyFocusDesc: '各学科投入的时间。',
             hours: '小时',
+            noStudy: '不学习',
+            on: '在',
         },
     },
 
@@ -1257,6 +1265,8 @@ export const translations: Record<Language, Translations> = {
             monthlyFocus: 'Distribuição de Foco Mensal',
             monthlyFocusDesc: 'Tempo dedicado por matéria.',
             hours: 'horas',
+            noStudy: 'Sem estudo',
+            on: 'em',
         },
     },
 };

@@ -1590,6 +1590,14 @@ details[open] .faq-icon {
     gap: 12px;
 }
 
+@keyframes bounce-subtle {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+.animate-bounce-subtle {
+  animation: bounce-subtle 3s ease-in-out infinite;
+}
+
 .priority-badge {
     padding: 4px 10px;
     border-radius: 12px;

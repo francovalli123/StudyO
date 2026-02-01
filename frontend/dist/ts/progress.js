@@ -621,7 +621,6 @@ function loadStudyHeatmap() {
                     </div>
 
                     <div class="flex items-center justify-between mt-3 text-xs text-gray-500">
-                        <a href="#" class="hover:text-purple-400 transition-colors">Learn how we count contributions</a>
                         <div class="flex items-center gap-1">
                             <span>${t.less}</span>
                             <div style="width:10px; height:10px; background-color: rgba(255,255,255,0.08);" class="rounded-[2px]"></div>
@@ -658,7 +657,8 @@ function loadStudyHeatmap() {
                             const locale = lang === 'en' ? 'en-US' : lang === 'pt' ? 'pt-BR' : lang === 'zh' ? 'zh-CN' : 'es-AR';
                             const dateStr = utcDate.toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' });
                             const hoursNum = parseFloat(hours || '0');
-                            tooltip.innerHTML = `<span class="font-semibold text-white">${hoursNum > 0 ? hoursNum.toFixed(1) + ' hours' : 'No study'}</span> <span class="text-gray-400">on ${dateStr}</span>`;
+                            const trans = t();
+                            tooltip.innerHTML = `<span class="font-semibold text-white">${hoursNum > 0 ? hoursNum.toFixed(1) + ' ' + trans.progress.hours : trans.progress.noStudy}</span> <span class="text-gray-400"> ${trans.progress.on} ${dateStr}</span>`;
                             updateTooltipPosition(tooltip, mouseEvent.clientX, mouseEvent.clientY);
                         }
                     });

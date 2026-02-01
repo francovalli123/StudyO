@@ -369,8 +369,7 @@ function loadWeeklyObjectives() {
                 const trans = t();
                 let emptyTitle = trans.dashboard.emptyObjectivesTitle;
                 let emptyDesc = trans.dashboard.emptyObjectivesDesc;
-                // Empty state personalizado según filtro
-                let showAddVisual = true; // Mostrar crosshair + flechita solo para 'all'
+                let showAddVisual = true;
                 if (currentWeeklyFilter === 'completed') {
                     emptyTitle = "¡Nada completado aún!";
                     emptyDesc = "Aún no has completado ningún objetivo. Vamos, ¡podés lograrlo!";
@@ -382,28 +381,29 @@ function loadWeeklyObjectives() {
                     showAddVisual = false;
                 }
                 container.innerHTML = `
-        <div class="flex flex-col items-center justify-center py-12 text-center animate-fade animated">
-            ${showAddVisual ? `
-            <div class="relative mb-5 group cursor-pointer" onclick="document.getElementById('addObjectiveBtn').click()">
-                <div class="absolute inset-0 bg-purple-500/20 rounded-full blur-xl group-hover:bg-purple-500/30 transition-all duration-500"></div>
-                <div class="relative w-20 h-20 bg-[#1a1d26] rounded-full flex items-center justify-center border border-gray-800 group-hover:border-purple-500/50 group-hover:scale-105 transition-all duration-300 shadow-xl">
-                    <i data-lucide="crosshair" class="w-10 h-10 text-gray-500 group-hover:text-purple-400 transition-colors duration-300"></i>
+                <div class="flex flex-col items-center justify-center py-12 text-center animate-fade animated">
+                    ${showAddVisual ? `
+                    <div class="relative mb-5 group cursor-pointer" onclick="document.getElementById('addObjectiveBtn').click()">
+                        <div class="absolute inset-0 bg-purple-500/20 rounded-full blur-xl group-hover:bg-purple-500/30 transition-all duration-500"></div>
+                        <div class="relative w-20 h-20 bg-[#1a1d26] rounded-full flex items-center justify-center border border-gray-800 group-hover:border-purple-500/50 group-hover:scale-105 transition-all duration-300 shadow-xl">
+                            <i data-lucide="crosshair" class="w-10 h-10 text-gray-500 group-hover:text-purple-400 transition-colors duration-300"></i>
+                        </div>
+                    </div>` : ''}
+
+                    <h3 class="text-xl font-bold text-white mb-2 tracking-tight">
+                        ${emptyTitle}
+                    </h3>
+
+                    <p class="text-gray-500 text-sm max-w-[280px] mx-auto leading-relaxed ${showAddVisual ? 'mb-6' : ''}">
+                        ${emptyDesc}
+                    </p>
+
+                    ${showAddVisual ? `
+                    <div class="animate-bounce text-gray-700">
+                        <i data-lucide="arrow-down" class="w-5 h-5"></i>
+                    </div>` : ''}
                 </div>
-            </div>
-
-            <div class="animate-bounce text-gray-700">
-                <i data-lucide="arrow-down" class="w-5 h-5"></i>
-            </div>` : ''}
-
-            <h3 class="text-xl font-bold text-white mb-2 tracking-tight">
-                ${emptyTitle}
-            </h3>
-
-            <p class="text-gray-500 text-sm max-w-[280px] mx-auto leading-relaxed mb-6">
-                ${emptyDesc}
-            </p>
-        </div>
-    `;
+            `;
             }
             else {
                 container.innerHTML = filteredObjectives.map(obj => {
@@ -1659,8 +1659,7 @@ else {
             }
         });
     }
-}
-/**
+} /**
  * ==========================================
  * Pomodoro Timer Functionality
  * ==========================================
@@ -1705,6 +1704,9 @@ else {
     const skipBtn = document.getElementById('pomodoroSkipBtn');
     const resetBtn = document.getElementById('pomodoroResetBtn');
     const settingsBtn = document.getElementById('pomodoroSettingsBtn');
+    // Onboarding Elements
+    const onboardingTooltip = document.getElementById('pomodoroTooltip');
+    const closeTooltipBtn = document.getElementById('closePomodoroTooltip');
     const modal = document.getElementById('pomodoroSettingsModal');
     const settingsForm = document.getElementById('pomodoroSettingsForm');
     const workInput = document.getElementById('workMinutes');
@@ -1715,6 +1717,27 @@ else {
     const modalCancel = document.getElementById('pomodoroSettingsCancel');
     // SVG circle circumference for progress calculation
     const CIRCLE_LENGTH = 552;
+    // =====================
+    // ✨ Onboarding Function
+    // =====================
+    function handleOnboarding() {
+        if (!onboardingTooltip || localStorage.getItem('studyo_onboarding_done'))
+            return;
+        setTimeout(() => {
+            if (!localStorage.getItem('studyo_onboarding_done')) {
+                onboardingTooltip.classList.remove('hidden');
+            }
+        }, 2000);
+        const dismissOnboarding = () => {
+            onboardingTooltip.classList.add('hidden');
+            localStorage.setItem('studyo_onboarding_done', 'true');
+        };
+        closeTooltipBtn === null || closeTooltipBtn === void 0 ? void 0 : closeTooltipBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            dismissOnboarding();
+        });
+        settingsBtn === null || settingsBtn === void 0 ? void 0 : settingsBtn.addEventListener('click', dismissOnboarding);
+    }
     /**
      * Load user settings from localStorage
      */
@@ -1768,6 +1791,7 @@ else {
             timerDisplay.textContent = formatTime(remainingSeconds);
         // Update stage label
         if (stageLabel) {
+            // @ts-ignore
             const lang = getCurrentLanguage();
             const workMap = {
                 es: 'Enfoque',
@@ -1803,6 +1827,7 @@ else {
         }
         // Update pomodoro counters
         try {
+            // @ts-ignore
             const lang = getCurrentLanguage();
             const pomodoroLabel = {
                 es: 'Pomodoros',
@@ -1831,7 +1856,6 @@ else {
     }
     /**
      * Play pomodoro completion sound
-     * Uses HTMLAudioElement instead of Web Audio Oscillator
      */
     function playBeep() {
         if (!pomodoroAudio)
@@ -1845,19 +1869,18 @@ else {
         }
     }
     /**
-     * Sync timer based on timestamps (useful when tab comes back into focus)
+     * Sync timer based on timestamps
      */
     function syncTimer() {
         if (!isRunning || timerStartTime === null)
             return;
         const now = Date.now();
-        const elapsed = Math.floor((now - timerStartTime) / 1000); // Elapsed seconds
+        const elapsed = Math.floor((now - timerStartTime) / 1000);
         const newRemaining = Math.max(0, timerStartRemaining - elapsed);
         if (newRemaining !== remainingSeconds) {
             remainingSeconds = newRemaining;
             updateDisplay();
         }
-        // If timer finished while tab was inactive
         if (remainingSeconds <= 0) {
             finishTimer();
         }
@@ -1878,6 +1901,7 @@ else {
         if (currentStage === 'work' && sessionStart) {
             const end = new Date();
             const durationMin = Math.round((end.getTime() - sessionStart.getTime()) / 60000);
+            // @ts-ignore
             saveWorkSession(sessionStart, end, durationMin, defaultSubjectId)
                 .catch(err => console.error('Error saving pomodoro session', err));
             sessionStart = null;
@@ -1885,24 +1909,16 @@ else {
         }
         // Advance stage
         advanceStage();
-        // Restart automatically without changing button state
-        remainingSeconds =
-            (currentStage === 'work'
-                ? settings.workMinutes
-                : currentStage === 'short_break'
-                    ? settings.shortBreakMinutes
-                    : settings.longBreakMinutes) * 60;
+        // Restart automatically
+        remainingSeconds = (currentStage === 'work' ? settings.workMinutes : currentStage === 'short_break' ? settings.shortBreakMinutes : settings.longBreakMinutes) * 60;
         timerStartTime = Date.now();
         timerStartRemaining = remainingSeconds;
-        // Restart interval WITHOUT toggling isRunning
         timerInterval = window.setInterval(() => {
             syncTimer();
-            if (remainingSeconds > 0) {
+            if (remainingSeconds > 0)
                 remainingSeconds -= 1;
-            }
-            if (remainingSeconds <= 0) {
+            if (remainingSeconds <= 0)
                 finishTimer();
-            }
             updateDisplay();
         }, 1000);
         updateDisplay();
@@ -1919,12 +1935,11 @@ else {
         requestNotificationPermission();
         if (!sessionStart && currentStage === 'work')
             sessionStart = new Date();
-        // Save start timestamp for sync
         timerStartTime = Date.now();
         timerStartRemaining = remainingSeconds;
-        // Add navigation warning
         beforeUnloadHandler = (e) => {
             e.preventDefault();
+            // @ts-ignore
             const lang = getCurrentLanguage();
             const messages = {
                 es: 'El Pomodoro se detendrá si abandonas esta página. ¿Estás seguro?',
@@ -1936,33 +1951,23 @@ else {
             return e.returnValue;
         };
         window.addEventListener('beforeunload', beforeUnloadHandler);
-        // Add listener for tab visibility changes
         if (!visibilityHandler) {
             visibilityHandler = () => {
                 if (!document.hidden && isRunning) {
-                    // Sync timer when tab comes back into focus
                     syncTimer();
                 }
             };
             document.addEventListener('visibilitychange', visibilityHandler);
         }
-        // Start timer loop
         timerInterval = window.setInterval(() => {
-            // Periodic sync
             syncTimer();
-            // Also decrement normally
-            if (remainingSeconds > 0) {
+            if (remainingSeconds > 0)
                 remainingSeconds -= 1;
-            }
-            if (remainingSeconds <= 0) {
+            if (remainingSeconds <= 0)
                 finishTimer();
-            }
             updateDisplay();
         }, 1000);
     }
-    /**
-     * Pause the timer
-     */
     function pauseTimer() {
         if (timerInterval) {
             clearInterval(timerInterval);
@@ -1971,16 +1976,11 @@ else {
         isRunning = false;
         timerStartTime = null;
         updatePlayButtonState();
-        // Remove navigation warning
         if (beforeUnloadHandler) {
             window.removeEventListener('beforeunload', beforeUnloadHandler);
             beforeUnloadHandler = null;
         }
     }
-    /**
-     * Reset timer to initial value for current stage
-     * @param toStage - Optional stage to reset to
-     */
     function resetTimer(toStage = null) {
         pauseTimer();
         if (toStage)
@@ -1991,19 +1991,16 @@ else {
         timerStartRemaining = 0;
         updateDisplay();
     }
-    /**
-     * Skip to next stage immediately
-     */
     function skipStage() {
         if (timerInterval) {
             clearInterval(timerInterval);
             timerInterval = null;
         }
-        // Save incomplete work session if in work stage
         if (currentStage === 'work' && sessionStart) {
             const end = new Date();
             const durationMin = Math.max(1, Math.round((end.getTime() - sessionStart.getTime()) / 60000));
-            saveWorkSession(sessionStart, end, durationMin, defaultSubjectId).catch(err => console.error('Error saving pomodoro session', err));
+            // @ts-ignore
+            saveWorkSession(sessionStart, end, durationMin, defaultSubjectId).catch(err => console.error(err));
             sessionStart = null;
             completedCycles += 1;
         }
@@ -2012,12 +2009,8 @@ else {
         updatePlayButtonState();
         advanceStage();
     }
-    /**
-     * Advance to next stage (work -> break -> work, etc.)
-     */
     function advanceStage() {
         if (currentStage === 'work') {
-            // Decide break type based on completed cycles
             if (completedCycles > 0 && completedCycles % settings.cyclesBeforeLongBreak === 0) {
                 currentStage = 'long_break';
             }
@@ -2026,7 +2019,6 @@ else {
             }
         }
         else {
-            // From break return to work
             currentStage = 'work';
         }
         remainingSeconds = (currentStage === 'work' ? settings.workMinutes : (currentStage === 'short_break' ? settings.shortBreakMinutes : settings.longBreakMinutes)) * 60;
@@ -2041,21 +2033,13 @@ else {
         }
     }
     function notifyPomodoroFinished() {
-        if ('Notification' in window &&
-            Notification.permission === 'granted') {
+        if ('Notification' in window && Notification.permission === 'granted') {
             new Notification('StudyO', {
                 body: 'Pomodoro finalizado.¡Hora de un descanso!',
                 silent: false,
             });
         }
     }
-    /**
-     * Save completed work session to API
-     * @param start - Session start time
-     * @param end - Session end time
-     * @param durationMin - Duration in minutes
-     * @param subjectId - Optional subject ID for session
-     */
     function saveWorkSession(start, end, durationMin, subjectId) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
@@ -2064,81 +2048,59 @@ else {
                     end_time: end.toISOString(),
                     duration: durationMin,
                 };
-                // Ensure valid subject ID
-                if (subjectId !== null && subjectId !== undefined && !isNaN(subjectId)) {
+                if (subjectId !== null && !isNaN(subjectId)) {
                     payload.subject = Number(subjectId);
                 }
-                console.log('Saving pomodoro session with payload:', payload);
-                const response = yield apiPost('/pomodoro/', payload, true);
-                console.log('Pomodoro session saved:', response);
-                // Refresh stats
-                loadPomodoroStats().catch(e => console.warn('refresh pomodoro stats failed', e));
-                loadFocusDistribution().catch(e => console.warn('refresh focus distribution failed', e));
+                // @ts-ignore
+                yield apiPost('/pomodoro/', payload, true);
+                // @ts-ignore
+                loadPomodoroStats().catch(e => console.warn('refresh stats failed', e));
+                // @ts-ignore
+                loadFocusDistribution().catch(e => console.warn('refresh distribution failed', e));
             }
             catch (e) {
                 console.error('Failed to save pomodoro session', e);
             }
         });
     }
-    /**
-     * Load available subjects into select dropdown
-     */
     function loadSubjectsToSelect() {
         return __awaiter(this, void 0, void 0, function* () {
             if (!subjectSelect)
                 return;
             try {
-                // Get current translations to ensure immediate correct display
+                // @ts-ignore
                 const trans = t();
+                // @ts-ignore
                 const subjects = yield apiGet('/subjects/');
-                // Re-render options ensuring the default one has the data-i18n attribute
-                // This prevents the translation from being lost when the list is refreshed
                 subjectSelect.innerHTML =
                     `<option value="" data-i18n="dashboard.noPomodoroSubject">${trans.dashboard.noPomodoroSubject}</option>` +
-                        subjects.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
-                // Restore previously selected subject if applicable
+                        subjects.map((s) => `<option value="${s.id}">${s.name}</option>`).join('');
                 if (defaultSubjectId)
                     subjectSelect.value = defaultSubjectId.toString();
             }
             catch (e) {
-                console.warn('Could not load subjects for pomodoro select', e);
+                console.warn('Could not load subjects', e);
             }
         });
     }
-    /**
-     * Update play button icon based on timer state
-     */
     function updatePlayButtonState() {
         if (!playBtn)
             return;
-        if (isRunning) {
-            // Show pause icon when running
-            playBtn.innerHTML = '<i data-lucide="pause" class="w-5 h-5"></i>';
-        }
-        else {
-            // Show play icon when stopped
-            playBtn.innerHTML = '<i data-lucide="play" class="w-5 h-5 ml-1"></i>';
-        }
-        // Render icons
+        playBtn.innerHTML = isRunning ? '<i data-lucide="pause" class="w-5 h-5"></i>' : '<i data-lucide="play" class="w-5 h-5 ml-1"></i>';
+        // @ts-ignore
         if (typeof lucide !== 'undefined')
             lucide.createIcons();
     }
-    /**
-     * Initialize Pomodoro timer when DOM is ready
-     */
     document.addEventListener('DOMContentLoaded', () => {
         loadSettings();
-        // Apply initial settings
+        handleOnboarding(); // Onboarding StudyO
         remainingSeconds = settings.workMinutes * 60;
         updateDisplay();
-        // Bind control buttons
         if (playBtn)
-            playBtn.addEventListener('click', () => {
-                if (isRunning)
-                    pauseTimer();
-                else
-                    startTimer();
-            });
+            playBtn.addEventListener('click', () => { if (isRunning)
+                pauseTimer();
+            else
+                startTimer(); });
         if (skipBtn)
             skipBtn.addEventListener('click', () => skipStage());
         if (resetBtn)
@@ -2147,15 +2109,11 @@ else {
                 resetTimer('work');
                 updateDisplay();
             });
-        // Settings modal
         if (settingsBtn && modal) {
             settingsBtn.addEventListener('click', (e) => __awaiter(void 0, void 0, void 0, function* () {
                 e.preventDefault();
-                // Don't open modal in concentration mode
-                if (document.body.classList.contains('concentration-mode')) {
+                if (document.body.classList.contains('concentration-mode'))
                     return;
-                }
-                // Populate form fields with current settings
                 if (workInput)
                     workInput.value = String(settings.workMinutes);
                 if (shortInput)
@@ -2165,58 +2123,42 @@ else {
                 if (cyclesInput)
                     cyclesInput.value = String(settings.cyclesBeforeLongBreak);
                 yield loadSubjectsToSelect();
-                if (modal) {
-                    modal.style.display = 'flex';
-                    // Render lucide icons after modal is shown
-                    if (typeof lucide !== 'undefined') {
-                        setTimeout(() => lucide.createIcons(), 10);
-                    }
-                }
+                modal.style.display = 'flex';
+                // @ts-ignore
+                if (typeof lucide !== 'undefined')
+                    setTimeout(() => lucide.createIcons(), 10);
             }));
         }
-        // Close modal buttons
         if (modalCancel && modal)
-            modalCancel.addEventListener('click', () => { if (modal)
-                modal.style.display = 'none'; });
+            modalCancel.addEventListener('click', () => { modal.style.display = 'none'; });
         const closeBtn = document.getElementById('pomodoroSettingsCloseBtn');
         if (closeBtn && modal)
-            closeBtn.addEventListener('click', () => { if (modal)
-                modal.style.display = 'none'; });
-        // Close modal when clicking outside
+            closeBtn.addEventListener('click', () => { modal.style.display = 'none'; });
         if (modal) {
             modal.addEventListener('click', (e) => {
-                if (e.target === modal) {
+                if (e.target === modal)
                     modal.style.display = 'none';
-                }
             });
         }
-        // Settings form submission
         if (settingsForm && modal)
             settingsForm.addEventListener('submit', (e) => {
                 e.preventDefault();
-                // Read form values
                 const wm = Number((workInput && workInput.value) || settings.workMinutes);
                 const sb = Number((shortInput && shortInput.value) || settings.shortBreakMinutes);
                 const lb = Number((longInput && longInput.value) || settings.longBreakMinutes);
                 const cb = Number((cyclesInput && cyclesInput.value) || settings.cyclesBeforeLongBreak);
-                // Validate and update settings
                 settings.workMinutes = Math.max(1, wm);
                 settings.shortBreakMinutes = Math.max(1, sb);
                 settings.longBreakMinutes = Math.max(1, lb);
                 settings.cyclesBeforeLongBreak = Math.max(1, cb);
-                // Get selected subject
                 const sel = subjectSelect ? subjectSelect.value : '';
                 defaultSubjectId = sel ? Number(sel) : null;
                 saveSettings();
-                // Update timer if not running
                 if (!isRunning)
                     resetTimer('work');
-                if (modal)
-                    modal.style.display = 'none';
-                // Refresh display
+                modal.style.display = 'none';
                 updateDisplay();
             });
-        // Load subjects in background
         loadSubjectsToSelect();
     });
 })();

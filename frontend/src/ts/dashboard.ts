@@ -407,12 +407,9 @@ async function loadWeeklyObjectives() {
 
         if (filteredObjectives.length === 0) {
             const trans = t();
-
             let emptyTitle = trans.dashboard.emptyObjectivesTitle;
             let emptyDesc = trans.dashboard.emptyObjectivesDesc;
-
-            // Empty state personalizado según filtro
-            let showAddVisual = true; // Mostrar crosshair + flechita solo para 'all'
+            let showAddVisual = true;
 
             if (currentWeeklyFilter === 'completed') {
                 emptyTitle = "¡Nada completado aún!";
@@ -432,19 +429,20 @@ async function loadWeeklyObjectives() {
                         <div class="relative w-20 h-20 bg-[#1a1d26] rounded-full flex items-center justify-center border border-gray-800 group-hover:border-purple-500/50 group-hover:scale-105 transition-all duration-300 shadow-xl">
                             <i data-lucide="crosshair" class="w-10 h-10 text-gray-500 group-hover:text-purple-400 transition-colors duration-300"></i>
                         </div>
-                    </div>
-
-                    <div class="animate-bounce text-gray-700">
-                        <i data-lucide="arrow-down" class="w-5 h-5"></i>
                     </div>` : ''}
 
                     <h3 class="text-xl font-bold text-white mb-2 tracking-tight">
                         ${emptyTitle}
                     </h3>
 
-                    <p class="text-gray-500 text-sm max-w-[280px] mx-auto leading-relaxed mb-6">
+                    <p class="text-gray-500 text-sm max-w-[280px] mx-auto leading-relaxed ${showAddVisual ? 'mb-6' : ''}">
                         ${emptyDesc}
                     </p>
+
+                    ${showAddVisual ? `
+                    <div class="animate-bounce text-gray-700">
+                        <i data-lucide="arrow-down" class="w-5 h-5"></i>
+                    </div>` : ''}
                 </div>
             `;
         }
@@ -1799,9 +1797,7 @@ if (document.readyState === 'loading') {
             }
         });
     }
-}
-
-/**
+}/**
  * ==========================================
  * Pomodoro Timer Functionality
  * ==========================================
@@ -1857,6 +1853,10 @@ if (document.readyState === 'loading') {
     const resetBtn = document.getElementById('pomodoroResetBtn');
     const settingsBtn = document.getElementById('pomodoroSettingsBtn');
 
+    // Onboarding Elements
+    const onboardingTooltip = document.getElementById('pomodoroTooltip');
+    const closeTooltipBtn = document.getElementById('closePomodoroTooltip');
+
     const modal = document.getElementById('pomodoroSettingsModal') as HTMLDivElement | null;
     const settingsForm = document.getElementById('pomodoroSettingsForm') as HTMLFormElement | null;
     const workInput = document.getElementById('workMinutes') as HTMLInputElement | null;
@@ -1868,6 +1868,31 @@ if (document.readyState === 'loading') {
 
     // SVG circle circumference for progress calculation
     const CIRCLE_LENGTH = 552;
+
+    // =====================
+    // ✨ Onboarding Function
+    // =====================
+    function handleOnboarding() {
+        if (!onboardingTooltip || localStorage.getItem('studyo_onboarding_done')) return;
+
+        setTimeout(() => {
+            if (!localStorage.getItem('studyo_onboarding_done')) {
+                onboardingTooltip.classList.remove('hidden');
+            }
+        }, 2000);
+
+        const dismissOnboarding = () => {
+            onboardingTooltip.classList.add('hidden');
+            localStorage.setItem('studyo_onboarding_done', 'true');
+        };
+
+        closeTooltipBtn?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            dismissOnboarding();
+        });
+
+        settingsBtn?.addEventListener('click', dismissOnboarding);
+    }
 
     /**
      * Load user settings from localStorage
@@ -1883,20 +1908,20 @@ if (document.readyState === 'loading') {
     }
 
     function initPomodoroAudio() {
-    if (pomodoroAudio) return;
+        if (pomodoroAudio) return;
 
-    pomodoroAudio = new Audio('public/sounds/pomodoroSound.mp3');
-    pomodoroAudio.volume = 0.8;
+        pomodoroAudio = new Audio('public/sounds/pomodoroSound.mp3');
+        pomodoroAudio.volume = 0.8;
 
-    // Unlock audio via user gesture
-    pomodoroAudio.play()
-        .then(() => {
-            pomodoroAudio!.pause();
-            pomodoroAudio!.currentTime = 0;
-        })
-        .catch(() => {
-            // Normal: autoplay blocked until user interaction
-        });
+        // Unlock audio via user gesture
+        pomodoroAudio.play()
+            .then(() => {
+                pomodoroAudio!.pause();
+                pomodoroAudio!.currentTime = 0;
+            })
+            .catch(() => {
+                // Normal: autoplay blocked until user interaction
+            });
     }
 
     /**
@@ -1926,6 +1951,7 @@ if (document.readyState === 'loading') {
         
         // Update stage label
         if (stageLabel) {
+            // @ts-ignore
             const lang = getCurrentLanguage();
             const workMap: Record<string, string> = {
                 es: 'Enfoque',
@@ -1960,6 +1986,7 @@ if (document.readyState === 'loading') {
         
         // Update pomodoro counters
         try {
+            // @ts-ignore
             const lang = getCurrentLanguage();
             const pomodoroLabel: Record<string, string> = {
                 es: 'Pomodoros',
@@ -1986,7 +2013,6 @@ if (document.readyState === 'loading') {
 
     /**
      * Play pomodoro completion sound
-     * Uses HTMLAudioElement instead of Web Audio Oscillator
      */
     function playBeep() {
         if (!pomodoroAudio) return;
@@ -1999,15 +2025,14 @@ if (document.readyState === 'loading') {
         }
     }
 
-
     /**
-     * Sync timer based on timestamps (useful when tab comes back into focus)
+     * Sync timer based on timestamps
      */
     function syncTimer() {
         if (!isRunning || timerStartTime === null) return;
         
         const now = Date.now();
-        const elapsed = Math.floor((now - timerStartTime) / 1000); // Elapsed seconds
+        const elapsed = Math.floor((now - timerStartTime) / 1000); 
         const newRemaining = Math.max(0, timerStartRemaining - elapsed);
         
         if (newRemaining !== remainingSeconds) {
@@ -2015,7 +2040,6 @@ if (document.readyState === 'loading') {
             updateDisplay();
         }
         
-        // If timer finished while tab was inactive
         if (remainingSeconds <= 0) {
             finishTimer();
         }
@@ -2040,6 +2064,7 @@ if (document.readyState === 'loading') {
         if (currentStage === 'work' && sessionStart) {
             const end = new Date();
             const durationMin = Math.round((end.getTime() - sessionStart.getTime()) / 60000);
+            // @ts-ignore
             saveWorkSession(sessionStart, end, durationMin, defaultSubjectId)
                 .catch(err => console.error('Error saving pomodoro session', err));
             sessionStart = null;
@@ -2049,29 +2074,15 @@ if (document.readyState === 'loading') {
         // Advance stage
         advanceStage();
 
-        // Restart automatically without changing button state
-        remainingSeconds =
-            (currentStage === 'work'
-                ? settings.workMinutes
-                : currentStage === 'short_break'
-                    ? settings.shortBreakMinutes
-                    : settings.longBreakMinutes) * 60;
-
+        // Restart automatically
+        remainingSeconds = (currentStage === 'work' ? settings.workMinutes : currentStage === 'short_break' ? settings.shortBreakMinutes : settings.longBreakMinutes) * 60;
         timerStartTime = Date.now();
         timerStartRemaining = remainingSeconds;
 
-        // Restart interval WITHOUT toggling isRunning
         timerInterval = window.setInterval(() => {
             syncTimer();
-
-            if (remainingSeconds > 0) {
-                remainingSeconds -= 1;
-            }
-
-            if (remainingSeconds <= 0) {
-                finishTimer();
-            }
-
+            if (remainingSeconds > 0) remainingSeconds -= 1;
+            if (remainingSeconds <= 0) finishTimer();
             updateDisplay();
         }, 1000);
 
@@ -2091,13 +2102,12 @@ if (document.readyState === 'loading') {
 
         if (!sessionStart && currentStage === 'work') sessionStart = new Date();
         
-        // Save start timestamp for sync
         timerStartTime = Date.now();
         timerStartRemaining = remainingSeconds;
         
-        // Add navigation warning
         beforeUnloadHandler = (e: BeforeUnloadEvent) => {
             e.preventDefault();
+            // @ts-ignore
             const lang = getCurrentLanguage();
             const messages: Record<string, string> = {
                 es: 'El Pomodoro se detendrá si abandonas esta página. ¿Estás seguro?',
@@ -2110,37 +2120,23 @@ if (document.readyState === 'loading') {
         };
         window.addEventListener('beforeunload', beforeUnloadHandler);
         
-        // Add listener for tab visibility changes
         if (!visibilityHandler) {
             visibilityHandler = () => {
                 if (!document.hidden && isRunning) {
-                    // Sync timer when tab comes back into focus
                     syncTimer();
                 }
             };
             document.addEventListener('visibilitychange', visibilityHandler);
         }
         
-        // Start timer loop
         timerInterval = window.setInterval(() => {
-            // Periodic sync
             syncTimer();
-            
-            // Also decrement normally
-            if (remainingSeconds > 0) {
-                remainingSeconds -= 1;
-            }
-            
-            if (remainingSeconds <= 0) {
-                finishTimer();
-            }
+            if (remainingSeconds > 0) remainingSeconds -= 1;
+            if (remainingSeconds <= 0) finishTimer();
             updateDisplay();
         }, 1000);
     }
 
-    /**
-     * Pause the timer
-     */
     function pauseTimer() {
         if (timerInterval) {
             clearInterval(timerInterval);
@@ -2150,17 +2146,12 @@ if (document.readyState === 'loading') {
         timerStartTime = null;
         updatePlayButtonState();
         
-        // Remove navigation warning
         if (beforeUnloadHandler) {
             window.removeEventListener('beforeunload', beforeUnloadHandler);
             beforeUnloadHandler = null;
         }
     }
 
-    /**
-     * Reset timer to initial value for current stage
-     * @param toStage - Optional stage to reset to
-     */
     function resetTimer(toStage: Stage | null = null) {
         pauseTimer();
         if (toStage) currentStage = toStage;
@@ -2171,19 +2162,16 @@ if (document.readyState === 'loading') {
         updateDisplay();
     }
 
-    /**
-     * Skip to next stage immediately
-     */
     function skipStage() {
         if (timerInterval) {
             clearInterval(timerInterval);
             timerInterval = null;
         }
-        // Save incomplete work session if in work stage
         if (currentStage === 'work' && sessionStart) {
             const end = new Date();
             const durationMin = Math.max(1, Math.round((end.getTime() - sessionStart.getTime()) / 60000));
-            saveWorkSession(sessionStart, end, durationMin, defaultSubjectId).catch(err => console.error('Error saving pomodoro session', err));
+            // @ts-ignore
+            saveWorkSession(sessionStart, end, durationMin, defaultSubjectId).catch(err => console.error(err));
             sessionStart = null;
             completedCycles += 1;
         }
@@ -2193,19 +2181,14 @@ if (document.readyState === 'loading') {
         advanceStage();
     }
 
-    /**
-     * Advance to next stage (work -> break -> work, etc.)
-     */
     function advanceStage() {
         if (currentStage === 'work') {
-            // Decide break type based on completed cycles
             if (completedCycles > 0 && completedCycles % settings.cyclesBeforeLongBreak === 0) {
                 currentStage = 'long_break';
             } else {
                 currentStage = 'short_break';
             }
         } else {
-            // From break return to work
             currentStage = 'work';
         }
         remainingSeconds = (currentStage === 'work' ? settings.workMinutes : (currentStage === 'short_break' ? settings.shortBreakMinutes : settings.longBreakMinutes)) * 60;
@@ -2215,16 +2198,13 @@ if (document.readyState === 'loading') {
     function requestNotificationPermission() {
         if (notificationPermissionRequested) return;
         notificationPermissionRequested = true;
-
         if ('Notification' in window && Notification.permission === 'default') {
             Notification.requestPermission();
         }
     }
+
     function notifyPomodoroFinished() {
-        if (
-            'Notification' in window &&
-            Notification.permission === 'granted'
-        ) {
+        if ('Notification' in window && Notification.permission === 'granted') {
             new Notification('StudyO', {
                 body: 'Pomodoro finalizado.¡Hora de un descanso!',
                 silent: false,
@@ -2232,13 +2212,6 @@ if (document.readyState === 'loading') {
         }
     }
 
-    /**
-     * Save completed work session to API
-     * @param start - Session start time
-     * @param end - Session end time
-     * @param durationMin - Duration in minutes
-     * @param subjectId - Optional subject ID for session
-     */
     async function saveWorkSession(start: Date, end: Date, durationMin: number, subjectId: number | null) {
         try {
             const payload: any = {
@@ -2246,77 +2219,50 @@ if (document.readyState === 'loading') {
                 end_time: end.toISOString(),
                 duration: durationMin,
             };
-            // Ensure valid subject ID
-            if (subjectId !== null && subjectId !== undefined && !isNaN(subjectId)) {
+            if (subjectId !== null && !isNaN(subjectId)) {
                 payload.subject = Number(subjectId);
             }
-            console.log('Saving pomodoro session with payload:', payload);
-            const response = await apiPost('/pomodoro/', payload, true);
-            console.log('Pomodoro session saved:', response);
-            // Refresh stats
-            loadPomodoroStats().catch(e => console.warn('refresh pomodoro stats failed', e));
-            loadFocusDistribution().catch(e => console.warn('refresh focus distribution failed', e));
+            // @ts-ignore
+            await apiPost('/pomodoro/', payload, true);
+            // @ts-ignore
+            loadPomodoroStats().catch(e => console.warn('refresh stats failed', e));
+            // @ts-ignore
+            loadFocusDistribution().catch(e => console.warn('refresh distribution failed', e));
         } catch (e) {
             console.error('Failed to save pomodoro session', e);
         }
     }
 
-    /**
-     * Load available subjects into select dropdown
-     */
-
     async function loadSubjectsToSelect() {
         if (!subjectSelect) return;
         try {
-            // Get current translations to ensure immediate correct display
+            // @ts-ignore
             const trans = t();
-            
-            const subjects: Subject[] = await apiGet('/subjects/');
-            
-            // Re-render options ensuring the default one has the data-i18n attribute
-            // This prevents the translation from being lost when the list is refreshed
+            // @ts-ignore
+            const subjects = await apiGet('/subjects/');
             subjectSelect.innerHTML = 
                 `<option value="" data-i18n="dashboard.noPomodoroSubject">${trans.dashboard.noPomodoroSubject}</option>` + 
-                subjects.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
-            
-            // Restore previously selected subject if applicable
+                subjects.map((s: any) => `<option value="${s.id}">${s.name}</option>`).join('');
             if (defaultSubjectId) subjectSelect.value = defaultSubjectId.toString();
         } catch (e) {
-            console.warn('Could not load subjects for pomodoro select', e);
+            console.warn('Could not load subjects', e);
         }
     }
     
-    /**
-     * Update play button icon based on timer state
-     */
     function updatePlayButtonState() {
         if (!playBtn) return;
-        
-        if (isRunning) {
-            // Show pause icon when running
-            playBtn.innerHTML = '<i data-lucide="pause" class="w-5 h-5"></i>';
-        } else {
-            // Show play icon when stopped
-            playBtn.innerHTML = '<i data-lucide="play" class="w-5 h-5 ml-1"></i>';
-        }
-        
-        // Render icons
+        playBtn.innerHTML = isRunning ? '<i data-lucide="pause" class="w-5 h-5"></i>' : '<i data-lucide="play" class="w-5 h-5 ml-1"></i>';
+        // @ts-ignore
         if (typeof lucide !== 'undefined') lucide.createIcons();
     }
 
-    /**
-     * Initialize Pomodoro timer when DOM is ready
-     */
     document.addEventListener('DOMContentLoaded', () => {
         loadSettings();
-        // Apply initial settings
+        handleOnboarding(); // Onboarding StudyO
         remainingSeconds = settings.workMinutes * 60;
         updateDisplay();
         
-        // Bind control buttons
-        if (playBtn) playBtn.addEventListener('click', () => {
-            if (isRunning) pauseTimer(); else startTimer();
-        });
+        if (playBtn) playBtn.addEventListener('click', () => { if (isRunning) pauseTimer(); else startTimer(); });
         if (skipBtn) skipBtn.addEventListener('click', () => skipStage());
         if (resetBtn) resetBtn.addEventListener('click', () => { 
             completedCycles = 0; 
@@ -2324,73 +2270,52 @@ if (document.readyState === 'loading') {
             updateDisplay();
         });
 
-        // Settings modal
         if (settingsBtn && modal) {
             settingsBtn.addEventListener('click', async (e) => {
                 e.preventDefault();
-                // Don't open modal in concentration mode
-                if (document.body.classList.contains('concentration-mode')) {
-                    return;
-                }
-                // Populate form fields with current settings
+                if (document.body.classList.contains('concentration-mode')) return;
                 if (workInput) workInput.value = String(settings.workMinutes);
                 if (shortInput) shortInput.value = String(settings.shortBreakMinutes);
                 if (longInput) longInput.value = String(settings.longBreakMinutes);
                 if (cyclesInput) cyclesInput.value = String(settings.cyclesBeforeLongBreak);
                 await loadSubjectsToSelect();
-                if (modal) {
-                    modal.style.display = 'flex';
-                    // Render lucide icons after modal is shown
-                    if (typeof lucide !== 'undefined') {
-                        setTimeout(() => lucide.createIcons(), 10);
-                    }
-                }
+                modal.style.display = 'flex';
+                // @ts-ignore
+                if (typeof lucide !== 'undefined') setTimeout(() => lucide.createIcons(), 10);
             });
         }
 
-        // Close modal buttons
-        if (modalCancel && modal) modalCancel.addEventListener('click', () => { if (modal) modal.style.display = 'none'; });
+        if (modalCancel && modal) modalCancel.addEventListener('click', () => { modal.style.display = 'none'; });
         const closeBtn = document.getElementById('pomodoroSettingsCloseBtn');
-        if (closeBtn && modal) closeBtn.addEventListener('click', () => { if (modal) modal.style.display = 'none'; });
-        // Close modal when clicking outside
+        if (closeBtn && modal) closeBtn.addEventListener('click', () => { modal.style.display = 'none'; });
         if (modal) {
             modal.addEventListener('click', (e) => {
-                if (e.target === modal) {
-                    modal.style.display = 'none';
-                }
+                if (e.target === modal) modal.style.display = 'none';
             });
         }
 
-        // Settings form submission
         if (settingsForm && modal) settingsForm.addEventListener('submit', (e) => {
             e.preventDefault();
-            // Read form values
             const wm = Number((workInput && workInput.value) || settings.workMinutes);
             const sb = Number((shortInput && shortInput.value) || settings.shortBreakMinutes);
             const lb = Number((longInput && longInput.value) || settings.longBreakMinutes);
             const cb = Number((cyclesInput && cyclesInput.value) || settings.cyclesBeforeLongBreak);
             
-            // Validate and update settings
             settings.workMinutes = Math.max(1, wm);
             settings.shortBreakMinutes = Math.max(1, sb);
             settings.longBreakMinutes = Math.max(1, lb);
             settings.cyclesBeforeLongBreak = Math.max(1, cb);
             
-            // Get selected subject
             const sel = subjectSelect ? subjectSelect.value : '';
             defaultSubjectId = sel ? Number(sel) : null;
             
             saveSettings();
-            // Update timer if not running
             if (!isRunning) resetTimer('work');
-            if (modal) modal.style.display = 'none';
-            // Refresh display
+            modal.style.display = 'none';
             updateDisplay();
         });
 
-        // Load subjects in background
         loadSubjectsToSelect();
     });
 
 })();
-

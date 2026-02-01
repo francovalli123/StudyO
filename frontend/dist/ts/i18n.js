@@ -249,6 +249,8 @@ export const translations = {
             monthlyFocus: 'Distribución de Enfoque Mensual',
             monthlyFocusDesc: 'Tiempo dedicado por materia.',
             hours: 'horas',
+            noStudy: 'Sin estudio',
+            on: 'en',
         },
     },
     en: {
@@ -497,6 +499,8 @@ export const translations = {
             monthlyFocus: 'Monthly Focus Distribution',
             monthlyFocusDesc: 'Time dedicated per subject.',
             hours: 'hours',
+            noStudy: 'No study',
+            on: 'on',
         },
     },
     zh: {
@@ -745,6 +749,8 @@ export const translations = {
             monthlyFocus: '每月专注分布',
             monthlyFocusDesc: '各学科投入的时间。',
             hours: '小时',
+            noStudy: '不学习',
+            on: '在',
         },
     },
     pt: {
@@ -993,6 +999,8 @@ export const translations = {
             monthlyFocus: 'Distribuição de Foco Mensal',
             monthlyFocusDesc: 'Tempo dedicado por matéria.',
             hours: 'horas',
+            noStudy: 'Sem estudo',
+            on: 'em',
         },
     },
 };
