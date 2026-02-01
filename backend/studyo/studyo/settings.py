@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'apps.notification',
     'apps.pomodoroSession',
     'apps.routineBlock',
+    'apps.weekly_challenges',
     'corsheaders',
     'rest_framework.authtoken',
     'django_apscheduler',

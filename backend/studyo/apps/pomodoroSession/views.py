@@ -1,4 +1,6 @@
 from django.shortcuts import render
+from django.utils import timezone
+from apps.pomodoroSession.services import evaluate_weekly_challenge
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.permissions import IsAuthenticated
 from .serializers import PomodoroSessionSerializer
@@ -14,7 +16,8 @@ class PomodoroSessionCreateView(ListCreateAPIView):
         return PomodoroSession.objects.filter(user=self.request.user)
     
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user) # Guarda la sesión
+        pomodoro = serializer.save(user=self.request.user)
+        evaluate_weekly_challenge(self.request.user, timezone.now())
 
 # Detalles, edición y eliminación de una sesión de pomodoro
 class PomodoroSessionDetailView(RetrieveUpdateDestroyAPIView):

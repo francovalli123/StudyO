@@ -758,6 +758,157 @@ function submitObjectiveForm(e) {
         }
     });
 }
+// Loads the weekly challenge and updates the dashboard UI
+/**
+ * Loads and displays the active weekly challenge
+ *
+ * ARCHITECTURE:
+ * - Backend computes ALL business logic (progress, status, etc)
+ * - Frontend ONLY renders the DTO received
+ * - NO calculations happen here
+ *
+ * Behavior:
+ * - GET /api/weekly-challenge/active/ (returns 200 with challenge DTO)
+ * - Renders challenge in [data-challenge-container]
+ * - Idempotent - safe to call multiple times
+ * - Graceful error handling
+ */
+export function loadWeeklyChallenge() {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            // Fetch challenge DTO from backend
+            const challenge = yield apiGet("/weekly-challenge/active/");
+            // Backend guarantees this won't be null (creates if needed)
+            if (!challenge) {
+                console.warn("Unexpected: Backend returned null for active challenge");
+                renderEmptyChallengeState();
+                return;
+            }
+            // Render the DTO as-is (no transformations)
+            renderWeeklyChallengeUI(challenge);
+        }
+        catch (error) {
+            console.error("Error loading weekly challenge:", error);
+            renderErrorChallengeState();
+        }
+    });
+}
+/**
+ * Renders the weekly challenge UI from the DTO
+ *
+ * IMPORTANT: Does NOT calculate or modify data
+ * Uses challenge data exactly as received from backend
+ *
+ * @param challenge - WeeklyChallengeDTO from backend
+ */
+function renderWeeklyChallengeUI(challenge) {
+    const container = document.querySelector('[data-challenge-container]');
+    if (!container)
+        return;
+    // Determine styling based on status (no other logic)
+    const isCompleted = challenge.status === 'completed';
+    const statusIcon = isCompleted ? 'check-circle' : 'zap';
+    const statusBadgeColor = isCompleted
+        ? 'bg-green-500/20 text-green-400 border-green-500/30'
+        : 'bg-purple-500/20 text-purple-400 border-purple-500/30';
+    const progressBarColor = isCompleted
+        ? 'from-green-500 via-emerald-500 to-green-500'
+        : 'from-purple-500 via-pink-500 to-purple-500';
+    const progressGlowColor = isCompleted
+        ? 'rgba(34,197,94,0.5)'
+        : 'rgba(168,85,247,0.5)';
+    // Build status badge
+    const statusBadge = `
+    <span class="px-3 py-1 rounded-full text-xs font-semibold border ${statusBadgeColor} flex items-center gap-1" style="width: fit-content;">
+      <i data-lucide="${statusIcon}" class="w-3 h-3"></i>
+      <span data-i18n="dashboard.${isCompleted ? 'completed' : 'active'}">
+        ${isCompleted ? 'Completado' : 'Activo'}
+      </span>
+    </span>
+  `;
+    // Build progress text using DTO values
+    const progressText = `${challenge.current_value} de ${challenge.target_value} completados`;
+    // Render container
+    container.innerHTML = `
+    <div class="space-y-4">
+      <div class="flex justify-between items-start">
+        <div class="flex-1">
+          <h3 class="text-white font-medium mb-1">${challenge.title}</h3>
+          <p class="text-gray-500 text-sm mb-4">${challenge.description}</p>
+        </div>
+        <div class="flex-shrink-0">
+          ${statusBadge}
+        </div>
+      </div>
+      
+      <div class="space-y-2">
+        <div class="w-full bg-gray-800 h-2 rounded-full overflow-hidden">
+          <div class="bg-gradient-to-r ${progressBarColor} h-2 rounded-full transition-all duration-500 ease-out" 
+               style="width: ${Math.min(challenge.progress_percentage, 100)}%; box-shadow: 0 0 10px ${progressGlowColor};">
+          </div>
+        </div>
+        <div class="flex justify-between items-center">
+          <span class="text-xs bg-gradient-to-r ${isCompleted ? 'from-green-400 to-emerald-400' : 'from-purple-400 to-pink-400'} bg-clip-text text-transparent font-medium">
+            ${progressText}
+          </span>
+          <span class="text-xs text-gray-500">${challenge.progress_percentage.toFixed(0)}%</span>
+        </div>
+      </div>
+      
+      <div class="text-xs text-gray-400 pt-2 border-t border-gray-800">
+        <span>Recompensa: </span>
+        <span class="text-purple-400 font-medium">+50 XP</span>
+      </div>
+    </div>
+  `;
+    // Render lucide icons
+    if (typeof lucide !== 'undefined' && lucide.createIcons) {
+        lucide.createIcons();
+    }
+    // Ensure the container is visible in case an entrance animation left it at opacity:0
+    try {
+        const wrapper = document.querySelector('[data-challenge-container]');
+        if (wrapper) {
+            wrapper.style.transition = wrapper.style.transition || 'opacity 250ms ease';
+            wrapper.style.opacity = '1';
+            wrapper.style.visibility = 'visible';
+            wrapper.classList.remove('animate-fade', 'animated');
+        }
+    }
+    catch (e) {
+        // no-op: defensive in case DOM APIs are restricted in some tests
+    }
+}
+/**
+ * Render empty state when no challenge
+ */
+function renderEmptyChallengeState() {
+    const container = document.querySelector('[data-challenge-container]');
+    if (!container)
+        return;
+    container.innerHTML = `
+    <div class="text-center py-6">
+      <i data-lucide="award" class="w-8 h-8 text-gray-500 mx-auto mb-2"></i>
+      <p class="text-gray-400 text-sm">No hay desafío activo</p>
+    </div>
+  `;
+    if (typeof lucide !== 'undefined' && lucide.createIcons) {
+        lucide.createIcons();
+    }
+}
+/**
+ * Render error state
+ */
+function renderErrorChallengeState() {
+    const container = document.querySelector('[data-challenge-container]');
+    if (!container)
+        return;
+    container.innerHTML = `
+    <div class="text-center py-4">
+      <p class="text-red-400 text-sm">Error al cargar el desafío semanal</p>
+    </div>
+  `;
+}
 /**
  * Loads and displays Pomodoro session statistics
  * Fetches sessions and calculates today's totals and recent sessions
@@ -1569,6 +1720,7 @@ function loadDashboard() {
                 loadSubjectsStats(),
                 loadPomodoroStats(),
                 loadWeeklyObjectives(),
+                loadWeeklyChallenge(),
                 loadWeeklyStudyRhythm(),
                 loadFocusDistribution(),
                 loadPeakProductivity(),
@@ -1632,6 +1784,7 @@ if (document.readyState === 'loading') {
 else {
     // DOM already loaded, execute immediately
     loadDashboard();
+    loadWeeklyChallenge();
     // --- Llamar al inicializar ---
     initWeeklyObjectivesFilters();
     loadWeeklyObjectives();
