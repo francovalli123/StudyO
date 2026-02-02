@@ -23,6 +23,13 @@ class Routine(models.Model):
 class WeeklyObjective(models.Model):
     """Objetivos estratégicos semanales del usuario.
     Se usan en el dashboard para listar, crear, editar y borrar objetivos clave.
+    
+    ARCHIVADO (no borrado):
+    - is_active: Indica si el objetivo está activo o archivado
+    - archived_at: Timestamp de archivado (None si está activo)
+    
+    El dashboard solo muestra objetivos con is_active=True.
+    Al final de cada semana, se archivan (is_active=False, archived_at=now).
     """
     PRIORITY_CHOICES = [
         (1, 'Alta'),
@@ -49,6 +56,11 @@ class WeeklyObjective(models.Model):
     is_completed = models.BooleanField(default=False)
     area = models.CharField(max_length=100, default='General', blank=True)  # Nombre del área/materia
     icon = models.CharField(max_length=10, default='⚡', blank=True)  # Emoji o icono
+    
+    # Archivado soft-delete: no se borra, se marca como inactivo
+    is_active = models.BooleanField(default=True, help_text="False cuando se archiva al final de la semana")
+    archived_at = models.DateTimeField(null=True, blank=True, help_text="Timestamp de archivado")
+    
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

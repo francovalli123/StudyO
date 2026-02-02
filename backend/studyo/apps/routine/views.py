@@ -14,6 +14,7 @@ from .models import (
     WeeklyObjective,
     WeeklyObjectiveHistory,
 )
+from .rollover_service import ensure_weekly_rollover_for_user
 
 from django.shortcuts import render
 from .serializers import RoutineSerializer, WeeklyObjectiveSerializer
@@ -173,10 +174,15 @@ class WeeklyObjectiveListCreateView(ListCreateAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return WeeklyObjective.objects.filter(user=self.request.user)
+        # SOLO mostrar objetivos activos (archivados -> is_active=True)
+        # Los archivados se persisten en WeeklyObjectiveHistory
+        return WeeklyObjective.objects.filter(
+            user=self.request.user,
+            is_active=True
+        )
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        serializer.save(user=self.request.user, is_active=True)
 
 
 class WeeklyObjectiveDetailView(RetrieveUpdateDestroyAPIView):
@@ -184,10 +190,21 @@ class WeeklyObjectiveDetailView(RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return WeeklyObjective.objects.filter(user=self.request.user)
+        # SOLO objetivos activos (archivados no se pueden editar directamente)
+        return WeeklyObjective.objects.filter(
+            user=self.request.user,
+            is_active=True
+        )
 
     def perform_update(self, serializer):
         serializer.save(user=self.request.user)
+    
+    def perform_destroy(self, instance):
+        # Soft-delete: archivar en lugar de borrar
+        # Preserva auditoría e historial
+        instance.is_active = False
+        instance.archived_at = timezone.now()
+        instance.save(update_fields=['is_active', 'archived_at', 'updated_at'])
 
 
 # ============================================================
@@ -199,19 +216,40 @@ def weekly_objectives_stats(request):
     """
     Estadísticas semanales basadas en la timezone del usuario.
     Incluye: total/completados, completion rate, promedio diario y top objetivos pendientes.
+    
+    FLUJO DE ROLLOVER SEMANAL:
+    1. Al cargar el dashboard, se verifica si debe ejecutarse rollover
+    2. Si la semana del usuario cambió (según su timezone), se archivan objetivos antiguos
+    3. Los datos mostrados incluyen historial de semanas anteriores + objetivos actuales
+    4. El rollover es idempotente: múltiples requests en la misma semana no duplican registros
+    
+    El scheduler APScheduler también ejecuta rollover cada lunes a las 00:00 (hora servidor).
     """
-
+    
     user = request.user
 
-    # Obtener rango de la semana actual del usuario
+    # PASO 1: Ejecutar rollover semanal si corresponde
+    # Esto es IDEMPOTENTE: no hace nada si ya se ejecutó esta semana
+    try:
+        rollover_result = ensure_weekly_rollover_for_user(user)
+        if rollover_result.get("performed"):
+            # Log opcional: el rollover se ejecutó
+            pass
+    except Exception as e:
+        # No bloquear si hay error en rollover, pero loguear
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Error during weekly rollover for user {user.id}: {e}")
+
+    # PASO 2: Obtener rango de la semana actual del usuario
     week_range = get_user_week_range(user)
     current_week_start = week_range["week_start_utc"]
     current_week_end = week_range["week_end_utc"]
 
-
-    # Objetivos actuales y del historial
+    # PASO 3: Obtener objetivos actuales (SOLO ACTIVOS) y del historial
     current_objectives = WeeklyObjective.objects.filter(
         user=user,
+        is_active=True,  # SOLO objetivos activos (no archivados)
         created_at__gte=current_week_start,
         created_at__lte=current_week_end,
     )
