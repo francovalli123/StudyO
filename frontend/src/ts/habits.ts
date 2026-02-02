@@ -438,6 +438,8 @@ async function toggleHabitCompletion(habitId: number, complete: boolean) {
         if (data.streak !== undefined) {
             habits[index].streak = data.streak;
             renderHabits();
+            // Notify dashboard to reload weekly challenge (debounced listener will handle duplicate calls)
+            try { document.dispatchEvent(new CustomEvent('weeklyChallenge:update')); } catch (e) {}
         }
     } catch (err) {
         habits[index].completedToday = previousState;

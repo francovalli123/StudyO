@@ -5,6 +5,8 @@ from rest_framework import status
 from django.utils import timezone
 from .models import Habit, HabitRecord
 from .serializers import HabitRecordSerializer
+from apps.weekly_challenges.evaluators import evaluate_weekly_challenge
+from django.utils import timezone as dj_timezone
 
 class CompleteHabitView(APIView):
     permission_classes = [IsAuthenticated]
@@ -30,6 +32,13 @@ class CompleteHabitView(APIView):
         # Actualizar la racha
         habit.streak = habit.calculate_streak()
         habit.save()
+
+        # Trigger weekly challenge evaluation (lazy, idempotent)
+        try:
+            evaluate_weekly_challenge(request.user, dj_timezone.now())
+        except Exception:
+            # Do not block habit completion on challenge evaluation errors
+            pass
 
         serializer = HabitRecordSerializer(record)
 
@@ -57,5 +66,11 @@ class CompleteHabitView(APIView):
         # Recalcular la racha después de eliminar el registro
         habit.streak = habit.calculate_streak()
         habit.save()
+
+        # Trigger weekly challenge evaluation after un-completing (safe to ignore errors)
+        try:
+            evaluate_weekly_challenge(request.user, dj_timezone.now())
+        except Exception:
+            pass
 
         return Response({'detail': 'Hábito desmarcado como completado.', 'streak': habit.streak}, status=status.HTTP_200_OK)

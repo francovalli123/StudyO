@@ -1,39 +1,25 @@
 from django.db import transaction
-from .models import PomodoroSession
-from utils.datetime import get_user_local_date, get_day_range
-from apps.weekly_challenges.models import WeeklyChallenge
+from django.utils import timezone
+from django.contrib.auth import get_user_model
+from apps.pomodoroSession.models import PomodoroSession
+from apps.weekly_challenges.evaluators import evaluate_weekly_challenge
+
+User = get_user_model()
+
 
 @transaction.atomic
-def evaluate_weekly_challenge(user, reference_dt):
-    current_date = get_user_local_date(user, reference_dt)
+def evaluate_weekly_challenge_for_pomodoro(user: User, pomodoro_session: PomodoroSession):
+    """
+    Evaluate and update the weekly challenge after a pomodoro is created.
 
-    challenge = WeeklyChallenge.objects.select_for_update().filter(
-        user=user,
-        week_start__lte=current_date,
-        week_end__gte=current_date,
-        status='active'
-    ).first()
+    Called in PomodoroSessionCreateView.perform_create()
 
-    if not challenge:
-        return
+    Args:
+        user: The user who completed the pomodoro
+        pomodoro_session: The newly created PomodoroSession
+    """
+    # Use the pomodoro's end_time as reference
+    reference_dt = pomodoro_session.end_time or timezone.now()
 
-    day_str = current_date.isoformat()
-
-    if day_str in challenge.completed_days:
-        return
-
-    start_dt, end_dt = get_day_range(user, current_date)
-
-    pomodoros_today = PomodoroSession.objects.filter(
-        user=user,
-        end_time__gte=start_dt,
-        end_time__lte=end_dt
-    ).count()
-
-    if pomodoros_today >= challenge.required_pomodoros_per_day:
-        challenge.completed_days.append(day_str)
-
-        if len(challenge.completed_days) >= challenge.target_days:
-            challenge.status = 'completed'
-
-        challenge.save()
+    # Evaluate the challenge
+    evaluate_weekly_challenge(user, reference_dt)

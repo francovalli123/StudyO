@@ -1,0 +1,49 @@
+"""
+Subject Focus Challenge Evaluator
+
+Challenge: 10 pomodoros in the same subject
+"""
+from typing import Tuple, Dict
+from django.db.models import Count
+from apps.pomodoroSession.models import PomodoroSession
+from utils.datetime import get_day_range
+from .base import BaseEvaluator
+
+
+class SubjectFocusEvaluator(BaseEvaluator):
+    """Evaluator for Subject Focus challenge: 10 pomodoros in one subject"""
+
+    def evaluate(self) -> Tuple[float, float, bool]:
+        """
+        Find the subject with the most pomodoros.
+
+        Returns:
+            Tuple of (max_pomodoros_in_subject, 10, is_completed)
+        """
+        # Use timezone-aware week boundaries
+        start_dt, _ = get_day_range(self.user, self.week_start)
+        _, end_dt = get_day_range(self.user, self.week_end)
+
+        # Get count of pomodoros per subject
+        subject_counts = PomodoroSession.objects.filter(
+            user=self.user,
+            start_time__gte=start_dt,
+            start_time__lte=end_dt,
+            subject__isnull=False
+        ).values('subject').annotate(count=Count('id')).order_by('-count')
+
+        max_pomodoros = 0
+        if subject_counts.exists():
+            max_pomodoros = subject_counts.first()['count']
+
+        target = 10.0
+        is_completed = max_pomodoros >= target
+
+        return float(max_pomodoros), target, is_completed
+
+    def get_metadata(self) -> Dict[str, str]:
+        """Get challenge title and description"""
+        return {
+            'title': '📚 Enfoque en Materia',
+            'description': 'Completa 10 pomodoros en una misma materia. ¡Domina el tema!'
+        }

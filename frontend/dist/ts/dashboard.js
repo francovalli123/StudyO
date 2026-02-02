@@ -649,6 +649,11 @@ function toggleObjectiveCompletion(id) {
             yield apiPatch(`/weekly-objectives/${id}/`, { is_completed: newCompleted });
             // Reload objectives to reflect changes
             yield loadWeeklyObjectives();
+            // Notify weekly challenge to reload (frontend will debounce)
+            try {
+                document.dispatchEvent(new CustomEvent('weeklyChallenge:update'));
+            }
+            catch (e) { }
         }
         catch (error) {
             console.error('Error toggling objective completion:', error);
@@ -750,7 +755,12 @@ function submitObjectiveForm(e) {
             }
             // Close modal and reload objectives
             closeObjectiveModal();
-            loadWeeklyObjectives();
+            yield loadWeeklyObjectives();
+            // Notify weekly challenge reload (debounced)
+            try {
+                document.dispatchEvent(new CustomEvent('weeklyChallenge:update'));
+            }
+            catch (e) { }
         }
         catch (error) {
             console.error("Error creating/updating objective:", error);
@@ -776,8 +786,10 @@ function submitObjectiveForm(e) {
 export function loadWeeklyChallenge() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
+            console.log('[loadWeeklyChallenge] Starting...');
             // Fetch challenge DTO from backend
             const challenge = yield apiGet("/weekly-challenge/active/");
+            console.log('[loadWeeklyChallenge] Response:', challenge);
             // Backend guarantees this won't be null (creates if needed)
             if (!challenge) {
                 console.warn("Unexpected: Backend returned null for active challenge");
@@ -786,6 +798,7 @@ export function loadWeeklyChallenge() {
             }
             // Render the DTO as-is (no transformations)
             renderWeeklyChallengeUI(challenge);
+            console.log('[loadWeeklyChallenge] Rendered UI');
         }
         catch (error) {
             console.error("Error loading weekly challenge:", error);
@@ -793,6 +806,24 @@ export function loadWeeklyChallenge() {
         }
     });
 }
+// Debounced reload handler for external actions (habits/objectives/pomodoros)
+let _weeklyChallengeReloadTimer = null;
+document.addEventListener('weeklyChallenge:update', () => {
+    // Debounce multiple rapid events
+    try {
+        console.log('[loadWeeklyChallenge:listener] Event received, debouncing...');
+        if (_weeklyChallengeReloadTimer)
+            window.clearTimeout(_weeklyChallengeReloadTimer);
+        _weeklyChallengeReloadTimer = window.setTimeout(() => {
+            console.log('[loadWeeklyChallenge:listener] Debounce complete, loading challenge...');
+            loadWeeklyChallenge().catch((e) => console.error('Error reloading weekly challenge:', e));
+            _weeklyChallengeReloadTimer = null;
+        }, 300);
+    }
+    catch (e) {
+        // ignore in non-browser env
+    }
+});
 /**
  * Renders the weekly challenge UI from the DTO
  *
@@ -918,7 +949,7 @@ function loadPomodoroStats() {
         try {
             // Fetch all Pomodoro sessions from API
             const sessions = yield apiGet("/pomodoro/");
-            // Get today's date at midnight for filtering
+            // Get today's date at midnight for display purposes
             const today = new Date();
             today.setHours(0, 0, 0, 0);
             // Filter sessions from today
@@ -927,9 +958,12 @@ function loadPomodoroStats() {
                 sessionDate.setHours(0, 0, 0, 0);
                 return sessionDate.getTime() === today.getTime();
             });
-            // Calculate today's statistics
+            // Calculate today's statistics (display)
             const totalMinutesToday = todaySessions.reduce((sum, s) => sum + s.duration, 0);
             const totalSessionsToday = todaySessions.length;
+            // Compute week start (client local) and count sessions this week
+            const weekStart = getStartOfWeekInUserTZ((yield getCurrentUser()).timezone || Intl.DateTimeFormat().resolvedOptions().timeZone);
+            const totalSessionsThisWeek = sessions.filter(s => new Date(s.start_time) >= weekStart).length;
             // Update statistics display
             const sessionsTodayEl = document.getElementById("sessions-today");
             const minutesTodayEl = document.getElementById("minutes-today");
@@ -937,6 +971,12 @@ function loadPomodoroStats() {
                 sessionsTodayEl.textContent = totalSessionsToday.toString();
             if (minutesTodayEl)
                 minutesTodayEl.textContent = totalMinutesToday.toString();
+            // Notify listeners about updated session counts so in-memory counters
+            // can sync inside the Pomodoro IIFE (avoids cross-scope references)
+            try {
+                document.dispatchEvent(new CustomEvent('pomodoro:sessionsUpdated', { detail: { totalSessionsThisWeek } }));
+            }
+            catch (e) { /* ignore if environment disallows CustomEvent */ }
             // Display recent sessions (last 5)
             const recentSessionsEl = document.getElementById("recent-sessions");
             if (recentSessionsEl) {
@@ -1834,7 +1874,9 @@ else {
     let remainingSeconds = settings.workMinutes * 60;
     let currentStage = 'work';
     let isRunning = false;
-    let completedCycles = 0; // Number of work sessions completed in current set
+    let completedCycles = 0; // kept for compatibility but MUST NOT be incremented manually
+    // Latest stats received from backend - single source of truth for counters
+    let latestPomodoroStats = { totalSessionsThisWeek: 0, sessionsToday: 0 };
     let sessionStart = null; // When current work session started
     let defaultSubjectId = null; // Default subject for sessions
     let beforeUnloadHandler = null;
@@ -1994,19 +2036,74 @@ else {
                 zh: '组: {current} / {total}',
                 pt: 'Conjunto: {current} / {total}',
             };
-            if (pomodorosCountEl)
-                pomodorosCountEl.textContent = `${pomodoroLabel[lang] || pomodoroLabel.es}: ${completedCycles}`;
-            if (pomodoroSetLabelEl) {
-                const cycles = Math.max(1, settings.cyclesBeforeLongBreak);
-                let inSet = completedCycles % cycles;
-                if (inSet === 0 && completedCycles > 0)
-                    inSet = cycles;
-                const tpl = setLabelTemplate[lang] || setLabelTemplate.es;
-                pomodoroSetLabelEl.textContent = tpl.replace('{current}', String(inSet)).replace('{total}', String(cycles));
+            // Counters are rendered from loadPomodoroStats(); do not derive from timer-local increments
+            try {
+                const stats = latestPomodoroStats;
+                const total = stats.totalSessionsThisWeek || 0;
+                if (pomodorosCountEl)
+                    pomodorosCountEl.textContent = `${pomodoroLabel[lang] || pomodoroLabel.es}: ${total}`;
+                if (pomodoroSetLabelEl) {
+                    const cycles = Math.max(1, settings.cyclesBeforeLongBreak);
+                    let inSet = total % cycles;
+                    if (inSet === 0 && total > 0)
+                        inSet = cycles;
+                    const tpl = setLabelTemplate[lang] || setLabelTemplate.es;
+                    pomodoroSetLabelEl.textContent = tpl.replace('{current}', String(inSet)).replace('{total}', String(cycles));
+                }
             }
+            catch (e) { /* ignore DOM issues */ }
         }
         catch (e) { /* ignore DOM issues */ }
     }
+    // Listen for domain event when a pomodoro is completed
+    document.addEventListener('pomodoro:completed', () => {
+        try {
+            // On completion, refresh stats and weekly challenge UI
+            loadPomodoroStats().catch(e => console.warn('refresh stats failed', e));
+            loadWeeklyChallenge().catch(e => console.warn('refresh weekly challenge failed', e));
+        }
+        catch (e) { /* ignore */ }
+    });
+    // Backwards-compatible: also listen to sessionsUpdated if dispatched
+    document.addEventListener('pomodoro:sessionsUpdated', (ev) => __awaiter(void 0, void 0, void 0, function* () {
+        var _a, _b, _c, _d;
+        try {
+            const ce = ev;
+            const total = Number((_b = (_a = ce.detail) === null || _a === void 0 ? void 0 : _a.totalSessionsThisWeek) !== null && _b !== void 0 ? _b : (_c = ce.detail) === null || _c === void 0 ? void 0 : _c.totalSessionsToday) || 0;
+            // Compute current week key (YYYY-MM-DD) in user timezone
+            let userTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            try {
+                const u = yield getCurrentUser();
+                userTz = u.timezone || userTz;
+            }
+            catch (e) { }
+            const wkStart = getStartOfWeekInUserTZ(userTz);
+            const weekKey = wkStart.toISOString().slice(0, 10);
+            // Read stored reset offset (per-week)
+            const RESET_KEY = 'pomodoroReset';
+            let stored = {};
+            try {
+                stored = JSON.parse(localStorage.getItem(RESET_KEY) || '{}');
+            }
+            catch (e) {
+                stored = {};
+            }
+            // If stored reset is for another week, clear it
+            if (stored.week !== weekKey) {
+                stored = {};
+                localStorage.removeItem(RESET_KEY);
+            }
+            const offset = Number(stored.offset || 0);
+            const displayed = Math.max(0, total - offset);
+            // Store the raw total and the displayed (offset-applied) value
+            latestPomodoroStats.rawTotalSessionsThisWeek = total;
+            latestPomodoroStats.totalSessionsThisWeek = displayed; // displayed = total - offset
+            latestPomodoroStats.sessionsToday = ((_d = ce.detail) === null || _d === void 0 ? void 0 : _d.totalSessionsToday) || 0;
+            completedCycles = displayed; // keep for compatibility
+            updateDisplay();
+        }
+        catch (e) { /* ignore */ }
+    }));
     /**
      * Play pomodoro completion sound
      */
@@ -2042,39 +2139,52 @@ else {
      * Handle timer completion
      */
     function finishTimer() {
-        playBeep();
-        if (document.visibilityState !== 'visible') {
-            notifyPomodoroFinished();
-        }
-        if (timerInterval) {
-            clearInterval(timerInterval);
-            timerInterval = null;
-        }
-        // Save session if work stage finished
-        if (currentStage === 'work' && sessionStart) {
-            const end = new Date();
-            const durationMin = Math.round((end.getTime() - sessionStart.getTime()) / 60000);
-            // @ts-ignore
-            saveWorkSession(sessionStart, end, durationMin, defaultSubjectId)
-                .catch(err => console.error('Error saving pomodoro session', err));
-            sessionStart = null;
-            completedCycles += 1;
-        }
-        // Advance stage
-        advanceStage();
-        // Restart automatically
-        remainingSeconds = (currentStage === 'work' ? settings.workMinutes : currentStage === 'short_break' ? settings.shortBreakMinutes : settings.longBreakMinutes) * 60;
-        timerStartTime = Date.now();
-        timerStartRemaining = remainingSeconds;
-        timerInterval = window.setInterval(() => {
-            syncTimer();
-            if (remainingSeconds > 0)
-                remainingSeconds -= 1;
-            if (remainingSeconds <= 0)
-                finishTimer();
+        return __awaiter(this, void 0, void 0, function* () {
+            playBeep();
+            if (document.visibilityState !== 'visible') {
+                notifyPomodoroFinished();
+            }
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+            // Save session if work stage finished
+            if (currentStage === 'work' && sessionStart) {
+                const end = new Date();
+                let durationMin = Math.round((end.getTime() - sessionStart.getTime()) / 60000);
+                durationMin = Math.max(1, durationMin);
+                try {
+                    console.log('[finishTimer] Pomodoro finished - creating session', { start: sessionStart.toISOString(), end: end.toISOString(), duration: durationMin, subject: defaultSubjectId });
+                    // @ts-ignore
+                    const res = yield saveWorkSession(sessionStart, end, durationMin, defaultSubjectId);
+                    console.log('[finishTimer] Pomodoro POST completed', res);
+                }
+                catch (err) {
+                    console.error('[finishTimer] Error saving pomodoro session', err);
+                }
+                sessionStart = null;
+            }
+            // Advance stage
+            advanceStage();
+            // Restart automatically
+            remainingSeconds = (currentStage === 'work' ? settings.workMinutes : currentStage === 'short_break' ? settings.shortBreakMinutes : settings.longBreakMinutes) * 60;
+            timerStartTime = Date.now();
+            timerStartRemaining = remainingSeconds;
+            // If entering work stage, initialize sessionStart for next session
+            if (currentStage === 'work' && !sessionStart) {
+                console.log('[finishTimer] Entering work stage - initializing sessionStart');
+                sessionStart = new Date();
+            }
+            timerInterval = window.setInterval(() => {
+                syncTimer();
+                if (remainingSeconds > 0)
+                    remainingSeconds -= 1;
+                if (remainingSeconds <= 0)
+                    finishTimer();
+                updateDisplay();
+            }, 1000);
             updateDisplay();
-        }, 1000);
-        updateDisplay();
+        });
     }
     /**
      * Start the timer
@@ -2155,7 +2265,6 @@ else {
             // @ts-ignore
             saveWorkSession(sessionStart, end, durationMin, defaultSubjectId).catch(err => console.error(err));
             sessionStart = null;
-            completedCycles += 1;
         }
         playBeep();
         isRunning = false;
@@ -2204,15 +2313,31 @@ else {
                 if (subjectId !== null && !isNaN(subjectId)) {
                     payload.subject = Number(subjectId);
                 }
+                console.log('[saveWorkSession] Saving pomodoro:', payload);
                 // @ts-ignore
-                yield apiPost('/pomodoro/', payload, true);
+                const result = yield apiPost('/pomodoro/', payload, true);
+                console.log('[saveWorkSession] Pomodoro saved successfully', result);
+                console.log('[saveWorkSession] Pomodoro POST sent');
+                // Notify domain that a pomodoro has been completed
+                try {
+                    document.dispatchEvent(new CustomEvent('pomodoro:completed'));
+                }
+                catch (e) { /* ignore */ }
+                // Also keep weekly challenge reload event for compatibility
+                try {
+                    document.dispatchEvent(new CustomEvent('weeklyChallenge:update'));
+                }
+                catch (e) { }
+                // Refresh related UI (loadPomodoroStats will update counters)
                 // @ts-ignore
-                loadPomodoroStats().catch(e => console.warn('refresh stats failed', e));
+                yield loadPomodoroStats().catch(e => console.warn('refresh stats failed', e));
                 // @ts-ignore
-                loadFocusDistribution().catch(e => console.warn('refresh distribution failed', e));
+                yield loadFocusDistribution().catch(e => console.warn('refresh distribution failed', e));
+                return result;
             }
             catch (e) {
                 console.error('Failed to save pomodoro session', e);
+                throw e;
             }
         });
     }
@@ -2257,11 +2382,50 @@ else {
         if (skipBtn)
             skipBtn.addEventListener('click', () => skipStage());
         if (resetBtn)
-            resetBtn.addEventListener('click', () => {
-                completedCycles = 0;
-                resetTimer('work');
-                updateDisplay();
-            });
+            resetBtn.addEventListener('click', () => __awaiter(void 0, void 0, void 0, function* () {
+                try {
+                    // Reset in-memory counters and timer UI
+                    completedCycles = 0;
+                    resetTimer('work');
+                    updateDisplay();
+                    // Persist a per-week reset offset so the counter shows zero
+                    try {
+                        // Fetch current weekly total
+                        // @ts-ignore
+                        const sessions = yield apiGet('/pomodoro/');
+                        // Determine week start in user timezone
+                        let userTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+                        try {
+                            const u = yield getCurrentUser();
+                            userTz = u.timezone || userTz;
+                        }
+                        catch (e) { }
+                        const wkStart = getStartOfWeekInUserTZ(userTz);
+                        const weekKey = wkStart.toISOString().slice(0, 10);
+                        const totalSessionsThisWeek = sessions.filter(s => new Date(s.start_time) >= wkStart).length;
+                        const RESET_KEY = 'pomodoroReset';
+                        const payload = { week: weekKey, offset: totalSessionsThisWeek };
+                        localStorage.setItem(RESET_KEY, JSON.stringify(payload));
+                        console.log('[reset] Stored reset offset', payload);
+                        // Update UI
+                        completedCycles = 0;
+                        updateDisplay();
+                        // Refresh stats and weekly challenge UI
+                        // @ts-ignore
+                        yield loadPomodoroStats();
+                        try {
+                            document.dispatchEvent(new CustomEvent('weeklyChallenge:update'));
+                        }
+                        catch (e) { }
+                    }
+                    catch (err) {
+                        console.warn('Could not persist reset offset', err);
+                    }
+                }
+                catch (e) {
+                    console.error('Reset failed', e);
+                }
+            }));
         if (settingsBtn && modal) {
             settingsBtn.addEventListener('click', (e) => __awaiter(void 0, void 0, void 0, function* () {
                 e.preventDefault();
