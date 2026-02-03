@@ -12,6 +12,14 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 import os
+from dotenv import load_dotenv
+load_dotenv()
+
+EMAIL_HOST = os.getenv("EMAIL_HOST", "smtp.gmail.com")
+EMAIL_PORT = int(os.getenv("EMAIL_PORT", 587))
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "covalabsarg@gmail.com")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "srpn dlxw jvxj bqfz")
+EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "True") == "True"
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -180,11 +188,3 @@ SITE_NAME = 'StudyO'
 DEFAULT_FROM_EMAIL = 'StudyO <no-reply@studyo.local>'
 SITE_URL = os.environ.get('SITE_URL', 'http://127.0.0.1:8000')
 
-# Email configuration - use environment variables when available.
-EMAIL_BACKEND = os.environ.get('DJANGO_EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend')
-EMAIL_HOST = os.environ.get('DJANGO_EMAIL_HOST', 'localhost')
-EMAIL_PORT = int(os.environ.get('DJANGO_EMAIL_PORT', 25))
-EMAIL_HOST_USER = os.environ.get('DJANGO_EMAIL_USER', '')
-EMAIL_HOST_PASSWORD = os.environ.get('DJANGO_EMAIL_PASSWORD', '')
-EMAIL_USE_TLS = os.environ.get('DJANGO_EMAIL_USE_TLS', 'False').lower() in ('1','true','yes')
-EMAIL_USE_SSL = os.environ.get('DJANGO_EMAIL_USE_SSL', 'False').lower() in ('1','true','yes')

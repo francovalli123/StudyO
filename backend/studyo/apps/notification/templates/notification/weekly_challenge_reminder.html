@@ -1,0 +1,176 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Recordatorio de Desafío Semanal - StudyO</title>
+    <style>
+      body { 
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        background: #0b0b0d; 
+        color: #e6eef8; 
+        margin: 0; 
+        padding: 0; 
+      }
+      .container { 
+        max-width: 680px; 
+        margin: 24px auto; 
+        background: #0f1724; 
+        border-radius: 12px; 
+        padding: 28px; 
+        box-shadow: 0 6px 30px rgba(16,24,40,0.6); 
+      }
+      .header { 
+        display: flex; 
+        align-items: center; 
+        gap: 12px; 
+        margin-bottom: 24px;
+      }
+      .logo { 
+        width: 56px; 
+        height: 56px; 
+        border-radius: 10px; 
+        background: linear-gradient(90deg, #a855f7, #cf8bf3); 
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+        color: #051025; 
+        font-weight: 700; 
+        font-size: 20px; 
+      }
+      .header-content { flex: 1; }
+      h1 { 
+        font-size: 20px; 
+        margin: 0 0 4px 0; 
+        color: #fff; 
+        font-weight: 600;
+      }
+      .subtitle { 
+        color: #9aa7bf; 
+        font-size: 13px; 
+        margin: 0;
+      }
+      .card { 
+        background: #071022; 
+        padding: 16px 20px; 
+        border-radius: 10px; 
+        border: 1px solid rgba(255,255,255,0.03); 
+        margin-bottom: 16px;
+      }
+      .card-title {
+        font-size: 14px;
+        font-weight: 600;
+        color: #a855f7;
+        margin: 0 0 8px 0;
+      }
+      .card-content {
+        font-size: 15px;
+        color: #e6eef8;
+        margin: 0;
+      }
+      .progress-bar {
+        width: 100%;
+        height: 8px;
+        background: rgba(255,255,255,0.1);
+        border-radius: 4px;
+        margin-top: 12px;
+        overflow: hidden;
+      }
+      .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #a855f7, #cf8bf3);
+        width: var(--progress-width, 0%);
+        transition: width 0.3s ease;
+      }
+      .progress-text {
+        font-size: 12px;
+        color: #9aa7bf;
+        margin-top: 8px;
+      }
+      .cta { 
+        display: inline-block; 
+        margin-top: 20px; 
+        padding: 12px 24px; 
+        background: linear-gradient(90deg, #a855f7, #cf8bf3); 
+        color: #051025; 
+        border-radius: 8px; 
+        text-decoration: none; 
+        font-weight: 600;
+        font-size: 14px;
+        border: none;
+        cursor: pointer;
+      }
+      .cta:hover {
+        opacity: 0.9;
+      }
+      .footer { 
+        color: #94a3b8; 
+        font-size: 12px; 
+        margin-top: 24px;
+        border-top: 1px solid rgba(255,255,255,0.05);
+        padding-top: 16px;
+      }
+      .footer-logo {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 12px;
+      }
+      .footer-logo-mini {
+        width: 32px;
+        height: 32px;
+        border-radius: 6px;
+        background: linear-gradient(90deg, #a855f7, #cf8bf3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #051025;
+        font-weight: 700;
+        font-size: 12px;
+      }
+      .divider {
+        height: 1px;
+        background: rgba(255,255,255,0.05);
+        margin: 16px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <div class="header-content">
+          <h1>Recordatorio de Desafío Semanal</h1>
+          <p class="subtitle">Hola {{ user.first_name|default:user.username }}, revisa tu progreso</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <p class="card-title">{{ challenge_name }}</p>
+        <p class="card-content">{{ challenge_description }}</p>
+        <div class="progress-bar">
+          <div class="progress-fill" style="--progress-width: {{ progress }}%;"></div>
+        </div>
+        <p class="progress-text">Progreso: {{ current_value }}/{{ target_value }} completado</p>
+      </div>
+
+      <div class="card">
+        <p class="card-content">
+          <strong>⚡ Motivación:</strong> Queda poco para completar tu desafío semanal. 
+          ¡Puedes lograrlo!
+        </p>
+      </div>
+
+      <a class="cta" href="{{ site_url|default:'/' }}/progress">Ver Progreso en StudyO</a>
+
+      <div class="divider"></div>
+
+      <div class="footer">
+        <div class="footer-logo">
+          <span style="font-weight: 600; color: #e6eef8;">StudyO</span>
+        </div>
+        <div>Recibiste este mensaje porque tienes recordatorios de desafíos semanales habilitados en StudyO.</div>
+        <div style="margin-top: 8px;">© StudyO · Todos los derechos reservados</div>
+      </div>
+    </div>
+  </body>
+</html>

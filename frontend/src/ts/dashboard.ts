@@ -2524,6 +2524,11 @@ if (document.readyState === 'loading') {
             // @ts-ignore
             await loadFocusDistribution().catch(e => console.warn('refresh distribution failed', e));
 
+            // Defensive: ensure display is updated with fresh counters
+            // loadPomodoroStats dispatches 'pomodoro:sessionsUpdated' which updates latestPomodoroStats,
+            // but we explicitly call updateDisplay() again to guarantee UI sync even if event fails
+            try { updateDisplay(); } catch (e) { /* ignore */ }
+
             return result;
         } catch (e) {
             console.error('Failed to save pomodoro session', e);

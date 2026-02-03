@@ -18,8 +18,12 @@ class PomodoroSessionCreateView(ListCreateAPIView):
     def perform_create(self, serializer):
         """Save pomodoro and evaluate weekly challenge"""
         pomodoro = serializer.save(user=self.request.user)
-        # Evaluate the weekly challenge after creating the pomodoro
-        evaluate_weekly_challenge_for_pomodoro(self.request.user, pomodoro)
+
+        # Only evaluate weekly challenges for newly created sessions.
+        # Serializer sets `_created` attribute when returning an existing object.
+        created = getattr(pomodoro, '_created', True)
+        if created:
+            evaluate_weekly_challenge_for_pomodoro(self.request.user, pomodoro)
 
 
 class PomodoroSessionDetailView(RetrieveUpdateDestroyAPIView):

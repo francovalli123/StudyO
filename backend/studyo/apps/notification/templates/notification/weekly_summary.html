@@ -1,0 +1,200 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Resumen Semanal - StudyO</title>
+    <style>
+      body { 
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        background: #0b0b0d; 
+        color: #e6eef8; 
+        margin: 0; 
+        padding: 0; 
+      }
+      .container { 
+        max-width: 680px; 
+        margin: 24px auto; 
+        background: #0f1724; 
+        border-radius: 12px; 
+        padding: 28px; 
+        box-shadow: 0 6px 30px rgba(16,24,40,0.6); 
+      }
+      .header { 
+        display: flex; 
+        align-items: center; 
+        gap: 12px; 
+        margin-bottom: 24px;
+      }
+      .logo { 
+        width: 56px; 
+        height: 56px; 
+        border-radius: 10px; 
+        background: linear-gradient(90deg, #a855f7, #cf8bf3); 
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+        color: #051025; 
+        font-weight: 700; 
+        font-size: 20px; 
+      }
+      .header-content { flex: 1; }
+      h1 { 
+        font-size: 20px; 
+        margin: 0 0 4px 0; 
+        color: #fff; 
+        font-weight: 600;
+      }
+      .subtitle { 
+        color: #9aa7bf; 
+        font-size: 13px; 
+        margin: 0;
+      }
+      .card { 
+        background: #071022; 
+        padding: 16px 20px; 
+        border-radius: 10px; 
+        border: 1px solid rgba(255,255,255,0.03); 
+        margin-bottom: 16px;
+      }
+      .card-title {
+        font-size: 14px;
+        font-weight: 600;
+        color: #a855f7;
+        margin: 0 0 12px 0;
+      }
+      .stat-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 0;
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+      }
+      .stat-row:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+      }
+      .stat-label {
+        font-size: 14px;
+        color: #9aa7bf;
+      }
+      .stat-value {
+        font-size: 16px;
+        font-weight: 600;
+        color: #e6eef8;
+      }
+      .highlight {
+        color: #a855f7;
+      }
+      .card-content {
+        font-size: 15px;
+        color: #e6eef8;
+        margin: 0;
+      }
+      .cta { 
+        display: inline-block; 
+        margin-top: 20px; 
+        padding: 12px 24px; 
+        background: linear-gradient(90deg, #a855f7, #cf8bf3); 
+        color: #051025; 
+        border-radius: 8px; 
+        text-decoration: none; 
+        font-weight: 600;
+        font-size: 14px;
+        border: none;
+        cursor: pointer;
+      }
+      .cta:hover {
+        opacity: 0.9;
+      }
+      .footer { 
+        color: #94a3b8; 
+        font-size: 12px; 
+        margin-top: 24px;
+        border-top: 1px solid rgba(255,255,255,0.05);
+        padding-top: 16px;
+      }
+      .footer-logo {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 12px;
+      }
+      .footer-logo-mini {
+        width: 32px;
+        height: 32px;
+        border-radius: 6px;
+        background: linear-gradient(90deg, #a855f7, #cf8bf3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #051025;
+        font-weight: 700;
+        font-size: 12px;
+      }
+      .divider {
+        height: 1px;
+        background: rgba(255,255,255,0.05);
+        margin: 16px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <div class="header-content">
+          <h1>Resumen Semanal</h1>
+          <p class="subtitle">Hola {{ user.first_name|default:user.username }}, aquí está tu progreso</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <p class="card-title">📊 Estadísticas de la Semana</p>
+        <div class="stat-row">
+          <span class="stat-label">Total de Pomodoros</span>
+          <span class="stat-value"><span class="highlight">{{ pomodoro_count }}</span> sesiones</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">Tiempo de Estudio</span>
+          <span class="stat-value"><span class="highlight">{{ total_study_hours }}</span> horas</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">Objetivos Completados</span>
+          <span class="stat-value"><span class="highlight">{{ objectives_completed }}/{{ objectives_total }}</span></span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">Consistencia</span>
+          <span class="stat-value"><span class="highlight">{{ consistency_percentage }}%</span></span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">Desafío Semanal</span>
+          <span class="stat-value">
+            {% if challenge_completed %}
+              <span style="color: #10b981;">✓ Completado</span>
+            {% else %}
+              <span style="color: #f59e0b;">En Progreso</span>
+            {% endif %}
+          </span>
+        </div>
+      </div>
+
+      <div class="card">
+        <p class="card-content">
+          <strong>🎉 ¡Gran semana!</strong> Mantén el ritmo y sigue avanzando hacia tus objetivos.
+        </p>
+      </div>
+
+      <a class="cta" href="{{ site_url|default:'/' }}/progress">Ver Detalles en StudyO</a>
+
+      <div class="divider"></div>
+
+      <div class="footer">
+        <div class="footer-logo">
+          <span style="font-weight: 600; color: #e6eef8;">StudyO</span>
+        </div>
+        <div>Recibiste este mensaje porque tienes habilitado el resumen semanal en StudyO.</div>
+        <div style="margin-top: 8px;">© StudyO · Todos los derechos reservados</div>
+      </div>
+    </div>
+  </body>
+</html>

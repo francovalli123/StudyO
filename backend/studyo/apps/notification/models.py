@@ -1,52 +1,125 @@
 from django.db import models
 from django.conf import settings
 from apps.routineBlock.models import RoutineBlock
+from django.utils import timezone
 
-# Modelo Notificación. Gestiona los recordatorios de estudios programados para el usuario.
 class Notification(models.Model):
+    """
+    Modelo para registrar notificaciones enviadas al usuario.
+    
+    Un Notification representa un evento ocurrido (o fallido), NO una tarea futura.
+    La recurrencia es manejada por APScheduler + lógica temporal.
+    
+    Campos:
+    - notification_type: Tipo de notificación (key_habit_reminder, weekly_challenge_reminder, etc.)
+    - status: pending, sent, failed
+    - sent_at: Timestamp de envío exitoso (nullable, solo cuando status=sent)
+    - related_object_id: ID del hábito/objetivo/desafío relacionado (opcional)
+    - metadata: JSONField para datos adicionales si es necesario
+    """
+    
+    NOTIFICATION_TYPE_CHOICES = [
+        ('key_habit_reminder', 'Recordatorio de Hábito Clave'),
+        ('weekly_challenge_reminder', 'Recordatorio de Desafío Semanal'),
+        ('weekly_objectives_reminder', 'Recordatorio de Objetivos Semanales'),
+        ('weekly_summary', 'Resumen Semanal'),
+    ]
+    
+    STATUS_CHOICES = [
+        ('pending', 'Pendiente'),
+        ('sent', 'Enviado'),
+        ('failed', 'Fallido'),
+    ]
+    
     # Atributos 
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE, # Esto hace que si se borra el usuario, se borren todos los habitos del mismo
-        related_name='notifications' # Acceso inverso: user.notifications.all()
+        on_delete=models.CASCADE,
+        related_name='notifications'
     )
+    
+    notification_type = models.CharField(
+        max_length=50,
+        choices=NOTIFICATION_TYPE_CHOICES,
+        default='key_habit_reminder',
+        help_text="Tipo de notificación enviada"
+    )
+    
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='pending',
+        help_text="Estado del envío"
+    )
+    
+    # Timestamp de envío exitoso (solo cuando status=sent)
+    sent_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Timestamp cuando el email fue enviado exitosamente"
+    )
+    
+    # Objeto relacionado (hábito ID, objetivo ID, etc.)
+    related_object_id = models.IntegerField(
+        null=True,
+        blank=True,
+        help_text="ID del objeto relacionado (hábito, objetivo, desafío)"
+    )
+    
+    # Metadata adicional para flexibilidad futura
+    metadata = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Datos adicionales (subject, duration, etc.)"
+    )
+    
+    # Compatibilidad con lógica anterior (puede removerse si no se usa)
+    routine_block = models.ForeignKey(
+        RoutineBlock,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='notifications'
+    )
+    
+    message = models.CharField(
+        max_length=200,
+        blank=True,
+        help_text="Mensaje del recordatorio (para compatibilidad)"
+    )
+    
+    scheduled_time = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Fecha y hora programada (para compatibilidad)"
+    )
+    
+    # Timestamps de auditoría
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
-    routine_block = models.ForeignKey(RoutineBlock, on_delete=models.SET_NULL, null=True, blank=True, related_name='notifications') # Opcional, para vincular a un bloque de estudio específico
-    message = models.CharField(max_length=200) # Mensaje del recordatorio, por ejemplo, estudiar matematicas a las 21:00
-    scheduled_time = models.DateTimeField() # Fecha y hora programada (esto es obligatorio)
-    sent = models.BooleanField(default=False) # Estado de envio (booleano: true/false)
-    created_at = models.DateTimeField(auto_now_add=True) # Fecha de creación
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['user', 'notification_type', 'status']),
+            models.Index(fields=['user', 'created_at']),
+        ]
 
     def __str__(self):
         try:
-            return f"{self.user.username}: {self.message} @ {self.scheduled_time}"
+            return f"{self.user.username} - {self.get_notification_type_display()} ({self.status})"
         except Exception:
             return f"Notification {self.pk}"
 
-    def send_email(self):
-        """Send an email for this notification. Uses Django email settings and an HTML template."""
-        from django.template.loader import render_to_string
-        from django.core.mail import EmailMultiAlternatives
-        from django.conf import settings
-        try:
-            subject = "Recordatorio de StudyO"
-            to_email = self.user.email
-            context = {
-                'user': self.user,
-                'message': self.message,
-                'scheduled_time': self.scheduled_time,
-                'site_name': getattr(settings, 'SITE_NAME', 'StudyO'),
-                'site_url': getattr(settings, 'SITE_URL', '/')
-            }
-            html_body = render_to_string('notification/email.html', context)
-            text_body = f"{self.message}\n\nVisita StudyO para más detalles."
+    def mark_sent(self):
+        """Marca la notificación como enviada exitosamente."""
+        self.status = 'sent'
+        self.sent_at = timezone.now()
+        self.save(update_fields=['status', 'sent_at', 'updated_at'])
 
-            email = EmailMultiAlternatives(subject, text_body, settings.DEFAULT_FROM_EMAIL, [to_email])
-            email.attach_alternative(html_body, "text/html")
-            email.send(fail_silently=False)
-            # mark sent
-            self.sent = True
-            self.save(update_fields=['sent'])
-            return True
-        except Exception:
-            return False
+    def mark_failed(self, error_message=None):
+        """Marca la notificación como fallida."""
+        self.status = 'failed'
+        if error_message:
+            self.metadata['error'] = error_message
+        self.save(update_fields=['status', 'metadata', 'updated_at'])
