@@ -21,6 +21,8 @@ from apps.notification.services import (
     send_weekly_challenge_reminder,
     send_weekly_objectives_reminder,
     send_weekly_summary,
+    _normalize_hour,
+    _is_in_minute_window,
 )
 from apps.habits.models import Habit
 from apps.habitRecord.models import HabitRecord
@@ -367,3 +369,27 @@ class DuplicatePreventionTests(TestCase):
         
         # No debe existir porque fue creada hace más de 1 hora
         self.assertFalse(recent)
+
+
+class NotificationTimeHelpersTests(TestCase):
+    """Tests para helpers de hora/ventana usados por scheduler y servicios."""
+
+    def test_normalize_hour_accepts_common_formats(self):
+        self.assertEqual(_normalize_hour(20), 20)
+        self.assertEqual(_normalize_hour("20"), 20)
+        self.assertEqual(_normalize_hour("20:00"), 20)
+        self.assertEqual(_normalize_hour("20.0"), 20)
+
+    def test_normalize_hour_fallbacks_to_default(self):
+        self.assertEqual(_normalize_hour("invalid", default=18), 18)
+        self.assertEqual(_normalize_hour(99, default=18), 18)
+
+    def test_is_in_minute_window(self):
+        dt = datetime(2025, 1, 1, 20, 0, tzinfo=pytz.UTC)
+        self.assertTrue(_is_in_minute_window(dt, 20, 0, 5))
+
+        dt_edge = datetime(2025, 1, 1, 20, 4, tzinfo=pytz.UTC)
+        self.assertTrue(_is_in_minute_window(dt_edge, 20, 0, 5))
+
+        dt_out = datetime(2025, 1, 1, 20, 5, tzinfo=pytz.UTC)
+        self.assertFalse(_is_in_minute_window(dt_out, 20, 0, 5))

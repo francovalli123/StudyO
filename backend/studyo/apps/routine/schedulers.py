@@ -7,6 +7,7 @@ from django.core.management import call_command
 import logging
 
 logger = logging.getLogger(__name__)
+_scheduler = None
 
 def start():
     """
@@ -21,6 +22,12 @@ def start():
     4. Recordatorio de objetivos semanales: cada hora (verifica sábado 12:00 en timezone local)
     5. Resumen semanal: cada hora (verifica lunes 00:05 en timezone local)
     """
+    global _scheduler
+
+    if _scheduler and _scheduler.running:
+        logger.info("Scheduler is already running, skipping new initialization")
+        return _scheduler
+
     scheduler = BackgroundScheduler(timezone=settings.TIME_ZONE)
     scheduler.add_jobstore(DjangoJobStore(), "default")
 
@@ -40,52 +47,54 @@ def start():
     # Dentro del job se verifica si es hora 20:00 en el timezone local de cada usuario
     scheduler.add_job(
         send_key_habits_reminders_job,
-        trigger=CronTrigger(minute="0"),  # Cada hora en punto
+        trigger=CronTrigger(minute="*/5"),  # Cada 5 min para tolerar reinicios/desfase
         id="send_key_habits_reminders",
         max_instances=1,
         replace_existing=True,
     )
     
-    logger.info("Added job 'send_key_habits_reminders' - Every hour (checks user's local timezone for 20:00)")
+    logger.info("Added job 'send_key_habits_reminders' - Every 5 minutes (checks user's local timezone for configured hour)")
 
     # RECORDATORIO DESAFÍO SEMANAL: Cada hora
     # Dentro del job se verifica si es domingo a las 12:00 en el timezone local de cada usuario
     scheduler.add_job(
         send_weekly_challenge_reminder_job,
-        trigger=CronTrigger(minute="0"),  # Cada hora en punto
+        trigger=CronTrigger(minute="*/5"),  # Cada 5 min para tolerar reinicios/desfase
         id="send_weekly_challenge_reminder",
         max_instances=1,
         replace_existing=True,
     )
     
-    logger.info("Added job 'send_weekly_challenge_reminder' - Every hour (checks user's local timezone for Sunday 12:00)")
+    logger.info("Added job 'send_weekly_challenge_reminder' - Every 5 minutes (checks user's local timezone for Sunday 12:00)")
 
     # RECORDATORIO OBJETIVOS SEMANALES: Cada hora
     # Dentro del job se verifica si es sábado a las 12:00 en el timezone local de cada usuario
     scheduler.add_job(
         send_weekly_objectives_reminder_job,
-        trigger=CronTrigger(minute="0"),  # Cada hora en punto
+        trigger=CronTrigger(minute="*/5"),  # Cada 5 min para tolerar reinicios/desfase
         id="send_weekly_objectives_reminder",
         max_instances=1,
         replace_existing=True,
     )
     
-    logger.info("Added job 'send_weekly_objectives_reminder' - Every hour (checks user's local timezone for Saturday 12:00)")
+    logger.info("Added job 'send_weekly_objectives_reminder' - Every 5 minutes (checks user's local timezone for Saturday 12:00)")
 
     # RESUMEN SEMANAL: Cada hora
     # Dentro del job se verifica si es lunes a las 00:05 en el timezone local de cada usuario
     scheduler.add_job(
         send_weekly_summary_job,
-        trigger=CronTrigger(minute="0"),  # Cada hora en punto
+        trigger=CronTrigger(minute="*/5"),  # Cada 5 min para tolerar reinicios/desfase
         id="send_weekly_summary",
         max_instances=1,
         replace_existing=True,
     )
     
-    logger.info("Added job 'send_weekly_summary' - Every hour (checks user's local timezone for Monday 00:05)")
+    logger.info("Added job 'send_weekly_summary' - Every 5 minutes (checks user's local timezone for Monday 00:05)")
 
     scheduler.start()
+    _scheduler = scheduler
     logger.info("Scheduler started with all notification jobs!")
+    return scheduler
 
 
 def clean_weekly_objectives():
