@@ -375,5 +375,22 @@
     <script type="module" src="dist/ts/subjects.js"></script>
     <script type="module" src="dist/ts/i18n-init.js"></script>
 
+
+    <div id="onboardingOverlay" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-[1200] flex items-center justify-center p-4">
+        <div class="bg-[#161a22] border border-purple-500/40 rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto p-5 shadow-2xl">
+            <div class="flex items-start justify-between gap-3">
+                <div>
+                    <h3 id="onboardingTitle" class="text-white text-lg font-bold"></h3>
+                    <p id="onboardingBody" class="text-gray-300 text-sm mt-2"></p>
+                </div>
+                <button id="onboardingCloseBtn" class="text-gray-400 hover:text-white">✕</button>
+            </div>
+            <div class="mt-5 flex items-center justify-between">
+                <button id="onboardingSkipBtn" type="button" class="text-xs text-gray-400 hover:text-gray-200 underline-offset-2 hover:underline">Saltar por ahora</button>
+                <a id="onboardingPrimaryBtn" href="#" class="px-4 py-2 rounded-lg bg-gradient-to-r from-purple-600 to-fuchsia-500 text-white text-sm font-medium shadow-[0_8px_24px_rgba(168,85,247,0.35)]"></a>
+            </div>
+        </div>
+    </div>
+
 </body>
 </html>

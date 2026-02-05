@@ -3,6 +3,14 @@ from django.db import models
 import pytz
 
 class User(AbstractUser):
+    class OnboardingStep(models.TextChoices):
+        CREATE_SUBJECT = 'CREATE_SUBJECT', 'Create subject'
+        CREATE_HABIT = 'CREATE_HABIT', 'Create habit'
+        CONFIG_POMODORO = 'CONFIG_POMODORO', 'Configure pomodoro'
+        START_SESSION = 'START_SESSION', 'Start first session'
+        DONE = 'DONE', 'Done'
+        SKIPPED = 'SKIPPED', 'Skipped'
+
     email = models.EmailField(unique=True) # Campo para el correo del usuario
     created_at = models.DateTimeField(auto_now_add=True)  # Se setea al crear
     updated_at = models.DateTimeField(auto_now=True)      # Se actualiza cada vez que se guarda
@@ -30,6 +38,13 @@ class User(AbstractUser):
         null=False,
         help_text="User country (ISO code)"
     )
+    # Onboarding state persisted in backend so it survives refresh and sessions.
+    onboarding_step = models.CharField(
+        max_length=32,
+        choices=OnboardingStep.choices,
+        default=OnboardingStep.CREATE_SUBJECT,
+    )
+    onboarding_completed = models.BooleanField(default=False)
 
     # Mapping of countries to their primary timezones
     COUNTRY_TIMEZONE_MAP = {
