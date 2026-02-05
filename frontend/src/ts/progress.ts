@@ -827,11 +827,13 @@ function updateTooltipPosition(tooltip: HTMLElement, mouseX: number, mouseY: num
  * Main Load Function
  * ==========================================
  */
-
 /**
  * Load weekly objectives statistics
  */
 async function loadWeeklyObjectivesStats() {
+    const trans = t();
+    const currentLang = getCurrentLanguage();
+
     try {
         console.log('Loading weekly objectives stats...');
         const stats: WeeklyObjectivesStats = await apiGet("/weekly-objectives/stats/");
@@ -852,14 +854,26 @@ async function loadWeeklyObjectivesStats() {
             if (stats.weekly_stats.length === 0) {
                 historyEl.innerHTML = `
                     <div class="text-center text-gray-500 text-sm py-4">
-                        No hay datos de objetivos semanales aún
+                        ${trans.progress.emptyWeeklyObjectiveStats}
                     </div>
                 `;
             } else {
-                historyEl.innerHTML = stats.weekly_stats.map(week => `
+                historyEl.innerHTML = stats.weekly_stats.map(week => {
+                    // Formatear fechas según idioma del usuario (Lógica idéntica a Monthly Rhythm)
+                    const dateStart = new Date(week.week_start);
+                    const dateEnd = new Date(week.week_end);
+                    
+                    const startLocal = dateStart.toLocaleDateString(currentLang, { day: 'numeric', month: 'short' });
+                    const endLocal = dateEnd.toLocaleDateString(currentLang, { day: 'numeric', month: 'short' });
+
+                    // Capitalizar primera letra de cada fecha
+                    const startLabel = startLocal.charAt(0).toUpperCase() + startLocal.slice(1);
+                    const endLabel = endLocal.charAt(0).toUpperCase() + endLocal.slice(1);
+
+                    return `
                     <div class="flex justify-between items-center bg-dark-input rounded-lg p-3">
                         <div class="text-sm text-gray-300">
-                            ${formatDate(week.week_start)} - ${formatDate(week.week_end)}
+                            ${startLabel} - ${endLabel}
                         </div>
                         <div class="flex items-center gap-2">
                             <span class="text-xs text-gray-400">${week.completed}/${week.total}</span>
@@ -870,16 +884,18 @@ async function loadWeeklyObjectivesStats() {
                             <span class="text-xs font-medium text-purple-400">${week.completion_rate.toFixed(0)}%</span>
                         </div>
                     </div>
-                `).join('');
+                `}).join('');
             }
         }
     } catch (error) {
         console.error("Error loading weekly objectives stats:", error);
         const historyEl = document.getElementById('weekly-objectives-history');
         if (historyEl) {
+            // Error traducido dinámicamente
+            const errorMsg = 'Error al cargar estadísticas';
             historyEl.innerHTML = `
                 <div class="text-center text-gray-500 text-sm py-4">
-                    Error al cargar estadísticas: ${error}
+                    ${errorMsg}: ${error}
                 </div>
             `;
         }

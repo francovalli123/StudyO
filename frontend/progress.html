@@ -315,8 +315,8 @@
             <div class="bg-dark-card rounded-3xl p-6 relative animate-on-load delay-500" style="box-shadow: 0 0 0 1px rgba(168,85,247,0.2), 0 0 30px rgba(168,85,247,0.15), inset 0 0 20px rgba(168,85,247,0.03);">
                 <div class="flex justify-between items-start mb-6">
                     <div>
-                        <h2 class="text-xl font-bold text-white">Objetivos Semanales</h2>
-                        <p class="text-gray-500 text-sm mt-1">Tu progreso en objetivos estratégicos semanales.</p>
+                        <h2 class="text-xl font-bold text-white" data-i18n="progress.weeklyObjectiveTitle">Objetivos Semanales</h2>
+                        <p class="text-gray-500 text-sm mt-1" data-i18n="progress.weeklyObjectiveDesc">Tu progreso en objetivos estratégicos semanales.</p>
                     </div>
                     <i data-lucide="target" class="w-5 h-5 text-purple-400"></i>
                 </div>
@@ -324,20 +324,20 @@
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                     <div class="bg-dark-input rounded-xl p-4 text-center">
                         <div id="weekly-objectives-total" class="text-2xl font-bold text-white">0</div>
-                        <div class="text-xs text-gray-400">Total Objetivos</div>
+                        <div class="text-xs text-gray-400" data-i18n="progress.totalObjectives">Total Objetivos</div>
                     </div>
                     <div class="bg-dark-input rounded-xl p-4 text-center">
                         <div id="weekly-objectives-completed" class="text-2xl font-bold text-green-400">0</div>
-                        <div class="text-xs text-gray-400">Completados</div>
+                        <div class="text-xs text-gray-400" data-i18n="progress.completed">Completados</div>
                     </div>
                     <div class="bg-dark-input rounded-xl p-4 text-center">
                         <div id="weekly-objectives-rate" class="text-2xl font-bold text-purple-400">0%</div>
-                        <div class="text-xs text-gray-400">Tasa de Éxito</div>
+                        <div class="text-xs text-gray-400" data-i18n="progress.successRate">Tasa de Éxito</div>
                     </div>
                 </div>
 
                 <div class="space-y-3">
-                    <h3 class="text-sm font-semibold text-gray-300">Historial por Semanas</h3>
+                    <h3 class="text-sm font-semibold text-gray-300" data-i18n="progress.weeklyHistory">Historial por Semanas</h3>
                     <div id="weekly-objectives-history" class="space-y-2 max-h-48 overflow-y-auto">
                         <!-- Weekly stats will be populated here -->
                         <div class="text-center text-gray-500 text-sm py-4">

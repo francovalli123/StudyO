@@ -430,19 +430,20 @@ async function loadWeeklyObjectives() {
             filteredObjectives = objectives.filter(obj => !obj.is_completed);
         }
 
+        const trans = t();
+
         if (filteredObjectives.length === 0) {
-            const trans = t();
             let emptyTitle = trans.dashboard.emptyObjectivesTitle;
             let emptyDesc = trans.dashboard.emptyObjectivesDesc;
             let showAddVisual = true;
 
             if (currentWeeklyFilter === 'completed') {
-                emptyTitle = "¡Nada completado aún!";
-                emptyDesc = "Aún no has completado ningún objetivo. Vamos, ¡podés lograrlo!";
+                emptyTitle = trans.dashboard.emptyCompletedTitle;
+                emptyDesc = trans.dashboard.emptyCompletedDesc;
                 showAddVisual = false;
             } else if (currentWeeklyFilter === 'incomplete') {
-                emptyTitle = "¡Todo completado!";
-                emptyDesc = "No hay objetivos pendientes. Disfrutá de tu progreso.";
+                emptyTitle = trans.dashboard.emptyIncompleteTitle;
+                emptyDesc = trans.dashboard.emptyIncompleteDesc;
                 showAddVisual = false;
             }
 
@@ -475,9 +476,9 @@ async function loadWeeklyObjectives() {
         else {
             container.innerHTML = filteredObjectives.map(obj => {
                 const priorityMap: Record<number, { name: string; color: string; bg: string; border: string }> = {
-                    1: { name: 'MÁXIMA PRIORIDAD', color: '#ef4444', bg: 'rgba(239, 68, 68, 0.1)', border: 'rgba(239, 68, 68, 0.2)' },
-                    2: { name: 'EXPLORACIÓN CLAVE', color: '#f59e0b', bg: 'rgba(245, 158, 11, 0.1)', border: 'rgba(245, 158, 11, 0.2)' },
-                    3: { name: 'COMPLEMENTARIO', color: '#10b981', bg: 'rgba(16, 185, 129, 0.1)', border: 'rgba(16, 185, 129, 0.2)' }
+                    1: { name: trans.dashboard.highPriority, color: '#ef4444', bg: 'rgba(239, 68, 68, 0.1)', border: 'rgba(239, 68, 68, 0.2)' },
+                    2: { name: trans.dashboard.keyExploration, color: '#f59e0b', bg: 'rgba(245, 158, 11, 0.1)', border: 'rgba(245, 158, 11, 0.2)' },
+                    3: { name: trans.dashboard.complementary, color: '#10b981', bg: 'rgba(16, 185, 129, 0.1)', border: 'rgba(16, 185, 129, 0.2)' }
                 };
                 const priorityConfig = priorityMap[obj.priority || 2] || priorityMap[2];
                 const displayIcon = obj.icon || '⚡';
@@ -562,7 +563,6 @@ async function loadWeeklyObjectives() {
                             // Change button text to "Update"
                             const submitBtn = document.getElementById('submitObjectiveBtn') as HTMLButtonElement;
                             if (submitBtn) {
-                                const trans = t();
                                 submitBtn.textContent = trans.dashboard.updateObjective;
                             }
                             
@@ -626,7 +626,6 @@ async function loadWeeklyObjectives() {
                             // Change button text to "Update"
                             const submitBtn = document.getElementById('submitObjectiveBtn') as HTMLButtonElement;
                             if (submitBtn) {
-                                const trans = t();
                                 submitBtn.textContent = trans.dashboard.updateObjective;
                             }
                             

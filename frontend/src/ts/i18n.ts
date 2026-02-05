@@ -151,7 +151,11 @@ export interface Translations {
         emptyNextEventDesc: string;
         emptyNextEventAction: string;
         emptyPeakProductivityTitle: string;
-        emptyPeakProductivityDesc: string;        
+        emptyPeakProductivityDesc: string;       
+        emptyCompletedTitle: string;
+        emptyCompletedDesc: string;
+        emptyIncompleteTitle: string;
+        emptyIncompleteDesc: string; 
         // Modal
         newObjective: string;
         objectiveTitle: string;
@@ -166,6 +170,9 @@ export interface Translations {
         objectivePomodoroGoalPlaceholder: string;
         createObjective: string;
         updateObjective: string;
+        filterAll: string;
+        filterComplete: string;
+        filterIncomplete: string;
     };
     // Habits
     habits: {
@@ -264,6 +271,13 @@ export interface Translations {
         hours: string;
         noStudy: string;
         on: string;
+        emptyWeeklyObjectiveStats: string;
+        weeklyObjectiveTitle: string;
+        weeklyObjectiveDesc: string;
+        totalObjectives: string;
+        completed: string;
+        successRate: string;
+        weeklyHistory: string;
     };
 }
 
@@ -409,6 +423,10 @@ export const translations: Record<Language, Translations> = {
             emptyNextEventAction: 'Crear mi primer evento',
             emptyPeakProductivityTitle: 'No hay datos suficientes',
             emptyPeakProductivityDesc: 'Completá algunas sesiones de Pomodoro para descubrir tu momento peak de productividad.',
+            emptyCompletedTitle: '¡Nada completado aún!',
+            emptyCompletedDesc: 'Aún no has completado ningún objetivo. Vamos, ¡podés lograrlo!',
+            emptyIncompleteTitle: '¡Todo completado!',
+            emptyIncompleteDesc: 'No hay objetivos pendientes. Disfrutá de tu progreso.',
             // Modal
             newObjective: 'Nuevo Objetivo',
             objectiveTitle: 'Título de la Misión',
@@ -423,6 +441,9 @@ export const translations: Record<Language, Translations> = {
             objectivePomodoroGoalPlaceholder: 'Ej: 3 bloques',
             createObjective: 'Crear Objetivo',
             updateObjective: 'Actualizar Objetivo',
+            filterAll: 'Todo',
+            filterComplete: 'Completado',
+            filterIncomplete: 'No completado',
         },
         habits: {
             title: 'Seguimiento de Hábitos',
@@ -516,6 +537,13 @@ export const translations: Record<Language, Translations> = {
             hours: 'horas',
             noStudy: 'Sin estudio',
             on: 'en',
+            emptyWeeklyObjectiveStats: 'No hay datos de objetivos semanales aún',
+            weeklyObjectiveTitle: 'Objetivos semanales',
+            weeklyObjectiveDesc: 'Tu progreso en objetivos estratégicos semanales.',
+            totalObjectives: 'Objetivos Totales',
+            completed: 'Completados',
+            successRate: 'Tasa de Éxito',
+            weeklyHistory: 'Historial por Semanas',
         },
     },
     en: {
@@ -659,6 +687,10 @@ export const translations: Record<Language, Translations> = {
             emptyNextEventAction: 'Create my first event',
             emptyPeakProductivityTitle: 'Not enough data',
             emptyPeakProductivityDesc: 'Complete some Pomodoro sessions to discover your peak productivity time.',
+            emptyCompletedTitle: 'Nothing completed yet!',
+            emptyCompletedDesc: "You haven't completed any objectives yet. Come on, you can do it!",
+            emptyIncompleteTitle: 'All done!',
+            emptyIncompleteDesc: 'No pending objectives. Enjoy your progress.',
             // Modal
             newObjective: 'New Objective',
             objectiveTitle: 'Mission Title',
@@ -673,6 +705,9 @@ export const translations: Record<Language, Translations> = {
             objectivePomodoroGoalPlaceholder: 'E.g: 3 blocks',
             createObjective: 'Create Objective',
             updateObjective: 'Update Objective',
+            filterAll: 'All',
+            filterComplete: 'Completed',
+            filterIncomplete: 'Not completed',
         },
         habits: {
             title: 'Habit Tracking',
@@ -766,6 +801,13 @@ export const translations: Record<Language, Translations> = {
             hours: 'hours',
             noStudy: 'No study',
             on: 'on',
+            emptyWeeklyObjectiveStats: 'No weekly objective data yet',
+            weeklyObjectiveTitle: 'Weekly objectives',
+            weeklyObjectiveDesc: 'Your progress on weekly strategic objectives.',
+            totalObjectives: 'Total Objectives',
+            completed: 'Completed',
+            successRate: 'Success Rate',
+            weeklyHistory: 'Weekly History',
         },
     },
     zh: {
@@ -909,6 +951,10 @@ export const translations: Record<Language, Translations> = {
             emptyNextEventAction: '创建我的第一个活动',
             emptyPeakProductivityTitle: 'N数据不足',
             emptyPeakProductivityDesc: '完成一些番茄钟任务，以发现你的最佳高效时间段。',
+            emptyCompletedTitle: '尚未完成！',
+            emptyCompletedDesc: '您还没有完成任何目标。加油，您可以做到的！',
+            emptyIncompleteTitle: '全部完成！',
+            emptyIncompleteDesc: '没有待办目标。享受您的进展吧。',
             // Modal
             newObjective: '新目标',
             objectiveTitle: '任务标题',
@@ -923,6 +969,9 @@ export const translations: Record<Language, Translations> = {
             objectivePomodoroGoalPlaceholder: '例如：3个区块',
             createObjective: '创建目标',
             updateObjective: '更新目标',
+            filterAll: '全部',
+            filterComplete: '已完成',
+            filterIncomplete: '未完成',
         },
         habits: {
             title: '习惯追踪',
@@ -1016,6 +1065,13 @@ export const translations: Record<Language, Translations> = {
             hours: '小时',
             noStudy: '不学习',
             on: '在',
+            emptyWeeklyObjectiveStats: '暂无每周目标数据',
+            weeklyObjectiveTitle: '每周目标',
+            weeklyObjectiveDesc: '您的每周战略目标进度。',
+            totalObjectives: '目标总数',
+            completed: '已完成',
+            successRate: '成功率',
+            weeklyHistory: '每周历史',
         },
     },
 
@@ -1160,6 +1216,10 @@ export const translations: Record<Language, Translations> = {
             emptyNextEventAction: 'Criar meu primeiro evento',
             emptyPeakProductivityTitle: 'Dados insuficientes',
             emptyPeakProductivityDesc: 'Dados das últimas 4 semanas indicam que este é seu horário de maior concentração.',    
+            emptyCompletedTitle: 'Nada concluído ainda!',
+            emptyCompletedDesc: 'Você ainda não concluiu nenhum objetivo. Vamos lá, você consegue!',
+            emptyIncompleteTitle: 'Tudo concluído!',
+            emptyIncompleteDesc: 'Não há objetivos pendentes. Aproveite o seu progresso.',
             // Modal
             newObjective: 'Novo Objetivo',
             objectiveTitle: 'Título da Missão',
@@ -1174,6 +1234,9 @@ export const translations: Record<Language, Translations> = {
             objectivePomodoroGoalPlaceholder: 'Ex: 3 blocos',
             createObjective: 'Criar Objetivo',
             updateObjective: 'Atualizar Objetivo',
+            filterAll: 'Tudo',
+            filterComplete: 'Concluído',
+            filterIncomplete: 'Não concluído',
         },
         habits: {
             title: 'Rastreamento de Hábitos',
@@ -1267,6 +1330,13 @@ export const translations: Record<Language, Translations> = {
             hours: 'horas',
             noStudy: 'Sem estudo',
             on: 'em',
+            emptyWeeklyObjectiveStats: 'Ainda não há dados de objetivos semanais',
+            weeklyObjectiveTitle: 'Objetivos semanais',
+            weeklyObjectiveDesc: 'Seu progresso nos objetivos estratégicos semanais.',
+            totalObjectives: 'Objetivos Totais',
+            completed: 'Concluídos',
+            successRate: 'Taxa de Sucesso',
+            weeklyHistory: 'Histórico por Semanas',
         },
     },
 };
