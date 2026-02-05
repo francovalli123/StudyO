@@ -39,23 +39,7 @@ class QualityEvaluator(BaseEvaluator):
 
     def get_metadata(self) -> Dict[str, str]:
         """Get challenge title and description"""
-        language = (getattr(self.user, 'language', 'es') or 'es').split('-')[0]
-        metadata = {
-            'es': {
-                'title': '⚡ Calidad Sobre Cantidad',
-                'description': 'Mantén un promedio de 40+ minutos por pomodoro. ¡Sesiones profundas!'
-            },
-            'en': {
-                'title': '⚡ Quality Over Quantity',
-                'description': 'Keep an average of 40+ minutes per pomodoro. Deep sessions!'
-            },
-            'zh': {
-                'title': '⚡ 质量优先',
-                'description': '保持每个番茄钟平均 40+ 分钟。深度专注！'
-            },
-            'pt': {
-                'title': '⚡ Qualidade Acima de Quantidade',
-                'description': 'Mantenha uma média de 40+ minutos por pomodoro. Sessões profundas!'
-            },
+        return {
+            'title': '⚡ Calidad Sobre Cantidad',
+            'description': 'Mantén un promedio de 40+ minutos por pomodoro. ¡Sesiones profundas!'
         }
-        return metadata.get(language, metadata['es'])

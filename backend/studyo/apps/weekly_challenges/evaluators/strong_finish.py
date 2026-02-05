@@ -47,23 +47,7 @@ class StrongFinishEvaluator(BaseEvaluator):
 
     def get_metadata(self) -> Dict[str, str]:
         """Get challenge title and description"""
-        language = (getattr(self.user, 'language', 'es') or 'es').split('-')[0]
-        metadata = {
-            'es': {
-                'title': '🌆 Cierre Fuerte',
-                'description': 'Completa 1 pomodoro después de las 18:00 durante 4 días. ¡Termina con energía!'
-            },
-            'en': {
-                'title': '🌆 Strong Finish',
-                'description': 'Complete 1 pomodoro after 6:00 PM for 4 days. Finish with energy!'
-            },
-            'zh': {
-                'title': '🌆 强力收尾',
-                'description': '连续 4 天在 18:00 后完成 1 个番茄钟。能量收官！'
-            },
-            'pt': {
-                'title': '🌆 Fechamento Forte',
-                'description': 'Complete 1 pomodoro após as 18:00 por 4 dias. Termine com energia!'
-            },
+        return {
+            'title': '🌆 Cierre Fuerte',
+            'description': 'Completa 1 pomodoro después de las 18:00 durante 4 días. ¡Termina con energía!'
         }
-        return metadata.get(language, metadata['es'])

@@ -48,23 +48,7 @@ class CleanFocusEvaluator(BaseEvaluator):
 
     def get_metadata(self) -> Dict[str, str]:
         """Get challenge title and description"""
-        language = (getattr(self.user, 'language', 'es') or 'es').split('-')[0]
-        metadata = {
-            'es': {
-                'title': '🎯 Enfoque Limpio',
-                'description': 'Mantén 5 días sin pomodoros menores a 25 minutos. ¡Solo sesiones de calidad!'
-            },
-            'en': {
-                'title': '🎯 Clean Focus',
-                'description': 'Keep 5 days without pomodoros under 25 minutes. Quality sessions only!'
-            },
-            'zh': {
-                'title': '🎯 纯净专注',
-                'description': '保持 5 天不出现少于 25 分钟的番茄钟。只做高质量专注！'
-            },
-            'pt': {
-                'title': '🎯 Foco Limpo',
-                'description': 'Mantenha 5 dias sem pomodoros abaixo de 25 minutos. Apenas sessões de qualidade!'
-            },
+        return {
+            'title': '🎯 Enfoque Limpio',
+            'description': 'Mantén 5 días sin pomodoros menores a 25 minutos. ¡Solo sesiones de calidad!'
         }
-        return metadata.get(language, metadata['es'])
