@@ -111,6 +111,12 @@ export interface Translations {
         focusDistributionNoSubject: string;
         nextEvent: string;
         weeklyChallenge: string;
+        weeklyChallengeStatusActive: string;
+        weeklyChallengeStatusCompleted: string;
+        weeklyChallengeProgress: string;
+        weeklyChallengeRewardLabel: string;
+        weeklyChallengeEmpty: string;
+        weeklyChallengeError: string;
         weeklyInfo1: string;
         weeklyInfo2: string;
         weeklyInfo3: string;
@@ -368,6 +374,12 @@ export const translations: Record<Language, Translations> = {
             focusDistributionNoSubject: 'Sin materia',
             nextEvent: 'Próximo Evento',
             weeklyChallenge: 'Desafío Semanal Activo',
+            weeklyChallengeStatusActive: 'Activo',
+            weeklyChallengeStatusCompleted: 'Completado',
+            weeklyChallengeProgress: '{current} de {target} completados',
+            weeklyChallengeRewardLabel: 'Recompensa:',
+            weeklyChallengeEmpty: 'No hay desafío activo',
+            weeklyChallengeError: 'Error al cargar el desafío semanal',
             peakProductivity: 'Tu Momento Peak de Productividad',
             days: ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'],
             peakProductivityAnalysisDesc: "Datos de las últimas 4 semanas indican que esta es tu franja de máxima concentración.",    
@@ -618,6 +630,12 @@ export const translations: Record<Language, Translations> = {
             focusDistributionNoSubject: 'No subject', 
             nextEvent: 'Next Event',
             weeklyChallenge: 'Active Weekly Challenge',
+            weeklyChallengeStatusActive: 'Active',
+            weeklyChallengeStatusCompleted: 'Completed',
+            weeklyChallengeProgress: '{current} of {target} completed',
+            weeklyChallengeRewardLabel: 'Reward:',
+            weeklyChallengeEmpty: 'No active challenge',
+            weeklyChallengeError: 'Error loading weekly challenge',
             weeklyInfo1: 'Elite Focus Streak',
             weeklyInfo2: 'Complete 5 pomodoros per day for 5 consecutive days.',
             weeklyInfo3: '3 out of 5 days completed.',
@@ -868,6 +886,12 @@ export const translations: Record<Language, Translations> = {
             focusDistributionNoSubject: '無主題', 
             nextEvent: '下一个活动',
             weeklyChallenge: '活跃的每周挑战',
+            weeklyChallengeStatusActive: '进行中',
+            weeklyChallengeStatusCompleted: '已完成',
+            weeklyChallengeProgress: '已完成 {current}/{target}',
+            weeklyChallengeRewardLabel: '奖励：',
+            weeklyChallengeEmpty: '当前没有挑战',
+            weeklyChallengeError: '加载每周挑战时出错',
             weeklyInfo1: '精英专注连胜',
             weeklyInfo2: '连续 5 天每天完成 5 个番茄钟。',
             weeklyInfo3: '已完成 5 天中的 3 天。',
@@ -1119,6 +1143,12 @@ export const translations: Record<Language, Translations> = {
             focusDistributionNoSubject: 'Sin materia',
             nextEvent: 'Próximo Evento',
             weeklyChallenge: 'Desafio Semanal Ativo',
+            weeklyChallengeStatusActive: 'Ativo',
+            weeklyChallengeStatusCompleted: 'Concluído',
+            weeklyChallengeProgress: '{current} de {target} concluídos',
+            weeklyChallengeRewardLabel: 'Recompensa:',
+            weeklyChallengeEmpty: 'Nenhum desafio ativo',
+            weeklyChallengeError: 'Erro ao carregar o desafio semanal',
             peakProductivity: 'Seu Momento de Pico de Produtividade',
             days: ["Domingo", "Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado"],
             peakProductivityAnalysisDesc: "Dados das últimas 4 semanas indicam que este é o seu horário de maior concentração.",
