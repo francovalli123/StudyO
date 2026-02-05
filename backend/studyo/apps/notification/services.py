@@ -30,6 +30,27 @@ from utils.datetime import get_user_tz, to_user_local_dt, get_user_local_date
 logger = logging.getLogger(__name__)
 
 
+def _normalize_hour(raw_hour, default=20):
+    """Convierte diferentes formatos de hora a entero [0..23]."""
+    try:
+        if isinstance(raw_hour, str):
+            # Soporta "20", "20:00", "20.0"
+            raw_hour = raw_hour.split(':', 1)[0]
+        hour = int(float(raw_hour))
+        if 0 <= hour <= 23:
+            return hour
+    except (TypeError, ValueError):
+        pass
+    return default
+
+
+def _is_in_minute_window(now_local, target_hour, target_minute=0, window_minutes=5):
+    """Retorna True si now_local cae dentro de una ventana corta del horario objetivo."""
+    if now_local.hour != target_hour:
+        return False
+    return target_minute <= now_local.minute < (target_minute + window_minutes)
+
+
 def send_notification_email(user, notification_type, subject, template_name, context):
     """
     Envía un email de notificación y registra en la BD.
@@ -133,10 +154,10 @@ def send_key_habits_reminders():
             
             # Obtener hora configurada (default 20:00)
             prefs = user.get_notification_preferences()
-            reminder_hour = prefs.get('key_habits_reminder_hour', 20)
+            reminder_hour = _normalize_hour(prefs.get('key_habits_reminder_hour', 20), default=20)
             
             # Verificar si es la hora correcta en el timezone local del usuario
-            if now_local.hour != reminder_hour:
+            if not _is_in_minute_window(now_local, reminder_hour, target_minute=0, window_minutes=5):
                 continue
             
             # Prevenir envío duplicado (solo una vez por hora)
@@ -216,7 +237,7 @@ def send_weekly_challenge_reminder():
             now_local = to_user_local_dt(user, now_utc)
             
             # Verificar si es domingo (weekday=6) a las 12:00 en timezone local
-            if now_local.weekday() != 6 or now_local.hour != 12:
+            if now_local.weekday() != 6 or not _is_in_minute_window(now_local, 12, target_minute=0, window_minutes=5):
                 continue
             
             # Verificar si notificaciones están habilitadas
@@ -302,7 +323,7 @@ def send_weekly_objectives_reminder():
             now_local = to_user_local_dt(user, now_utc)
             
             # Verificar si es sábado (weekday=5) a las 12:00 en timezone local
-            if now_local.weekday() != 5 or now_local.hour != 12:
+            if now_local.weekday() != 5 or not _is_in_minute_window(now_local, 12, target_minute=0, window_minutes=5):
                 continue
             
             # Verificar si notificaciones están habilitadas
@@ -382,8 +403,8 @@ def send_weekly_summary():
             user_tz = get_user_tz(user)
             now_local = to_user_local_dt(user, now_utc)
             
-            # Verificar si es lunes (weekday=0) a las 00:00 en timezone local
-            if now_local.weekday() != 0 or now_local.hour != 0:
+            # Verificar si es lunes (weekday=0) a las 00:05 en timezone local
+            if now_local.weekday() != 0 or not _is_in_minute_window(now_local, 0, target_minute=5, window_minutes=5):
                 continue
             
             # Verificar si notificaciones están habilitadas
