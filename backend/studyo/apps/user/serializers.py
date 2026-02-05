@@ -39,10 +39,16 @@ class UserSerializer(serializers.ModelSerializer):
     language = serializers.CharField(read_only=True)
     timezone = serializers.CharField(read_only=True)
     country = serializers.CharField(read_only=True)
+    onboarding_step = serializers.CharField(read_only=True)
+    onboarding_completed = serializers.BooleanField(read_only=True)
+    subjects_count = serializers.SerializerMethodField()
 
     class Meta:
         model = User
-        fields = ["id", "username", "email", "first_name", "last_name", "avatar", "preferences", "language", "timezone", "country"]
+        fields = [
+            "id", "username", "email", "first_name", "last_name", "avatar", "preferences",
+            "language", "timezone", "country", "onboarding_step", "onboarding_completed", "subjects_count"
+        ]
         read_only_fields = ["id", "username"]
 
     def get_preferences(self, obj):
@@ -55,3 +61,10 @@ class UserSerializer(serializers.ModelSerializer):
             return prefs
         except Exception:
             return {}
+
+    def get_subjects_count(self, obj):
+        # Used by onboarding trigger (first login or no subjects)
+        try:
+            return obj.subjects.count()
+        except Exception:
+            return 0
