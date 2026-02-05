@@ -10,6 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 // Import API utility functions and authentication helper
 import { apiGet, apiPost, apiDelete, getToken, apiPut } from "./api.js";
 import { initConfirmModal, showConfirmModal } from "./confirmModal.js";
+import { getOnboardingContext, showOnboardingOverlay, hideOnboardingOverlay, skipOnboarding, hydrateOnboardingContext, syncOnboardingAcrossTabs, onSubjectCreated } from "./onboarding.js";
 import { translations, getCurrentLanguage } from "./i18n.js";
 // Global state: stores all subjects fetched from API
 let subjects = [];
@@ -50,6 +51,7 @@ function loadSubjects() {
                     if (span)
                         span.textContent = transSubjects.createFirst;
                 }
+                applyOnboardingOnSubjectsPage();
                 return;
             }
             // Show subjects container and hide empty state
@@ -102,6 +104,7 @@ function loadSubjects() {
                 lucide.createIcons();
             // Attach event listeners to edit and delete buttons
             attachSubjectEventListeners();
+            applyOnboardingOnSubjectsPage();
         }
         catch (error) {
             console.error("Error loading subjects:", error);
@@ -241,6 +244,17 @@ function handleSaveSubject(e) {
             }
             // Close modal and reload subjects list
             closeSubjectModal();
+            if (!isEditing) {
+                yield loadSubjects();
+                // Advance onboarding only on real domain event: successful subject creation.
+                try {
+                    yield onSubjectCreated();
+                }
+                catch (e) {
+                    console.warn('onboarding transition failed', e);
+                }
+                return;
+            }
             loadSubjects();
         }
         catch (error) {
@@ -352,8 +366,32 @@ function attachGlobalListeners() {
     }
 }
 // Initialize when DOM is ready
-window.addEventListener('DOMContentLoaded', () => {
+function applyOnboardingOnSubjectsPage() {
+    const ctx = getOnboardingContext();
+    if (!ctx || !ctx.active || ctx.step !== 'CREATE_SUBJECT') {
+        hideOnboardingOverlay();
+        return;
+    }
+    showOnboardingOverlay({
+        title: 'Paso 1: Creá tu primera asignatura',
+        body: 'Creá 1 asignatura para activar el tracking real de tu estudio.',
+        primaryText: 'Crear asignatura',
+        lockClose: true,
+        allowSkip: true,
+        onSkip: () => __awaiter(this, void 0, void 0, function* () {
+            try {
+                yield skipOnboarding();
+            }
+            catch (_) { }
+            hideOnboardingOverlay();
+        }),
+        onPrimary: () => openSubjectModal(null),
+    });
+}
+window.addEventListener('DOMContentLoaded', () => __awaiter(void 0, void 0, void 0, function* () {
     initConfirmModal();
     attachGlobalListeners();
+    yield hydrateOnboardingContext();
+    syncOnboardingAcrossTabs(() => applyOnboardingOnSubjectsPage());
     loadSubjects();
-});
+}));
