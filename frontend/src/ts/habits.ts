@@ -1,7 +1,7 @@
 import { apiGet, apiPost, apiPut, apiDelete, getToken, getCurrentUser } from './api.js';
 import { initConfirmModal, showConfirmModal } from "./confirmModal.js";
 import { translations, getCurrentLanguage } from './i18n.js';
-import { getOnboardingContext, persistOnboardingStep, showOnboardingOverlay, hideOnboardingOverlay, skipOnboarding, hydrateOnboardingContext, syncOnboardingAcrossTabs } from './onboarding.js';
+import { getOnboardingContext, showOnboardingOverlay, hideOnboardingOverlay, skipOnboarding, hydrateOnboardingContext, syncOnboardingAcrossTabs, onHabitCreated } from './onboarding.js';
 
 
 /**
@@ -372,8 +372,8 @@ async function handleSaveHabit(e: Event) {
 
         const ctx = getOnboardingContext();
         if (ctx && ctx.active && ctx.step === 'CREATE_HABIT') {
-            try { await persistOnboardingStep('CONFIG_POMODORO'); } catch (e) { console.warn('onboarding transition failed', e); }
-            window.location.href = 'dashboard.html?onboarding=config';
+            await loadHabits();
+            try { await onHabitCreated(); } catch (e) { console.warn('onboarding transition failed', e); }
             return;
         }
 
@@ -474,10 +474,11 @@ function applyOnboardingOnHabitsPage(): void {
     if (keyCheckbox) keyCheckbox.classList.add('onboarding-highlight');
     if (keyHint) keyHint.classList.remove('hidden');
 
+    const copy = getT();
     showOnboardingOverlay({
-        title: 'Paso 2: Creá un hábito',
-        body: 'Creá un hábito y revisá el checkbox “Hábito clave”. Los hábitos clave impactan tu progreso semanal.',
-        primaryText: 'Crear hábito',
+        title: (copy as any).onboarding?.stepCreateHabitTitle || 'Paso 2: Creá un hábito',
+        body: (copy as any).onboarding?.stepCreateHabitBody || 'Creá un hábito y revisá “Hábito clave”.',
+        primaryText: (copy as any).onboarding?.createHabit || 'Crear hábito',
         lockClose: true,
         allowSkip: true,
         onSkip: async () => {

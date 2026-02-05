@@ -32,3 +32,9 @@ Y se deduplican por usuario/evento en `localStorage`.
 ## Reanudación por evento de dominio
 - El paso `CREATE_SUBJECT` avanza por `onSubjectCreated()` (no por navegación/click).
 - `onSubjectCreated()` persiste `CREATE_HABIT` y muestra inmediatamente el overlay siguiente.
+
+## Nota de actualización de rama (follow-up PR)
+Para facilitar revisiones incrementales:
+- Esta rama se puede volver a enviar a PR sin cambiar las reglas de negocio del onboarding.
+- Si se solicita una nueva iteración, mantener las mismas validaciones backend y el mismo flujo event-driven en frontend.
+- Verificar antes de abrir PR: `npx tsc --noEmit` en `frontend` y smoke básico de `subjects.html`.

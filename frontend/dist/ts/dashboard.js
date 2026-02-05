@@ -1943,6 +1943,7 @@ else {
         settingsBtn === null || settingsBtn === void 0 ? void 0 : settingsBtn.addEventListener('click', dismissOnboarding);
     }
     function applyPomodoroOnboardingStep() {
+        var _a, _b, _c, _d, _e, _f, _g, _h;
         const ctx = getOnboardingContext();
         if (!ctx || !ctx.active) {
             onboardingStep = null;
@@ -1952,9 +1953,9 @@ else {
         onboardingStep = ctx.step;
         if (onboardingStep === 'CREATE_SUBJECT') {
             showOnboardingOverlay({
-                title: 'Paso 1: Creá tu primera asignatura',
-                body: 'Para comenzar, primero creá una asignatura. Sin eso no podemos asociar tus pomodoros ni medir progreso.',
-                primaryText: 'Ir a asignaturas',
+                title: ((_a = t().onboarding) === null || _a === void 0 ? void 0 : _a.stepCreateSubjectTitle) || 'Paso 1: Creá tu primera asignatura',
+                body: ((_b = t().onboarding) === null || _b === void 0 ? void 0 : _b.stepCreateSubjectBody) || 'Creá 1 asignatura para activar el tracking real de tu estudio.',
+                primaryText: ((_c = t().onboarding) === null || _c === void 0 ? void 0 : _c.createSubject) || 'Crear asignatura',
                 primaryHref: 'subjects.html',
                 lockClose: true,
                 allowSkip: true,
@@ -1967,9 +1968,9 @@ else {
         }
         if (onboardingStep === 'CREATE_HABIT') {
             showOnboardingOverlay({
-                title: 'Paso 2: Creá un hábito',
-                body: 'Ahora vamos a hábitos para crear uno y revisar el checkbox de hábito clave.',
-                primaryText: 'Ir a hábitos',
+                title: ((_d = t().onboarding) === null || _d === void 0 ? void 0 : _d.stepCreateHabitTitle) || 'Paso 2: Creá un hábito',
+                body: ((_e = t().onboarding) === null || _e === void 0 ? void 0 : _e.stepCreateHabitBody) || 'Ahora creá un hábito y revisá “Hábito clave”.',
+                primaryText: ((_f = t().onboarding) === null || _f === void 0 ? void 0 : _f.goToHabits) || 'Ir a hábitos',
                 primaryHref: 'habits.html',
                 lockClose: true,
                 allowSkip: true,
@@ -1982,11 +1983,14 @@ else {
         }
         if (onboardingStep === 'CONFIG_POMODORO') {
             showOnboardingOverlay({
-                title: 'Paso 3: Configurá Pomodoro',
-                body: 'Cada sesión debe estar asociada a una asignatura para que el tracking tenga sentido. Configurá primero la materia por defecto.',
-                primaryText: 'Abrir ajustes de Pomodoro',
+                title: ((_g = t().onboarding) === null || _g === void 0 ? void 0 : _g.stepConfigPomodoroTitle) || 'Paso 3: Configurá Pomodoro',
+                body: ((_h = t().onboarding) === null || _h === void 0 ? void 0 : _h.stepConfigPomodoroBody) || 'Definí una materia por defecto para registrar bien tus sesiones.',
+                primaryText: t().dashboard.pomodoroSettings,
                 lockClose: true,
-                onPrimary: () => settingsBtn === null || settingsBtn === void 0 ? void 0 : settingsBtn.dispatchEvent(new Event('click')),
+                onPrimary: () => {
+                    hideOnboardingOverlay();
+                    settingsBtn === null || settingsBtn === void 0 ? void 0 : settingsBtn.dispatchEvent(new Event('click'));
+                },
             });
             return;
         }
@@ -1997,7 +2001,10 @@ else {
                     body: 'Antes de iniciar tu primera sesión, elegí una materia en los ajustes de Pomodoro.',
                     primaryText: 'Ir a ajustes',
                     lockClose: true,
-                    onPrimary: () => settingsBtn === null || settingsBtn === void 0 ? void 0 : settingsBtn.dispatchEvent(new Event('click')),
+                    onPrimary: () => {
+                        hideOnboardingOverlay();
+                        settingsBtn === null || settingsBtn === void 0 ? void 0 : settingsBtn.dispatchEvent(new Event('click'));
+                    },
                 });
             }
             else {
@@ -2281,7 +2288,10 @@ else {
                     body: 'Durante el onboarding no se puede iniciar pomodoro sin materia asignada.',
                     primaryText: 'Configurar ahora',
                     lockClose: true,
-                    onPrimary: () => settingsBtn === null || settingsBtn === void 0 ? void 0 : settingsBtn.dispatchEvent(new Event('click')),
+                    onPrimary: () => {
+                        hideOnboardingOverlay();
+                        settingsBtn === null || settingsBtn === void 0 ? void 0 : settingsBtn.dispatchEvent(new Event('click'));
+                    },
                 });
                 return;
             }
