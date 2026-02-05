@@ -27,3 +27,8 @@ Se envían por `CustomEvent` en:
 - `onboarding:event`
 
 Y se deduplican por usuario/evento en `localStorage`.
+
+
+## Reanudación por evento de dominio
+- El paso `CREATE_SUBJECT` avanza por `onSubjectCreated()` (no por navegación/click).
+- `onSubjectCreated()` persiste `CREATE_HABIT` y muestra inmediatamente el overlay siguiente.

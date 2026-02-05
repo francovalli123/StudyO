@@ -49,8 +49,9 @@ export function shouldRunOnboarding(user: CurrentUser, subjectsCount: number): b
     const step = user.onboarding_step || 'CREATE_SUBJECT';
     const finished = user.onboarding_completed === true || step === 'DONE' || step === 'SKIPPED';
     if (finished) return false;
-    // Product decision (final QA): onboarding only starts when user still has no subjects.
-    return subjectsCount === 0;
+    // CREATE_SUBJECT depends on having zero subjects; subsequent steps continue regardless.
+    if (step === 'CREATE_SUBJECT') return subjectsCount === 0;
+    return true;
 }
 
 export function storeOnboardingContext(user: CurrentUser, subjectsCount: number): OnboardingContext {
