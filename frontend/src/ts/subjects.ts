@@ -1,6 +1,7 @@
 // Import API utility functions and authentication helper
 import { apiGet, apiPost, apiDelete, getToken, apiPut } from "./api.js";
 import { initConfirmModal, showConfirmModal } from "./confirmModal.js";
+import { getOnboardingContext, showOnboardingOverlay, hideOnboardingOverlay, skipOnboarding, hydrateOnboardingContext, syncOnboardingAcrossTabs, onSubjectCreated } from "./onboarding.js";
 import { translations, getCurrentLanguage } from "./i18n.js";
 
 /**
@@ -64,6 +65,7 @@ async function loadSubjects() {
                 const span = btn.querySelector('span');
                 if (span) span.textContent = transSubjects.createFirst;
             }
+            applyOnboardingOnSubjectsPage();
             return;
         }
 
@@ -118,6 +120,7 @@ async function loadSubjects() {
         if (typeof lucide !== 'undefined') lucide.createIcons();
         // Attach event listeners to edit and delete buttons
         attachSubjectEventListeners();
+        applyOnboardingOnSubjectsPage();
 
     } catch (error) {
         console.error("Error loading subjects:", error);
@@ -261,6 +264,14 @@ async function handleSaveSubject(e: Event) {
         
         // Close modal and reload subjects list
         closeSubjectModal();
+
+        if (!isEditing) {
+            await loadSubjects();
+            // Advance onboarding only on real domain event: successful subject creation.
+            try { await onSubjectCreated(); } catch (e) { console.warn('onboarding transition failed', e); }
+            return;
+        }
+
         loadSubjects();
 
     } catch (error) {
@@ -368,8 +379,33 @@ function attachGlobalListeners(): void {
 }
 
 // Initialize when DOM is ready
-window.addEventListener('DOMContentLoaded', () => {
+
+function applyOnboardingOnSubjectsPage(): void {
+    const ctx = getOnboardingContext();
+    if (!ctx || !ctx.active || ctx.step !== 'CREATE_SUBJECT') {
+        hideOnboardingOverlay();
+        return;
+    }
+
+    const trans: any = translations[getCurrentLanguage()];
+    showOnboardingOverlay({
+        title: trans.onboarding?.stepCreateSubjectTitle || 'Paso 1: Creá tu primera asignatura',
+        body: trans.onboarding?.stepCreateSubjectBody || 'Creá 1 asignatura para activar el tracking real de tu estudio.',
+        primaryText: trans.onboarding?.createSubject || 'Crear asignatura',
+        lockClose: true,
+        allowSkip: true,
+        onSkip: async () => {
+            try { await skipOnboarding(); } catch (_) {}
+            hideOnboardingOverlay();
+        },
+        onPrimary: () => openSubjectModal(null),
+    });
+}
+
+window.addEventListener('DOMContentLoaded', async () => {
     initConfirmModal();
     attachGlobalListeners();
+    await hydrateOnboardingContext();
+    syncOnboardingAcrossTabs(() => applyOnboardingOnSubjectsPage());
     loadSubjects();
 });

@@ -1,6 +1,7 @@
 import { apiGet, apiPost, apiPut, apiDelete, getToken, getCurrentUser } from './api.js';
 import { initConfirmModal, showConfirmModal } from "./confirmModal.js";
 import { translations, getCurrentLanguage } from './i18n.js';
+import { getOnboardingContext, showOnboardingOverlay, hideOnboardingOverlay, skipOnboarding, hydrateOnboardingContext, syncOnboardingAcrossTabs, onHabitCreated } from './onboarding.js';
 
 
 /**
@@ -173,6 +174,7 @@ async function loadHabits() {
         saveTodayCompletions(todayCompletions, userTimezone);
         renderHabits();
         updateDailyProgress(habits.filter(h => h.completedToday).length, habits.length);
+        applyOnboardingOnHabitsPage();
     } catch (error) {
         console.error("Error loading habits:", error);
     }
@@ -367,6 +369,14 @@ async function handleSaveHabit(e: Event) {
         }
 
         closeCreateModal();
+
+        const ctx = getOnboardingContext();
+        if (ctx && ctx.active && ctx.step === 'CREATE_HABIT') {
+            await loadHabits();
+            try { await onHabitCreated(); } catch (e) { console.warn('onboarding transition failed', e); }
+            return;
+        }
+
         loadHabits();
     } catch (error) {
         console.error("Error saving habit:", error);
@@ -446,10 +456,45 @@ async function toggleHabitCompletion(habitId: number, complete: boolean) {
         habits[index].streak = previousStreak;
         renderHabits();
         updateDailyProgress(habits.filter(h => h.completedToday).length, habits.length);
+        applyOnboardingOnHabitsPage();
     }
 }
 
-window.addEventListener("DOMContentLoaded", () => {
+
+function applyOnboardingOnHabitsPage(): void {
+    const ctx = getOnboardingContext();
+    if (!ctx || !ctx.active || ctx.step !== 'CREATE_HABIT') {
+        hideOnboardingOverlay();
+        return;
+    }
+
+    const keyCheckbox = document.getElementById('habitIsKey') as HTMLInputElement | null;
+    const keyHint = document.getElementById('onboardingHabitKeyHint');
+
+    if (keyCheckbox) keyCheckbox.classList.add('onboarding-highlight');
+    if (keyHint) keyHint.classList.remove('hidden');
+
+    const copy = getT();
+    showOnboardingOverlay({
+        title: (copy as any).onboarding?.stepCreateHabitTitle || 'Paso 2: Creá un hábito',
+        body: (copy as any).onboarding?.stepCreateHabitBody || 'Creá un hábito y revisá “Hábito clave”.',
+        primaryText: (copy as any).onboarding?.createHabit || 'Crear hábito',
+        lockClose: true,
+        allowSkip: true,
+        onSkip: async () => {
+            try { await skipOnboarding(); } catch (_) {}
+            hideOnboardingOverlay();
+        },
+        onPrimary: () => {
+            prepareCreateModal();
+            openCreateModal();
+        },
+    });
+}
+
+window.addEventListener("DOMContentLoaded", async () => {
+    await hydrateOnboardingContext();
+    syncOnboardingAcrossTabs(() => applyOnboardingOnHabitsPage());
     loadSubjects();
     loadHabits();
     attachGlobalListeners();

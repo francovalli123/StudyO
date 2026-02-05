@@ -11,6 +11,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import { apiGet, apiPost, apiDelete, apiPut, apiPatch, getToken, getEvents, getCurrentUser } from "./api.js";
 import { initConfirmModal, showConfirmModal, showAlertModal } from "./confirmModal.js";
 import { t, getCurrentLanguage, setCurrentLanguage, applyTranslations } from "./i18n.js";
+import { getOnboardingContext, persistOnboardingStep, showOnboardingOverlay, hideOnboardingOverlay, completeOnboarding, skipOnboarding, hydrateOnboardingContext, syncOnboardingAcrossTabs } from "./onboarding.js";
 // --- Concentration Mode Setup (global) ---
 function setupConcentrationMode() {
     function enter() {
@@ -1905,6 +1906,8 @@ else {
     // Onboarding Elements
     const onboardingTooltip = document.getElementById('pomodoroTooltip');
     const closeTooltipBtn = document.getElementById('closePomodoroTooltip');
+    let onboardingStep = null;
+    let onboardingSessionStarted = false;
     const modal = document.getElementById('pomodoroSettingsModal');
     const settingsForm = document.getElementById('pomodoroSettingsForm');
     const workInput = document.getElementById('workMinutes');
@@ -1919,6 +1922,9 @@ else {
     // ✨ Onboarding Function
     // =====================
     function handleOnboarding() {
+        const ctx = getOnboardingContext();
+        if (ctx === null || ctx === void 0 ? void 0 : ctx.active)
+            return;
         if (!onboardingTooltip || localStorage.getItem('studyo_onboarding_done'))
             return;
         setTimeout(() => {
@@ -1936,6 +1942,84 @@ else {
         });
         settingsBtn === null || settingsBtn === void 0 ? void 0 : settingsBtn.addEventListener('click', dismissOnboarding);
     }
+    function applyPomodoroOnboardingStep() {
+        var _a, _b, _c, _d, _e, _f, _g, _h;
+        const ctx = getOnboardingContext();
+        if (!ctx || !ctx.active) {
+            onboardingStep = null;
+            hideOnboardingOverlay();
+            return;
+        }
+        onboardingStep = ctx.step;
+        if (onboardingStep === 'CREATE_SUBJECT') {
+            showOnboardingOverlay({
+                title: ((_a = t().onboarding) === null || _a === void 0 ? void 0 : _a.stepCreateSubjectTitle) || 'Paso 1: Creá tu primera asignatura',
+                body: ((_b = t().onboarding) === null || _b === void 0 ? void 0 : _b.stepCreateSubjectBody) || 'Creá 1 asignatura para activar el tracking real de tu estudio.',
+                primaryText: ((_c = t().onboarding) === null || _c === void 0 ? void 0 : _c.createSubject) || 'Crear asignatura',
+                primaryHref: 'subjects.html',
+                lockClose: true,
+                allowSkip: true,
+                onSkip: () => __awaiter(this, void 0, void 0, function* () { try {
+                    yield skipOnboarding();
+                }
+                catch (_) { } hideOnboardingOverlay(); }),
+            });
+            return;
+        }
+        if (onboardingStep === 'CREATE_HABIT') {
+            showOnboardingOverlay({
+                title: ((_d = t().onboarding) === null || _d === void 0 ? void 0 : _d.stepCreateHabitTitle) || 'Paso 2: Creá un hábito',
+                body: ((_e = t().onboarding) === null || _e === void 0 ? void 0 : _e.stepCreateHabitBody) || 'Ahora creá un hábito y revisá “Hábito clave”.',
+                primaryText: ((_f = t().onboarding) === null || _f === void 0 ? void 0 : _f.goToHabits) || 'Ir a hábitos',
+                primaryHref: 'habits.html',
+                lockClose: true,
+                allowSkip: true,
+                onSkip: () => __awaiter(this, void 0, void 0, function* () { try {
+                    yield skipOnboarding();
+                }
+                catch (_) { } hideOnboardingOverlay(); }),
+            });
+            return;
+        }
+        if (onboardingStep === 'CONFIG_POMODORO') {
+            showOnboardingOverlay({
+                title: ((_g = t().onboarding) === null || _g === void 0 ? void 0 : _g.stepConfigPomodoroTitle) || 'Paso 3: Configurá Pomodoro',
+                body: ((_h = t().onboarding) === null || _h === void 0 ? void 0 : _h.stepConfigPomodoroBody) || 'Definí una materia por defecto para registrar bien tus sesiones.',
+                primaryText: t().dashboard.pomodoroSettings,
+                lockClose: true,
+                onPrimary: () => {
+                    hideOnboardingOverlay();
+                    settingsBtn === null || settingsBtn === void 0 ? void 0 : settingsBtn.dispatchEvent(new Event('click'));
+                },
+            });
+            return;
+        }
+        if (onboardingStep === 'START_SESSION') {
+            if (!defaultSubjectId) {
+                showOnboardingOverlay({
+                    title: 'Seleccioná una asignatura',
+                    body: 'Antes de iniciar tu primera sesión, elegí una materia en los ajustes de Pomodoro.',
+                    primaryText: 'Ir a ajustes',
+                    lockClose: true,
+                    onPrimary: () => {
+                        hideOnboardingOverlay();
+                        settingsBtn === null || settingsBtn === void 0 ? void 0 : settingsBtn.dispatchEvent(new Event('click'));
+                    },
+                });
+            }
+            else {
+                showOnboardingOverlay({
+                    title: 'Paso 4: Iniciá tu primera sesión',
+                    body: '¡Todo listo! Iniciá tu primer pomodoro para cerrar el onboarding.',
+                    primaryText: 'Empezar ahora',
+                    lockClose: true,
+                    onPrimary: () => playBtn === null || playBtn === void 0 ? void 0 : playBtn.dispatchEvent(new Event('click')),
+                });
+            }
+            return;
+        }
+        hideOnboardingOverlay();
+    }
     /**
      * Load user settings from localStorage
      */
@@ -1945,6 +2029,8 @@ else {
             if (raw) {
                 const parsed = JSON.parse(raw);
                 settings = Object.assign(Object.assign({}, settings), parsed);
+                if (typeof parsed.defaultSubjectId === 'number')
+                    defaultSubjectId = parsed.defaultSubjectId;
             }
         }
         catch (e) { /* ignore parsing errors */ }
@@ -1968,7 +2054,7 @@ else {
      * Save current settings to localStorage
      */
     function saveSettings() {
-        localStorage.setItem('pomodoroSettings', JSON.stringify(settings));
+        localStorage.setItem('pomodoroSettings', JSON.stringify(Object.assign(Object.assign({}, settings), { defaultSubjectId })));
     }
     /**
      * Format seconds into MM:SS format
@@ -2193,46 +2279,76 @@ else {
      * Start the timer
      */
     function startTimer() {
-        if (isRunning)
-            return;
-        isRunning = true;
-        updatePlayButtonState();
-        initPomodoroAudio();
-        requestNotificationPermission();
-        if (!sessionStart && currentStage === 'work')
-            sessionStart = new Date();
-        timerStartTime = Date.now();
-        timerStartRemaining = remainingSeconds;
-        beforeUnloadHandler = (e) => {
-            e.preventDefault();
-            // @ts-ignore
-            const lang = getCurrentLanguage();
-            const messages = {
-                es: 'El Pomodoro se detendrá si abandonas esta página. ¿Estás seguro?',
-                en: 'The Pomodoro will stop if you leave this page. Are you sure?',
-                zh: '离开此页面将停止番茄钟，确定继续吗？',
-                pt: 'O Pomodoro será interrompido se você sair desta página. Tem certeza?',
-            };
-            e.returnValue = messages[lang] || messages.es;
-            return e.returnValue;
-        };
-        window.addEventListener('beforeunload', beforeUnloadHandler);
-        if (!visibilityHandler) {
-            visibilityHandler = () => {
-                if (!document.hidden && isRunning) {
-                    syncTimer();
+        return __awaiter(this, void 0, void 0, function* () {
+            if (isRunning)
+                return;
+            if ((onboardingStep === 'CONFIG_POMODORO' || onboardingStep === 'START_SESSION') && !defaultSubjectId) {
+                showOnboardingOverlay({
+                    title: 'Seleccioná una asignatura',
+                    body: 'Durante el onboarding no se puede iniciar pomodoro sin materia asignada.',
+                    primaryText: 'Configurar ahora',
+                    lockClose: true,
+                    onPrimary: () => {
+                        hideOnboardingOverlay();
+                        settingsBtn === null || settingsBtn === void 0 ? void 0 : settingsBtn.dispatchEvent(new Event('click'));
+                    },
+                });
+                return;
+            }
+            isRunning = true;
+            updatePlayButtonState();
+            initPomodoroAudio();
+            requestNotificationPermission();
+            if (!sessionStart && currentStage === 'work') {
+                sessionStart = new Date();
+                if (onboardingStep === 'START_SESSION') {
+                    onboardingSessionStarted = true;
+                    // Requirement: mark onboarding done when first session starts.
+                    completeOnboarding()
+                        .then(() => {
+                        onboardingStep = 'DONE';
+                        hideOnboardingOverlay();
+                        try {
+                            showAlertModal('¡Onboarding completado! Ya estás listo para usar StudyO.');
+                        }
+                        catch (e) { }
+                    })
+                        .catch((e) => { console.warn('onboarding completion failed', e); });
                 }
+            }
+            timerStartTime = Date.now();
+            timerStartRemaining = remainingSeconds;
+            beforeUnloadHandler = (e) => {
+                e.preventDefault();
+                // @ts-ignore
+                const lang = getCurrentLanguage();
+                const messages = {
+                    es: 'El Pomodoro se detendrá si abandonas esta página. ¿Estás seguro?',
+                    en: 'The Pomodoro will stop if you leave this page. Are you sure?',
+                    zh: '离开此页面将停止番茄钟，确定继续吗？',
+                    pt: 'O Pomodoro será interrompido se você sair desta página. Tem certeza?',
+                };
+                e.returnValue = messages[lang] || messages.es;
+                return e.returnValue;
             };
-            document.addEventListener('visibilitychange', visibilityHandler);
-        }
-        timerInterval = window.setInterval(() => {
-            syncTimer();
-            if (remainingSeconds > 0)
-                remainingSeconds -= 1;
-            if (remainingSeconds <= 0)
-                finishTimer();
-            updateDisplay();
-        }, 1000);
+            window.addEventListener('beforeunload', beforeUnloadHandler);
+            if (!visibilityHandler) {
+                visibilityHandler = () => {
+                    if (!document.hidden && isRunning) {
+                        syncTimer();
+                    }
+                };
+                document.addEventListener('visibilitychange', visibilityHandler);
+            }
+            timerInterval = window.setInterval(() => {
+                syncTimer();
+                if (remainingSeconds > 0)
+                    remainingSeconds -= 1;
+                if (remainingSeconds <= 0)
+                    finishTimer();
+                updateDisplay();
+            }, 1000);
+        });
     }
     function pauseTimer() {
         if (timerInterval) {
@@ -2379,16 +2495,18 @@ else {
         if (typeof lucide !== 'undefined')
             lucide.createIcons();
     }
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', () => __awaiter(void 0, void 0, void 0, function* () {
+        yield hydrateOnboardingContext();
+        syncOnboardingAcrossTabs(() => applyPomodoroOnboardingStep());
         loadSettings();
         handleOnboarding(); // Onboarding StudyO
         remainingSeconds = settings.workMinutes * 60;
         updateDisplay();
         if (playBtn)
-            playBtn.addEventListener('click', () => { if (isRunning)
+            playBtn.addEventListener('click', () => __awaiter(void 0, void 0, void 0, function* () { if (isRunning)
                 pauseTimer();
             else
-                startTimer(); });
+                yield startTimer(); }));
         if (skipBtn)
             skipBtn.addEventListener('click', () => skipStage());
         if (resetBtn)
@@ -2480,6 +2598,16 @@ else {
                 settings.cyclesBeforeLongBreak = Math.max(1, cb);
                 const sel = subjectSelect ? subjectSelect.value : '';
                 defaultSubjectId = sel ? Number(sel) : null;
+                if (onboardingStep === 'CONFIG_POMODORO' && defaultSubjectId) {
+                    // User configured a valid subject for pomodoro during onboarding.
+                    persistOnboardingStep('START_SESSION').then(() => {
+                        const ctx = getOnboardingContext();
+                        if (ctx)
+                            ctx.step = 'START_SESSION';
+                        onboardingStep = 'START_SESSION';
+                        applyPomodoroOnboardingStep();
+                    }).catch(() => { });
+                }
                 saveSettings();
                 if (!isRunning)
                     resetTimer('work');
@@ -2487,5 +2615,6 @@ else {
                 updateDisplay();
             });
         loadSubjectsToSelect();
-    });
+        applyPomodoroOnboardingStep();
+    }));
 })();
