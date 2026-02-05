@@ -1,6 +1,7 @@
 // Import API utility functions and authentication helper
 import { apiGet, apiPost, apiDelete, getToken, apiPut } from "./api.js";
 import { initConfirmModal, showConfirmModal } from "./confirmModal.js";
+import { getOnboardingContext, showOnboardingOverlay, hideOnboardingOverlay, skipOnboarding, hydrateOnboardingContext, syncOnboardingAcrossTabs, onSubjectCreated } from "./onboarding.js";
 import { translations, getCurrentLanguage } from "./i18n.js";
 
 /**
@@ -261,6 +262,14 @@ async function handleSaveSubject(e: Event) {
         
         // Close modal and reload subjects list
         closeSubjectModal();
+
+        if (!isEditing) {
+            await loadSubjects();
+            // Advance onboarding only on real domain event: successful subject creation.
+            try { await onSubjectCreated(); } catch (e) { console.warn('onboarding transition failed', e); }
+            return;
+        }
+
         loadSubjects();
 
     } catch (error) {
@@ -368,8 +377,32 @@ function attachGlobalListeners(): void {
 }
 
 // Initialize when DOM is ready
-window.addEventListener('DOMContentLoaded', () => {
+
+function applyOnboardingOnSubjectsPage(): void {
+    const ctx = getOnboardingContext();
+    if (!ctx || !ctx.active || ctx.step !== 'CREATE_SUBJECT') {
+        hideOnboardingOverlay();
+        return;
+    }
+
+    showOnboardingOverlay({
+        title: 'Paso 1: Creá tu primera asignatura',
+        body: 'Creá 1 asignatura para activar el tracking real de tu estudio.',
+        primaryText: 'Crear asignatura',
+        lockClose: true,
+        allowSkip: true,
+        onSkip: async () => {
+            try { await skipOnboarding(); } catch (_) {}
+            hideOnboardingOverlay();
+        },
+        onPrimary: () => openSubjectModal(null),
+    });
+}
+
+window.addEventListener('DOMContentLoaded', async () => {
     initConfirmModal();
     attachGlobalListeners();
+    await hydrateOnboardingContext();
+    syncOnboardingAcrossTabs(() => applyOnboardingOnSubjectsPage());
     loadSubjects();
 });

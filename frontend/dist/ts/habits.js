@@ -10,6 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import { apiGet, apiPost, apiPut, apiDelete, getToken, getCurrentUser } from './api.js';
 import { showConfirmModal } from "./confirmModal.js";
 import { translations, getCurrentLanguage } from './i18n.js';
+import { getOnboardingContext, showOnboardingOverlay, hideOnboardingOverlay, skipOnboarding, hydrateOnboardingContext, syncOnboardingAcrossTabs, onHabitCreated } from './onboarding.js';
 /**
  * Constants & Config
  */
@@ -311,6 +312,17 @@ function handleSaveHabit(e) {
                 saveIconForHabit(newHabit.id, selectedIcon, selectedColor);
             }
             closeCreateModal();
+            const ctx = getOnboardingContext();
+            if (ctx && ctx.active && ctx.step === 'CREATE_HABIT') {
+                yield loadHabits();
+                try {
+                    yield onHabitCreated();
+                }
+                catch (e) {
+                    console.warn('onboarding transition failed', e);
+                }
+                return;
+            }
             loadHabits();
         }
         catch (error) {
@@ -394,11 +406,44 @@ function toggleHabitCompletion(habitId, complete) {
         }
     });
 }
-window.addEventListener("DOMContentLoaded", () => {
+function applyOnboardingOnHabitsPage() {
+    const ctx = getOnboardingContext();
+    if (!ctx || !ctx.active || ctx.step !== 'CREATE_HABIT') {
+        hideOnboardingOverlay();
+        return;
+    }
+    const keyCheckbox = document.getElementById('habitIsKey');
+    const keyHint = document.getElementById('onboardingHabitKeyHint');
+    if (keyCheckbox)
+        keyCheckbox.classList.add('onboarding-highlight');
+    if (keyHint)
+        keyHint.classList.remove('hidden');
+    showOnboardingOverlay({
+        title: 'Paso 2: Creá un hábito',
+        body: 'Creá un hábito y revisá el checkbox “Hábito clave”. Los hábitos clave impactan tu progreso semanal.',
+        primaryText: 'Crear hábito',
+        lockClose: true,
+        allowSkip: true,
+        onSkip: () => __awaiter(this, void 0, void 0, function* () {
+            try {
+                yield skipOnboarding();
+            }
+            catch (_) { }
+            hideOnboardingOverlay();
+        }),
+        onPrimary: () => {
+            prepareCreateModal();
+            openCreateModal();
+        },
+    });
+}
+window.addEventListener("DOMContentLoaded", () => __awaiter(void 0, void 0, void 0, function* () {
+    yield hydrateOnboardingContext();
+    syncOnboardingAcrossTabs(() => applyOnboardingOnHabitsPage());
     loadSubjects();
     loadHabits();
     attachGlobalListeners();
-});
+}));
 function attachGlobalListeners() {
     const createBtn = document.getElementById('addHabitBtn');
     const emptyStateBtn = document.getElementById('emptyStateAddBtn');
