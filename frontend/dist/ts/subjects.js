@@ -10,6 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 // Import API utility functions and authentication helper
 import { apiGet, apiPost, apiDelete, getToken, apiPut } from "./api.js";
 import { initConfirmModal, showConfirmModal } from "./confirmModal.js";
+import { getOnboardingContext, persistOnboardingStep, showOnboardingOverlay, hideOnboardingOverlay, skipOnboarding, hydrateOnboardingContext, syncOnboardingAcrossTabs } from "./onboarding.js";
 import { translations, getCurrentLanguage } from "./i18n.js";
 // Global state: stores all subjects fetched from API
 let subjects = [];
@@ -241,6 +242,16 @@ function handleSaveSubject(e) {
             }
             // Close modal and reload subjects list
             closeSubjectModal();
+            const ctx = getOnboardingContext();
+            if (ctx && ctx.active && ctx.step === 'CREATE_SUBJECT') {
+                // User completed mandatory first subject creation, move to next step.
+                try {
+                    yield persistOnboardingStep('CREATE_HABIT');
+                }
+                catch (e) {
+                    console.warn('onboarding transition failed', e);
+                }
+            }
             loadSubjects();
         }
         catch (error) {
@@ -352,8 +363,51 @@ function attachGlobalListeners() {
     }
 }
 // Initialize when DOM is ready
-window.addEventListener('DOMContentLoaded', () => {
+function applyOnboardingOnSubjectsPage() {
+    const ctx = getOnboardingContext();
+    if (!ctx || !ctx.active || ctx.step !== 'CREATE_SUBJECT') {
+        hideOnboardingOverlay();
+        return;
+    }
+    if (subjects.length > 0) {
+        persistOnboardingStep('CREATE_HABIT').catch(() => { });
+        showOnboardingOverlay({
+            title: 'Asignatura creada ✅',
+            body: 'Excelente. Ahora vamos a crear un hábito y revisar el checkbox de hábito clave.',
+            primaryText: 'Ir a hábitos',
+            primaryHref: 'habits.html',
+            lockClose: false,
+            allowSkip: true,
+            onSkip: () => __awaiter(this, void 0, void 0, function* () {
+                try {
+                    yield skipOnboarding();
+                }
+                catch (_) { }
+                hideOnboardingOverlay();
+            }),
+        });
+        return;
+    }
+    showOnboardingOverlay({
+        title: 'Paso 1: Creá tu primera asignatura',
+        body: 'Necesitamos al menos una asignatura para que StudyO pueda medir tu progreso y tus pomodoros.',
+        primaryText: 'Crear asignatura',
+        lockClose: true,
+        allowSkip: true,
+        onSkip: () => __awaiter(this, void 0, void 0, function* () {
+            try {
+                yield skipOnboarding();
+            }
+            catch (_) { }
+            hideOnboardingOverlay();
+        }),
+        onPrimary: () => openSubjectModal(null),
+    });
+}
+window.addEventListener('DOMContentLoaded', () => __awaiter(void 0, void 0, void 0, function* () {
     initConfirmModal();
     attachGlobalListeners();
+    yield hydrateOnboardingContext();
+    syncOnboardingAcrossTabs(() => applyOnboardingOnSubjectsPage());
     loadSubjects();
-});
+}));
