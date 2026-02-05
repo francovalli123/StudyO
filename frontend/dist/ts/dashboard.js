@@ -834,6 +834,7 @@ function renderWeeklyChallengeUI(challenge) {
     const container = document.querySelector('[data-challenge-container]');
     if (!container)
         return;
+    const trans = t();
     // Determine styling based on status (no other logic)
     const isCompleted = challenge.status === 'completed';
     const statusIcon = isCompleted ? 'check-circle' : 'zap';
@@ -850,13 +851,15 @@ function renderWeeklyChallengeUI(challenge) {
     const statusBadge = `
     <span class="px-3 py-1 rounded-full text-xs font-semibold border ${statusBadgeColor} flex items-center gap-1" style="width: fit-content;">
       <i data-lucide="${statusIcon}" class="w-3 h-3"></i>
-      <span data-i18n="dashboard.${isCompleted ? 'completed' : 'active'}">
-        ${isCompleted ? 'Completado' : 'Activo'}
+      <span>
+        ${isCompleted ? trans.dashboard.weeklyChallengeStatusCompleted : trans.dashboard.weeklyChallengeStatusActive}
       </span>
     </span>
   `;
     // Build progress text using DTO values
-    const progressText = `${challenge.current_value} de ${challenge.target_value} completados`;
+    const progressText = trans.dashboard.weeklyChallengeProgress
+        .replace('{current}', challenge.current_value.toString())
+        .replace('{target}', challenge.target_value.toString());
     // Render container
     container.innerHTML = `
     <div class="space-y-4">
@@ -885,7 +888,7 @@ function renderWeeklyChallengeUI(challenge) {
       </div>
       
       <div class="text-xs text-gray-400 pt-2 border-t border-gray-800">
-        <span>Recompensa: </span>
+        <span>${trans.dashboard.weeklyChallengeRewardLabel} </span>
         <span class="text-purple-400 font-medium">+50 XP</span>
       </div>
     </div>
@@ -915,10 +918,11 @@ function renderEmptyChallengeState() {
     const container = document.querySelector('[data-challenge-container]');
     if (!container)
         return;
+    const trans = t();
     container.innerHTML = `
     <div class="text-center py-6">
       <i data-lucide="award" class="w-8 h-8 text-gray-500 mx-auto mb-2"></i>
-      <p class="text-gray-400 text-sm">No hay desafío activo</p>
+      <p class="text-gray-400 text-sm">${trans.dashboard.weeklyChallengeEmpty}</p>
     </div>
   `;
     if (typeof lucide !== 'undefined' && lucide.createIcons) {
@@ -932,9 +936,10 @@ function renderErrorChallengeState() {
     const container = document.querySelector('[data-challenge-container]');
     if (!container)
         return;
+    const trans = t();
     container.innerHTML = `
     <div class="text-center py-4">
-      <p class="text-red-400 text-sm">Error al cargar el desafío semanal</p>
+      <p class="text-red-400 text-sm">${trans.dashboard.weeklyChallengeError}</p>
     </div>
   `;
 }

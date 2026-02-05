@@ -52,7 +52,23 @@ class DeepWorkEvaluator(BaseEvaluator):
 
     def get_metadata(self) -> Dict[str, str]:
         """Get challenge title and description"""
-        return {
-            'title': '🧠 Trabajo Profundo',
-            'description': 'Realiza 2 sesiones de 50+ minutos en 4 días diferentes. ¡Enfócate intensamente!'
+        language = (getattr(self.user, 'language', 'es') or 'es').split('-')[0]
+        metadata = {
+            'es': {
+                'title': '🧠 Trabajo Profundo',
+                'description': 'Realiza 2 sesiones de 50+ minutos en 4 días diferentes. ¡Enfócate intensamente!'
+            },
+            'en': {
+                'title': '🧠 Deep Work',
+                'description': 'Complete 2 sessions of 50+ minutes on 4 different days. Focus intensely!'
+            },
+            'zh': {
+                'title': '🧠 深度工作',
+                'description': '在 4 天内完成 2 次 50+ 分钟的专注。全力投入！'
+            },
+            'pt': {
+                'title': '🧠 Trabalho Profundo',
+                'description': 'Realize 2 sessões de 50+ minutos em 4 dias diferentes. Foque intensamente!'
+            },
         }
+        return metadata.get(language, metadata['es'])
