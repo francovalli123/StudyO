@@ -41,49 +41,6 @@ function loadContext(): OnboardingContext | null {
     }
 }
 
-function getOverlayElements() {
-    return {
-        overlay: document.getElementById('onboardingOverlay'),
-        titleEl: document.getElementById('onboardingTitle'),
-        bodyEl: document.getElementById('onboardingBody'),
-        primaryBtn: document.getElementById('onboardingPrimaryBtn') as HTMLAnchorElement | null,
-        closeBtn: document.getElementById('onboardingCloseBtn') as HTMLButtonElement | null,
-        skipBtn: document.getElementById('onboardingSkipBtn') as HTMLButtonElement | null,
-    };
-}
-
-function showOnboardingToast(message: string): void {
-    let toast = document.getElementById('onboardingToast');
-    if (!toast) {
-        toast = document.createElement('div');
-        toast.id = 'onboardingToast';
-        toast.className = 'onboarding-toast';
-        document.body.appendChild(toast);
-    }
-
-    toast.textContent = message;
-    toast.classList.remove('show');
-    requestAnimationFrame(() => toast!.classList.add('show'));
-    setTimeout(() => toast?.classList.remove('show'), 1400);
-}
-
-async function transitionFromCurrentStep(expected: OnboardingStep, next: OnboardingStep): Promise<boolean> {
-    const ctx = getOnboardingContext();
-    if (!ctx || !ctx.active || ctx.step !== expected) return false;
-
-    await persistOnboardingStep(next);
-
-    const nextCtx = getOnboardingContext();
-    if (nextCtx) {
-        nextCtx.step = next;
-        nextCtx.active = true;
-        nextCtx.updatedAt = Date.now();
-        saveContext(nextCtx);
-    }
-
-    return true;
-}
-
 export function getOnboardingContext(): OnboardingContext | null {
     return loadContext();
 }
@@ -176,44 +133,6 @@ export async function skipOnboarding(): Promise<void> {
     emitOnce('skipped', () => track('onboarding_skipped', { step: 'SKIPPED' }), ctx.userId);
 }
 
-export async function onSubjectCreated(): Promise<void> {
-    const moved = await transitionFromCurrentStep('CREATE_SUBJECT', 'CREATE_HABIT');
-    if (!moved) return;
-
-    showOnboardingToast('¡Asignatura lista! Sigamos con hábitos.');
-    showOnboardingOverlay({
-        title: 'Paso 2: Creá un hábito',
-        body: 'Ahora creá un hábito y revisá “Hábito clave”.',
-        primaryText: 'Ir a hábitos',
-        primaryHref: 'habits.html',
-        lockClose: false,
-        allowSkip: true,
-        onSkip: async () => {
-            try { await skipOnboarding(); } catch (_) {}
-            hideOnboardingOverlay();
-        },
-    });
-}
-
-export async function onHabitCreated(): Promise<void> {
-    const moved = await transitionFromCurrentStep('CREATE_HABIT', 'CONFIG_POMODORO');
-    if (!moved) return;
-
-    showOnboardingToast('¡Hábito creado! Configuramos Pomodoro.');
-    showOnboardingOverlay({
-        title: 'Paso 3: Configurá Pomodoro',
-        body: 'Ahora definí una materia por defecto para registrar bien tus sesiones.',
-        primaryText: 'Ir a dashboard',
-        primaryHref: 'dashboard.html',
-        lockClose: false,
-        allowSkip: true,
-        onSkip: async () => {
-            try { await skipOnboarding(); } catch (_) {}
-            hideOnboardingOverlay();
-        },
-    });
-}
-
 export function syncOnboardingAcrossTabs(onChange?: (ctx: OnboardingContext | null) => void): void {
     window.addEventListener('storage', (event) => {
         if (event.key !== STORAGE_KEY) return;
@@ -231,8 +150,14 @@ export function showOnboardingOverlay(config: {
     allowSkip?: boolean;
     onSkip?: () => void;
 }): void {
-    const { overlay, titleEl, bodyEl, primaryBtn, closeBtn, skipBtn } = getOverlayElements();
+    const overlay = document.getElementById('onboardingOverlay');
     if (!overlay) return;
+
+    const titleEl = document.getElementById('onboardingTitle');
+    const bodyEl = document.getElementById('onboardingBody');
+    const primaryBtn = document.getElementById('onboardingPrimaryBtn') as HTMLAnchorElement | null;
+    const closeBtn = document.getElementById('onboardingCloseBtn') as HTMLButtonElement | null;
+    const skipBtn = document.getElementById('onboardingSkipBtn') as HTMLButtonElement | null;
 
     if (titleEl) titleEl.textContent = config.title;
     if (bodyEl) bodyEl.textContent = config.body;
@@ -240,7 +165,6 @@ export function showOnboardingOverlay(config: {
     if (primaryBtn) {
         primaryBtn.textContent = config.primaryText;
         primaryBtn.href = config.primaryHref || '#';
-        primaryBtn.classList.add('onboarding-cta-pulse');
         primaryBtn.onclick = (e) => {
             if (!config.primaryHref) e.preventDefault();
             config.onPrimary?.();
@@ -249,7 +173,7 @@ export function showOnboardingOverlay(config: {
 
     if (closeBtn) {
         closeBtn.style.display = config.lockClose ? 'none' : 'inline-flex';
-        closeBtn.onclick = () => hideOnboardingOverlay();
+        closeBtn.onclick = () => overlay.classList.add('hidden');
     }
 
     if (skipBtn) {
@@ -262,8 +186,8 @@ export function showOnboardingOverlay(config: {
 }
 
 export function hideOnboardingOverlay(): void {
-    const { overlay } = getOverlayElements();
+    const overlay = document.getElementById('onboardingOverlay');
     if (!overlay) return;
     overlay.classList.remove('onboarding-visible');
-    setTimeout(() => overlay.classList.add('hidden'), 160);
+    setTimeout(() => overlay.classList.add('hidden'), 140);
 }

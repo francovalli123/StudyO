@@ -1,7 +1,7 @@
 import { apiGet, apiPost, apiPut, apiDelete, getToken, getCurrentUser } from './api.js';
 import { initConfirmModal, showConfirmModal } from "./confirmModal.js";
 import { translations, getCurrentLanguage } from './i18n.js';
-import { getOnboardingContext, showOnboardingOverlay, hideOnboardingOverlay, skipOnboarding, hydrateOnboardingContext, syncOnboardingAcrossTabs, onHabitCreated } from './onboarding.js';
+import { getOnboardingContext, persistOnboardingStep, showOnboardingOverlay, hideOnboardingOverlay, skipOnboarding, hydrateOnboardingContext, syncOnboardingAcrossTabs } from './onboarding.js';
 
 
 /**
@@ -372,8 +372,8 @@ async function handleSaveHabit(e: Event) {
 
         const ctx = getOnboardingContext();
         if (ctx && ctx.active && ctx.step === 'CREATE_HABIT') {
-            await loadHabits();
-            try { await onHabitCreated(); } catch (e) { console.warn('onboarding transition failed', e); }
+            try { await persistOnboardingStep('CONFIG_POMODORO'); } catch (e) { console.warn('onboarding transition failed', e); }
+            window.location.href = 'dashboard.html?onboarding=config';
             return;
         }
 

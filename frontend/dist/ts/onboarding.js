@@ -44,45 +44,6 @@ function loadContext() {
         return null;
     }
 }
-function getOverlayElements() {
-    return {
-        overlay: document.getElementById('onboardingOverlay'),
-        titleEl: document.getElementById('onboardingTitle'),
-        bodyEl: document.getElementById('onboardingBody'),
-        primaryBtn: document.getElementById('onboardingPrimaryBtn'),
-        closeBtn: document.getElementById('onboardingCloseBtn'),
-        skipBtn: document.getElementById('onboardingSkipBtn'),
-    };
-}
-function showOnboardingToast(message) {
-    let toast = document.getElementById('onboardingToast');
-    if (!toast) {
-        toast = document.createElement('div');
-        toast.id = 'onboardingToast';
-        toast.className = 'onboarding-toast';
-        document.body.appendChild(toast);
-    }
-    toast.textContent = message;
-    toast.classList.remove('show');
-    requestAnimationFrame(() => toast.classList.add('show'));
-    setTimeout(() => toast === null || toast === void 0 ? void 0 : toast.classList.remove('show'), 1400);
-}
-function transitionFromCurrentStep(expected, next) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const ctx = getOnboardingContext();
-        if (!ctx || !ctx.active || ctx.step !== expected)
-            return false;
-        yield persistOnboardingStep(next);
-        const nextCtx = getOnboardingContext();
-        if (nextCtx) {
-            nextCtx.step = next;
-            nextCtx.active = true;
-            nextCtx.updatedAt = Date.now();
-            saveContext(nextCtx);
-        }
-        return true;
-    });
-}
 export function getOnboardingContext() {
     return loadContext();
 }
@@ -91,10 +52,8 @@ export function shouldRunOnboarding(user, subjectsCount) {
     const finished = user.onboarding_completed === true || step === 'DONE' || step === 'SKIPPED';
     if (finished)
         return false;
-    // CREATE_SUBJECT depends on having zero subjects; subsequent steps continue regardless.
-    if (step === 'CREATE_SUBJECT')
-        return subjectsCount === 0;
-    return true;
+    // Product decision (final QA): onboarding only starts when user still has no subjects.
+    return subjectsCount === 0;
 }
 export function storeOnboardingContext(user, subjectsCount) {
     const step = (user.onboarding_step || 'CREATE_SUBJECT');
@@ -179,52 +138,6 @@ export function skipOnboarding() {
         emitOnce('skipped', () => track('onboarding_skipped', { step: 'SKIPPED' }), ctx.userId);
     });
 }
-export function onSubjectCreated() {
-    return __awaiter(this, void 0, void 0, function* () {
-        const moved = yield transitionFromCurrentStep('CREATE_SUBJECT', 'CREATE_HABIT');
-        if (!moved)
-            return;
-        showOnboardingToast('¡Asignatura lista! Sigamos con hábitos.');
-        showOnboardingOverlay({
-            title: 'Paso 2: Creá un hábito',
-            body: 'Ahora creá un hábito y revisá “Hábito clave”.',
-            primaryText: 'Ir a hábitos',
-            primaryHref: 'habits.html',
-            lockClose: false,
-            allowSkip: true,
-            onSkip: () => __awaiter(this, void 0, void 0, function* () {
-                try {
-                    yield skipOnboarding();
-                }
-                catch (_) { }
-                hideOnboardingOverlay();
-            }),
-        });
-    });
-}
-export function onHabitCreated() {
-    return __awaiter(this, void 0, void 0, function* () {
-        const moved = yield transitionFromCurrentStep('CREATE_HABIT', 'CONFIG_POMODORO');
-        if (!moved)
-            return;
-        showOnboardingToast('¡Hábito creado! Configuramos Pomodoro.');
-        showOnboardingOverlay({
-            title: 'Paso 3: Configurá Pomodoro',
-            body: 'Ahora definí una materia por defecto para registrar bien tus sesiones.',
-            primaryText: 'Ir a dashboard',
-            primaryHref: 'dashboard.html',
-            lockClose: false,
-            allowSkip: true,
-            onSkip: () => __awaiter(this, void 0, void 0, function* () {
-                try {
-                    yield skipOnboarding();
-                }
-                catch (_) { }
-                hideOnboardingOverlay();
-            }),
-        });
-    });
-}
 export function syncOnboardingAcrossTabs(onChange) {
     window.addEventListener('storage', (event) => {
         if (event.key !== STORAGE_KEY)
@@ -233,9 +146,14 @@ export function syncOnboardingAcrossTabs(onChange) {
     });
 }
 export function showOnboardingOverlay(config) {
-    const { overlay, titleEl, bodyEl, primaryBtn, closeBtn, skipBtn } = getOverlayElements();
+    const overlay = document.getElementById('onboardingOverlay');
     if (!overlay)
         return;
+    const titleEl = document.getElementById('onboardingTitle');
+    const bodyEl = document.getElementById('onboardingBody');
+    const primaryBtn = document.getElementById('onboardingPrimaryBtn');
+    const closeBtn = document.getElementById('onboardingCloseBtn');
+    const skipBtn = document.getElementById('onboardingSkipBtn');
     if (titleEl)
         titleEl.textContent = config.title;
     if (bodyEl)
@@ -243,7 +161,6 @@ export function showOnboardingOverlay(config) {
     if (primaryBtn) {
         primaryBtn.textContent = config.primaryText;
         primaryBtn.href = config.primaryHref || '#';
-        primaryBtn.classList.add('onboarding-cta-pulse');
         primaryBtn.onclick = (e) => {
             var _a;
             if (!config.primaryHref)
@@ -253,7 +170,7 @@ export function showOnboardingOverlay(config) {
     }
     if (closeBtn) {
         closeBtn.style.display = config.lockClose ? 'none' : 'inline-flex';
-        closeBtn.onclick = () => hideOnboardingOverlay();
+        closeBtn.onclick = () => overlay.classList.add('hidden');
     }
     if (skipBtn) {
         skipBtn.style.display = config.allowSkip ? 'inline-flex' : 'none';
@@ -263,9 +180,9 @@ export function showOnboardingOverlay(config) {
     requestAnimationFrame(() => overlay.classList.add('onboarding-visible'));
 }
 export function hideOnboardingOverlay() {
-    const { overlay } = getOverlayElements();
+    const overlay = document.getElementById('onboardingOverlay');
     if (!overlay)
         return;
     overlay.classList.remove('onboarding-visible');
-    setTimeout(() => overlay.classList.add('hidden'), 160);
+    setTimeout(() => overlay.classList.add('hidden'), 140);
 }
