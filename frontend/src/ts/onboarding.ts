@@ -133,35 +133,6 @@ export async function skipOnboarding(): Promise<void> {
     emitOnce('skipped', () => track('onboarding_skipped', { step: 'SKIPPED' }), ctx.userId);
 }
 
-
-export async function onSubjectCreated(): Promise<void> {
-    const ctx = getOnboardingContext();
-    if (!ctx || !ctx.active || ctx.step !== 'CREATE_SUBJECT') return;
-
-    await persistOnboardingStep('CREATE_HABIT');
-
-    const nextCtx = getOnboardingContext();
-    if (nextCtx) {
-        nextCtx.step = 'CREATE_HABIT';
-        nextCtx.active = true;
-        nextCtx.updatedAt = Date.now();
-        saveContext(nextCtx);
-    }
-
-    showOnboardingOverlay({
-        title: 'Paso 2: Creá un hábito',
-        body: 'Ahora creá un hábito y revisá “Hábito clave”.',
-        primaryText: 'Ir a hábitos',
-        primaryHref: 'habits.html',
-        lockClose: false,
-        allowSkip: true,
-        onSkip: async () => {
-            try { await skipOnboarding(); } catch (_) {}
-            hideOnboardingOverlay();
-        },
-    });
-}
-
 export function syncOnboardingAcrossTabs(onChange?: (ctx: OnboardingContext | null) => void): void {
     window.addEventListener('storage', (event) => {
         if (event.key !== STORAGE_KEY) return;

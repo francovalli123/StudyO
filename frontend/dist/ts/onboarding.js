@@ -52,10 +52,8 @@ export function shouldRunOnboarding(user, subjectsCount) {
     const finished = user.onboarding_completed === true || step === 'DONE' || step === 'SKIPPED';
     if (finished)
         return false;
-    // CREATE_SUBJECT depends on having zero subjects; subsequent steps continue regardless.
-    if (step === 'CREATE_SUBJECT')
-        return subjectsCount === 0;
-    return true;
+    // Product decision (final QA): onboarding only starts when user still has no subjects.
+    return subjectsCount === 0;
 }
 export function storeOnboardingContext(user, subjectsCount) {
     const step = (user.onboarding_step || 'CREATE_SUBJECT');
@@ -138,36 +136,6 @@ export function skipOnboarding() {
         saveContext(ctx);
         sessionStorage.removeItem(STARTED_MARK_KEY);
         emitOnce('skipped', () => track('onboarding_skipped', { step: 'SKIPPED' }), ctx.userId);
-    });
-}
-export function onSubjectCreated() {
-    return __awaiter(this, void 0, void 0, function* () {
-        const ctx = getOnboardingContext();
-        if (!ctx || !ctx.active || ctx.step !== 'CREATE_SUBJECT')
-            return;
-        yield persistOnboardingStep('CREATE_HABIT');
-        const nextCtx = getOnboardingContext();
-        if (nextCtx) {
-            nextCtx.step = 'CREATE_HABIT';
-            nextCtx.active = true;
-            nextCtx.updatedAt = Date.now();
-            saveContext(nextCtx);
-        }
-        showOnboardingOverlay({
-            title: 'Paso 2: Creá un hábito',
-            body: 'Ahora creá un hábito y revisá “Hábito clave”.',
-            primaryText: 'Ir a hábitos',
-            primaryHref: 'habits.html',
-            lockClose: false,
-            allowSkip: true,
-            onSkip: () => __awaiter(this, void 0, void 0, function* () {
-                try {
-                    yield skipOnboarding();
-                }
-                catch (_) { }
-                hideOnboardingOverlay();
-            }),
-        });
     });
 }
 export function syncOnboardingAcrossTabs(onChange) {
