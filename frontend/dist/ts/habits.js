@@ -10,7 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import { apiGet, apiPost, apiPut, apiDelete, getToken, getCurrentUser } from './api.js';
 import { showConfirmModal } from "./confirmModal.js";
 import { translations, getCurrentLanguage } from './i18n.js';
-import { getOnboardingContext, showOnboardingOverlay, hideOnboardingOverlay, skipOnboarding, hydrateOnboardingContext, syncOnboardingAcrossTabs, onHabitCreated } from './onboarding.js';
+import { getOnboardingContext, persistOnboardingStep, showOnboardingOverlay, hideOnboardingOverlay, skipOnboarding, hydrateOnboardingContext, syncOnboardingAcrossTabs } from './onboarding.js';
 /**
  * Constants & Config
  */
@@ -315,13 +315,13 @@ function handleSaveHabit(e) {
             closeCreateModal();
             const ctx = getOnboardingContext();
             if (ctx && ctx.active && ctx.step === 'CREATE_HABIT') {
-                yield loadHabits();
                 try {
-                    yield onHabitCreated();
+                    yield persistOnboardingStep('CONFIG_POMODORO');
                 }
                 catch (e) {
                     console.warn('onboarding transition failed', e);
                 }
+                window.location.href = 'dashboard.html?onboarding=config';
                 return;
             }
             loadHabits();
@@ -409,7 +409,6 @@ function toggleHabitCompletion(habitId, complete) {
     });
 }
 function applyOnboardingOnHabitsPage() {
-    var _a, _b, _c;
     const ctx = getOnboardingContext();
     if (!ctx || !ctx.active || ctx.step !== 'CREATE_HABIT') {
         hideOnboardingOverlay();
@@ -421,11 +420,10 @@ function applyOnboardingOnHabitsPage() {
         keyCheckbox.classList.add('onboarding-highlight');
     if (keyHint)
         keyHint.classList.remove('hidden');
-    const copy = getT();
     showOnboardingOverlay({
-        title: ((_a = copy.onboarding) === null || _a === void 0 ? void 0 : _a.stepCreateHabitTitle) || 'Paso 2: Creá un hábito',
-        body: ((_b = copy.onboarding) === null || _b === void 0 ? void 0 : _b.stepCreateHabitBody) || 'Creá un hábito y revisá “Hábito clave”.',
-        primaryText: ((_c = copy.onboarding) === null || _c === void 0 ? void 0 : _c.createHabit) || 'Crear hábito',
+        title: 'Paso 2: Creá un hábito',
+        body: 'Creá un hábito y revisá el checkbox “Hábito clave”. Los hábitos clave impactan tu progreso semanal.',
+        primaryText: 'Crear hábito',
         lockClose: true,
         allowSkip: true,
         onSkip: () => __awaiter(this, void 0, void 0, function* () {

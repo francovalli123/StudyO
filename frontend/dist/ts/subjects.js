@@ -10,7 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 // Import API utility functions and authentication helper
 import { apiGet, apiPost, apiDelete, getToken, apiPut } from "./api.js";
 import { initConfirmModal, showConfirmModal } from "./confirmModal.js";
-import { getOnboardingContext, showOnboardingOverlay, hideOnboardingOverlay, skipOnboarding, hydrateOnboardingContext, syncOnboardingAcrossTabs, onSubjectCreated } from "./onboarding.js";
+import { getOnboardingContext, persistOnboardingStep, showOnboardingOverlay, hideOnboardingOverlay, skipOnboarding, hydrateOnboardingContext, syncOnboardingAcrossTabs } from "./onboarding.js";
 import { translations, getCurrentLanguage } from "./i18n.js";
 // Global state: stores all subjects fetched from API
 let subjects = [];
@@ -244,16 +244,15 @@ function handleSaveSubject(e) {
             }
             // Close modal and reload subjects list
             closeSubjectModal();
-            if (!isEditing) {
-                yield loadSubjects();
-                // Advance onboarding only on real domain event: successful subject creation.
+            const ctx = getOnboardingContext();
+            if (ctx && ctx.active && ctx.step === 'CREATE_SUBJECT') {
+                // User completed mandatory first subject creation, move to next step.
                 try {
-                    yield onSubjectCreated();
+                    yield persistOnboardingStep('CREATE_HABIT');
                 }
                 catch (e) {
                     console.warn('onboarding transition failed', e);
                 }
-                return;
             }
             loadSubjects();
         }
@@ -367,17 +366,34 @@ function attachGlobalListeners() {
 }
 // Initialize when DOM is ready
 function applyOnboardingOnSubjectsPage() {
-    var _a, _b, _c;
     const ctx = getOnboardingContext();
     if (!ctx || !ctx.active || ctx.step !== 'CREATE_SUBJECT') {
         hideOnboardingOverlay();
         return;
     }
-    const trans = translations[getCurrentLanguage()];
+    if (subjects.length > 0) {
+        persistOnboardingStep('CREATE_HABIT').catch(() => { });
+        showOnboardingOverlay({
+            title: 'Asignatura creada ✅',
+            body: 'Excelente. Ahora vamos a crear un hábito y revisar el checkbox de hábito clave.',
+            primaryText: 'Ir a hábitos',
+            primaryHref: 'habits.html',
+            lockClose: false,
+            allowSkip: true,
+            onSkip: () => __awaiter(this, void 0, void 0, function* () {
+                try {
+                    yield skipOnboarding();
+                }
+                catch (_) { }
+                hideOnboardingOverlay();
+            }),
+        });
+        return;
+    }
     showOnboardingOverlay({
-        title: ((_a = trans.onboarding) === null || _a === void 0 ? void 0 : _a.stepCreateSubjectTitle) || 'Paso 1: Creá tu primera asignatura',
-        body: ((_b = trans.onboarding) === null || _b === void 0 ? void 0 : _b.stepCreateSubjectBody) || 'Creá 1 asignatura para activar el tracking real de tu estudio.',
-        primaryText: ((_c = trans.onboarding) === null || _c === void 0 ? void 0 : _c.createSubject) || 'Crear asignatura',
+        title: 'Paso 1: Creá tu primera asignatura',
+        body: 'Necesitamos al menos una asignatura para que StudyO pueda medir tu progreso y tus pomodoros.',
+        primaryText: 'Crear asignatura',
         lockClose: true,
         allowSkip: true,
         onSkip: () => __awaiter(this, void 0, void 0, function* () {
