@@ -215,6 +215,8 @@ export async function logout(): Promise<void> {
     }
 }
 
+export type OnboardingStep = 'CREATE_SUBJECT' | 'CREATE_HABIT' | 'CONFIG_POMODORO' | 'START_SESSION' | 'DONE' | 'SKIPPED';
+
 export interface CurrentUser {
     id: number;
     username: string;
@@ -231,6 +233,9 @@ export interface CurrentUser {
     preferences?: any;
     timezone?: string;
     country?: string;
+    onboarding_step?: OnboardingStep;
+    onboarding_completed?: boolean;
+    subjects_count?: number;
 }
 
 export async function getCurrentUser(): Promise<CurrentUser> {
@@ -240,7 +245,7 @@ export async function getCurrentUser(): Promise<CurrentUser> {
 /**
  * Update current user partial fields via PATCH
  */
-export async function updateCurrentUser(data: Partial<{ first_name: string; email: string; preferences: any }>) {
+export async function updateCurrentUser(data: Partial<{ first_name: string; email: string; preferences: any; onboarding_step: OnboardingStep; onboarding_completed: boolean }>) {
     return apiPatch("/user/me/", data);
 }
 

@@ -1764,3 +1764,24 @@ nav .menu a.active {
         font-size: 1.25rem;
     }
 }
+/* Onboarding visual helper for required actions */
+.onboarding-highlight {
+    outline: 2px solid rgba(168, 85, 247, 0.9);
+    box-shadow: 0 0 0 4px rgba(168, 85, 247, 0.2);
+}
+
+/* Premium onboarding overlay motion + focus */
+#onboardingOverlay {
+    opacity: 0;
+    transition: opacity .16s ease;
+}
+#onboardingOverlay > div {
+    transform: scale(.97);
+    transition: transform .18s ease;
+}
+#onboardingOverlay.onboarding-visible {
+    opacity: 1;
+}
+#onboardingOverlay.onboarding-visible > div {
+    transform: scale(1);
+}
