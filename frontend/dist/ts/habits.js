@@ -10,7 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import { apiGet, apiPost, apiPut, apiDelete, getToken, getCurrentUser } from './api.js';
 import { showConfirmModal } from "./confirmModal.js";
 import { translations, getCurrentLanguage } from './i18n.js';
-import { getOnboardingContext, showOnboardingOverlay, hideOnboardingOverlay, skipOnboarding, hydrateOnboardingContext, syncOnboardingAcrossTabs, onHabitCreated } from './onboarding.js';
+import { getOnboardingContext, persistOnboardingStep, showOnboardingOverlay, hideOnboardingOverlay, skipOnboarding, hydrateOnboardingContext, syncOnboardingAcrossTabs } from './onboarding.js';
 /**
  * Constants & Config
  */
@@ -314,13 +314,13 @@ function handleSaveHabit(e) {
             closeCreateModal();
             const ctx = getOnboardingContext();
             if (ctx && ctx.active && ctx.step === 'CREATE_HABIT') {
-                yield loadHabits();
                 try {
-                    yield onHabitCreated();
+                    yield persistOnboardingStep('CONFIG_POMODORO');
                 }
                 catch (e) {
                     console.warn('onboarding transition failed', e);
                 }
+                window.location.href = 'dashboard.html?onboarding=config';
                 return;
             }
             loadHabits();

@@ -1986,10 +1986,7 @@ else {
                 body: 'Cada sesión debe estar asociada a una asignatura para que el tracking tenga sentido. Configurá primero la materia por defecto.',
                 primaryText: 'Abrir ajustes de Pomodoro',
                 lockClose: true,
-                onPrimary: () => {
-                    hideOnboardingOverlay();
-                    settingsBtn === null || settingsBtn === void 0 ? void 0 : settingsBtn.dispatchEvent(new Event('click'));
-                },
+                onPrimary: () => settingsBtn === null || settingsBtn === void 0 ? void 0 : settingsBtn.dispatchEvent(new Event('click')),
             });
             return;
         }
@@ -2000,10 +1997,7 @@ else {
                     body: 'Antes de iniciar tu primera sesión, elegí una materia en los ajustes de Pomodoro.',
                     primaryText: 'Ir a ajustes',
                     lockClose: true,
-                    onPrimary: () => {
-                        hideOnboardingOverlay();
-                        settingsBtn === null || settingsBtn === void 0 ? void 0 : settingsBtn.dispatchEvent(new Event('click'));
-                    },
+                    onPrimary: () => settingsBtn === null || settingsBtn === void 0 ? void 0 : settingsBtn.dispatchEvent(new Event('click')),
                 });
             }
             else {
@@ -2287,10 +2281,7 @@ else {
                     body: 'Durante el onboarding no se puede iniciar pomodoro sin materia asignada.',
                     primaryText: 'Configurar ahora',
                     lockClose: true,
-                    onPrimary: () => {
-                        hideOnboardingOverlay();
-                        settingsBtn === null || settingsBtn === void 0 ? void 0 : settingsBtn.dispatchEvent(new Event('click'));
-                    },
+                    onPrimary: () => settingsBtn === null || settingsBtn === void 0 ? void 0 : settingsBtn.dispatchEvent(new Event('click')),
                 });
                 return;
             }

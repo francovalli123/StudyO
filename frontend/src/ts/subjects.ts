@@ -1,7 +1,7 @@
 // Import API utility functions and authentication helper
 import { apiGet, apiPost, apiDelete, getToken, apiPut } from "./api.js";
 import { initConfirmModal, showConfirmModal } from "./confirmModal.js";
-import { getOnboardingContext, showOnboardingOverlay, hideOnboardingOverlay, skipOnboarding, hydrateOnboardingContext, syncOnboardingAcrossTabs, onSubjectCreated } from "./onboarding.js";
+import { getOnboardingContext, persistOnboardingStep, showOnboardingOverlay, hideOnboardingOverlay, skipOnboarding, hydrateOnboardingContext, syncOnboardingAcrossTabs } from "./onboarding.js";
 import { translations, getCurrentLanguage } from "./i18n.js";
 
 /**
@@ -263,11 +263,10 @@ async function handleSaveSubject(e: Event) {
         // Close modal and reload subjects list
         closeSubjectModal();
 
-        if (!isEditing) {
-            await loadSubjects();
-            // Advance onboarding only on real domain event: successful subject creation.
-            try { await onSubjectCreated(); } catch (e) { console.warn('onboarding transition failed', e); }
-            return;
+        const ctx = getOnboardingContext();
+        if (ctx && ctx.active && ctx.step === 'CREATE_SUBJECT') {
+            // User completed mandatory first subject creation, move to next step.
+            try { await persistOnboardingStep('CREATE_HABIT'); } catch (e) { console.warn('onboarding transition failed', e); }
         }
 
         loadSubjects();
@@ -385,9 +384,26 @@ function applyOnboardingOnSubjectsPage(): void {
         return;
     }
 
+    if (subjects.length > 0) {
+        persistOnboardingStep('CREATE_HABIT').catch(() => {});
+        showOnboardingOverlay({
+            title: 'Asignatura creada ✅',
+            body: 'Excelente. Ahora vamos a crear un hábito y revisar el checkbox de hábito clave.',
+            primaryText: 'Ir a hábitos',
+            primaryHref: 'habits.html',
+            lockClose: false,
+            allowSkip: true,
+            onSkip: async () => {
+                try { await skipOnboarding(); } catch (_) {}
+                hideOnboardingOverlay();
+            },
+        });
+        return;
+    }
+
     showOnboardingOverlay({
         title: 'Paso 1: Creá tu primera asignatura',
-        body: 'Creá 1 asignatura para activar el tracking real de tu estudio.',
+        body: 'Necesitamos al menos una asignatura para que StudyO pueda medir tu progreso y tus pomodoros.',
         primaryText: 'Crear asignatura',
         lockClose: true,
         allowSkip: true,
