@@ -47,23 +47,7 @@ class EarlyStartEvaluator(BaseEvaluator):
 
     def get_metadata(self) -> Dict[str, str]:
         """Get challenge title and description"""
-        language = (getattr(self.user, 'language', 'es') or 'es').split('-')[0]
-        metadata = {
-            'es': {
-                'title': '🌅 Madrugador',
-                'description': 'Completa 1 pomodoro antes de las 10:00 AM durante 5 días. ¡Empieza fuerte!'
-            },
-            'en': {
-                'title': '🌅 Early Starter',
-                'description': 'Complete 1 pomodoro before 10:00 AM for 5 days. Start strong!'
-            },
-            'zh': {
-                'title': '🌅 早起先锋',
-                'description': '连续 5 天在上午 10:00 前完成 1 个番茄钟。强势开局！'
-            },
-            'pt': {
-                'title': '🌅 Madrugador',
-                'description': 'Complete 1 pomodoro antes das 10:00 AM por 5 dias. Comece forte!'
-            },
+        return {
+            'title': '🌅 Madrugador',
+            'description': 'Completa 1 pomodoro antes de las 10:00 AM durante 5 días. ¡Empieza fuerte!'
         }
-        return metadata.get(language, metadata['es'])

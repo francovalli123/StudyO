@@ -43,23 +43,7 @@ class SubjectFocusEvaluator(BaseEvaluator):
 
     def get_metadata(self) -> Dict[str, str]:
         """Get challenge title and description"""
-        language = (getattr(self.user, 'language', 'es') or 'es').split('-')[0]
-        metadata = {
-            'es': {
-                'title': '📚 Enfoque en Materia',
-                'description': 'Completa 10 pomodoros en una misma materia. ¡Domina el tema!'
-            },
-            'en': {
-                'title': '📚 Subject Focus',
-                'description': 'Complete 10 pomodoros in one subject. Master the topic!'
-            },
-            'zh': {
-                'title': '📚 专注单科',
-                'description': '在同一科目完成 10 个番茄钟。精通该主题！'
-            },
-            'pt': {
-                'title': '📚 Foco na Matéria',
-                'description': 'Complete 10 pomodoros em uma mesma matéria. Domine o tema!'
-            },
+        return {
+            'title': '📚 Enfoque en Materia',
+            'description': 'Completa 10 pomodoros en una misma materia. ¡Domina el tema!'
         }
-        return metadata.get(language, metadata['es'])
