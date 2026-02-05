@@ -36,7 +36,23 @@ class MarathonEvaluator(BaseEvaluator):
 
     def get_metadata(self) -> Dict[str, str]:
         """Get challenge title and description"""
-        return {
-            'title': '🏃 Maratón de Productividad',
-            'description': 'Completa 20 pomodoros durante esta semana. ¡Demuestra tu consistencia!'
+        language = (getattr(self.user, 'language', 'es') or 'es').split('-')[0]
+        metadata = {
+            'es': {
+                'title': '🏃 Maratón de Productividad',
+                'description': 'Completa 20 pomodoros durante esta semana. ¡Demuestra tu consistencia!'
+            },
+            'en': {
+                'title': '🏃 Productivity Marathon',
+                'description': 'Complete 20 pomodoros this week. Show your consistency!'
+            },
+            'zh': {
+                'title': '🏃 生产力马拉松',
+                'description': '在本周完成 20 个番茄钟。展示你的坚持！'
+            },
+            'pt': {
+                'title': '🏃 Maratona de Produtividade',
+                'description': 'Complete 20 pomodoros nesta semana. Mostre sua consistência!'
+            },
         }
+        return metadata.get(language, metadata['es'])
