@@ -125,6 +125,7 @@ function loadHabits() {
             saveTodayCompletions(todayCompletions, userTimezone);
             renderHabits();
             updateDailyProgress(habits.filter(h => h.completedToday).length, habits.length);
+            applyOnboardingOnHabitsPage();
         }
         catch (error) {
             console.error("Error loading habits:", error);
@@ -403,6 +404,7 @@ function toggleHabitCompletion(habitId, complete) {
             habits[index].streak = previousStreak;
             renderHabits();
             updateDailyProgress(habits.filter(h => h.completedToday).length, habits.length);
+            applyOnboardingOnHabitsPage();
         }
     });
 }

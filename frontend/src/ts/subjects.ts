@@ -65,6 +65,7 @@ async function loadSubjects() {
                 const span = btn.querySelector('span');
                 if (span) span.textContent = transSubjects.createFirst;
             }
+            applyOnboardingOnSubjectsPage();
             return;
         }
 
@@ -119,6 +120,7 @@ async function loadSubjects() {
         if (typeof lucide !== 'undefined') lucide.createIcons();
         // Attach event listeners to edit and delete buttons
         attachSubjectEventListeners();
+        applyOnboardingOnSubjectsPage();
 
     } catch (error) {
         console.error("Error loading subjects:", error);

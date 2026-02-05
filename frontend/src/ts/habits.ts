@@ -174,6 +174,7 @@ async function loadHabits() {
         saveTodayCompletions(todayCompletions, userTimezone);
         renderHabits();
         updateDailyProgress(habits.filter(h => h.completedToday).length, habits.length);
+        applyOnboardingOnHabitsPage();
     } catch (error) {
         console.error("Error loading habits:", error);
     }
@@ -455,6 +456,7 @@ async function toggleHabitCompletion(habitId: number, complete: boolean) {
         habits[index].streak = previousStreak;
         renderHabits();
         updateDailyProgress(habits.filter(h => h.completedToday).length, habits.length);
+        applyOnboardingOnHabitsPage();
     }
 }
 

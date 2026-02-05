@@ -51,6 +51,7 @@ function loadSubjects() {
                     if (span)
                         span.textContent = transSubjects.createFirst;
                 }
+                applyOnboardingOnSubjectsPage();
                 return;
             }
             // Show subjects container and hide empty state
@@ -103,6 +104,7 @@ function loadSubjects() {
                 lucide.createIcons();
             // Attach event listeners to edit and delete buttons
             attachSubjectEventListeners();
+            applyOnboardingOnSubjectsPage();
         }
         catch (error) {
             console.error("Error loading subjects:", error);
