@@ -15,15 +15,16 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
+# Build paths inside the project like this: BASE_DIR / 'subdir'.
+BASE_DIR = Path(__file__).resolve().parent.parent
+
 EMAIL_HOST = os.getenv("EMAIL_HOST", "smtp.gmail.com")
 EMAIL_PORT = int(os.getenv("EMAIL_PORT", 587))
 EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "covalabsarg@gmail.com")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "srpn dlxw jvxj bqfz")
 EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "True") == "True"
-
-
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
+EMAIL_BACKEND = os.getenv("EMAIL_BACKEND", "django.core.mail.backends.smtp.EmailBackend")
+EMAIL_FILE_PATH = os.getenv("EMAIL_FILE_PATH", str(BASE_DIR / "mailbox"))
 
 
 # Quick-start development settings - unsuitable for production
@@ -56,7 +57,6 @@ INSTALLED_APPS = [
     'apps.routineBlock',
     'apps.weekly_challenges',
     'corsheaders',
-    'rest_framework.authtoken',
     'django_apscheduler',
     'rest_framework',
     'apps.habitRecord.apps.HabitrecordConfig',
@@ -166,7 +166,7 @@ AUTH_USER_MODEL = 'user.User'
 # REST Framework configuration
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.TokenAuthentication',
+        'apps.user.authentication.ExpiringTokenAuthentication',
         'rest_framework.authentication.SessionAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
@@ -185,6 +185,10 @@ CSRF_TRUSTED_ORIGINS = [
 ]
 # Site and email defaults
 SITE_NAME = 'StudyO'
-DEFAULT_FROM_EMAIL = 'StudyO <no-reply@studyo.local>'
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 SITE_URL = os.environ.get('SITE_URL', 'http://127.0.0.1:8000')
 
+# Token/session security configuration
+AUTH_TOKEN_TTL_MINUTES = int(os.environ.get('AUTH_TOKEN_TTL_MINUTES', 60))
+AUTH_TOKEN_REFRESH_WINDOW_MINUTES = int(os.environ.get('AUTH_TOKEN_REFRESH_WINDOW_MINUTES', 10))
+PASSWORD_RESET_TOKEN_TTL_MINUTES = int(os.environ.get('PASSWORD_RESET_TOKEN_TTL_MINUTES', 30))
