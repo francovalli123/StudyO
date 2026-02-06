@@ -2063,6 +2063,26 @@ if (document.readyState === 'loading') {
     let timerStartRemaining: number = 0; // Remaining seconds when timer started
     let visibilityHandler: (() => void) | null = null; // Handler for visibility changes
 
+    (window as any).__studyoCaptureFocusState = () => {
+        try {
+            return {
+                type: 'pomodoro',
+                isRunning,
+                remainingSeconds,
+                currentStage,
+                timerStartTime,
+                timerStartRemaining,
+                settings: { ...settings },
+                defaultSubjectId,
+                completedCycles,
+                sessionStart: sessionStart ? sessionStart.toISOString() : null,
+                capturedAt: new Date().toISOString(),
+            };
+        } catch (e) {
+            return null;
+        }
+    };
+
     // =====================
     // 🔊 Audio & Notifications
     // =====================

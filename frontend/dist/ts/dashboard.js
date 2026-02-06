@@ -1888,6 +1888,26 @@ else {
     let timerStartTime = null; // Timestamp when timer started
     let timerStartRemaining = 0; // Remaining seconds when timer started
     let visibilityHandler = null; // Handler for visibility changes
+    window.__studyoCaptureFocusState = () => {
+        try {
+            return {
+                type: 'pomodoro',
+                isRunning,
+                remainingSeconds,
+                currentStage,
+                timerStartTime,
+                timerStartRemaining,
+                settings: Object.assign({}, settings),
+                defaultSubjectId,
+                completedCycles,
+                sessionStart: sessionStart ? sessionStart.toISOString() : null,
+                capturedAt: new Date().toISOString(),
+            };
+        }
+        catch (e) {
+            return null;
+        }
+    };
     // =====================
     // 🔊 Audio & Notifications
     // =====================

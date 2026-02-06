@@ -1,5 +1,11 @@
+from datetime import timedelta
+import hashlib
+import secrets
+
+from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.utils import timezone
 import pytz
 
 class User(AbstractUser):
@@ -126,3 +132,92 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.username
+
+
+class AuthToken(models.Model):
+    key = models.CharField(max_length=40, primary_key=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="auth_tokens", on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+    last_activity_at = models.DateTimeField()
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["user", "is_active"]),
+            models.Index(fields=["expires_at"]),
+        ]
+
+    def __str__(self):
+        return f"{self.user_id}:{self.key}"
+
+    @classmethod
+    def create_for_user(cls, user):
+        now = timezone.now()
+        ttl_minutes = getattr(settings, "AUTH_TOKEN_TTL_MINUTES", 60)
+        key = secrets.token_hex(20)
+        return cls.objects.create(
+            key=key,
+            user=user,
+            expires_at=now + timedelta(minutes=ttl_minutes),
+            last_activity_at=now,
+            is_active=True,
+        )
+
+    def mark_inactive(self, reason=None):
+        if not self.is_active:
+            return
+        self.is_active = False
+        self.expires_at = min(self.expires_at, timezone.now())
+        self.save(update_fields=["is_active", "expires_at"])
+
+    def register_activity(self):
+        now = timezone.now()
+        if self.expires_at <= now:
+            self.mark_inactive(reason="expired")
+            return False
+
+        ttl_minutes = getattr(settings, "AUTH_TOKEN_TTL_MINUTES", 60)
+        refresh_window = getattr(settings, "AUTH_TOKEN_REFRESH_WINDOW_MINUTES", 10)
+
+        self.last_activity_at = now
+        if self.expires_at - now <= timedelta(minutes=refresh_window):
+            self.expires_at = now + timedelta(minutes=ttl_minutes)
+            self.save(update_fields=["last_activity_at", "expires_at"])
+        else:
+            self.save(update_fields=["last_activity_at"])
+        return True
+
+
+class PasswordResetToken(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="password_resets", on_delete=models.CASCADE)
+    token_hash = models.CharField(max_length=64, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+    used_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["user", "expires_at"]),
+            models.Index(fields=["token_hash", "expires_at"]),
+        ]
+
+    def __str__(self):
+        return f"{self.user_id}:{self.created_at.isoformat()}"
+
+    @classmethod
+    def issue_for_user(cls, user):
+        now = timezone.now()
+        ttl_minutes = getattr(settings, "PASSWORD_RESET_TOKEN_TTL_MINUTES", 30)
+        raw_token = secrets.token_urlsafe(48)
+        token_hash = hashlib.sha256(raw_token.encode("utf-8")).hexdigest()
+        instance = cls.objects.create(
+            user=user,
+            token_hash=token_hash,
+            expires_at=now + timedelta(minutes=ttl_minutes),
+        )
+        return instance, raw_token
+
+    def is_valid(self):
+        now = timezone.now()
+        return self.used_at is None and self.expires_at > now
