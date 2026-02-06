@@ -42,6 +42,17 @@ const authState: AuthState = {
     authResolved: false,
 };
 
+function resetGlobalScaleState() {
+    const targets = [document.documentElement, document.body].filter(
+        (el): el is HTMLElement => Boolean(el)
+    );
+    const properties = ["zoom", "transform", "transform-origin"];
+
+    targets.forEach((el) => {
+        properties.forEach((prop) => el.style.removeProperty(prop));
+    });
+}
+
 function updateAuthState(next: Partial<AuthState>) {
     Object.assign(authState, next);
     window.__studyoAuthState = { ...authState };
@@ -120,6 +131,7 @@ function redirectToLogin(loginPath: string, currentPath: string) {
  * ✔ Rutas protegidas validan token correctamente
  */
 export async function initAuthGate(options?: { loginPath?: string }) {
+    resetGlobalScaleState();
     const loginPath = options?.loginPath ?? "login.html";
     const currentPath = window.location.pathname;
     const isPublic = isPublicRoute(currentPath);
