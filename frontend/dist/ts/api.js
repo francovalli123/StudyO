@@ -48,13 +48,35 @@ function getHeaders(contentType = "application/json") {
     }
     return headers;
 }
+function emitAuthExpired() {
+    try {
+        const capture = window.__studyoCaptureFocusState;
+        if (typeof capture === 'function') {
+            const snapshot = capture();
+            if (snapshot) {
+                localStorage.setItem('studyo_focus_snapshot', JSON.stringify(snapshot));
+            }
+        }
+        localStorage.setItem('studyo_auth_return_path', window.location.href);
+    }
+    catch (e) {
+        // noop
+    }
+    try {
+        window.dispatchEvent(new CustomEvent('auth:expired'));
+    }
+    catch (e) {
+        // noop
+    }
+}
 /**
  * Centralized request handler to manage responses and errors globally.
  */
 function handleRequest(response) {
     return __awaiter(this, void 0, void 0, function* () {
-        // Handle 401 Unauthorized globally
-        if (response.status === 401) {
+        // Handle 401/403 Unauthorized globally
+        if (response.status === 401 || response.status === 403) {
+            emitAuthExpired();
             removeToken();
             // Optional: You could trigger a page reload or redirect here
             throw new Error("Session expired. Please login again.");
@@ -221,6 +243,44 @@ export function logout() {
         finally {
             removeToken();
         }
+    });
+}
+/**
+ * ==========================================
+ * Password Reset
+ * ==========================================
+ */
+export function requestPasswordReset(email) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const response = yield fetch(`${BASE_URL}/auth/password-reset/request/`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email }),
+            credentials: "include"
+        });
+        return handleRequest(response);
+    });
+}
+export function validatePasswordReset(email, token) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const params = new URLSearchParams({ email, token });
+        const response = yield fetch(`${BASE_URL}/auth/password-reset/validate/?${params.toString()}`, {
+            method: "GET",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include"
+        });
+        return handleRequest(response);
+    });
+}
+export function confirmPasswordReset(email, token, password) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const response = yield fetch(`${BASE_URL}/auth/password-reset/confirm/`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, token, password }),
+            credentials: "include"
+        });
+        return handleRequest(response);
     });
 }
 export function getCurrentUser() {

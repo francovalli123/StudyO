@@ -21,6 +21,10 @@
                 Ingresar
             </button>
         </form>
+        <p class="auth-footer" style="margin-top: 12px;">
+            ¿Olvidaste tu contraseña?
+            <a href="forgot-password.html">Recuperala acá</a>
+        </p>
 
         <p class="auth-footer">
             ¿No tenés cuenta?
@@ -28,6 +32,10 @@
         </p>
     </div>
 
+    <script type="module">
+        import { initAuthGate } from './dist/ts/auth-gate.js';
+        initAuthGate();
+    </script>
     <script type="module">
         import { login, getCurrentUser, apiGet } from './dist/ts/api.js';
         import { storeOnboardingContext, persistOnboardingStep } from './dist/ts/onboarding.js';

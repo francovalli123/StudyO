@@ -52,11 +52,31 @@ function getHeaders(contentType: string = "application/json"): HeadersInit {
 /**
  * Centralized request handler to manage responses and errors globally.
  */
+function emitAuthExpired(): void {
+    try {
+        const capture = (window as any).__studyoCaptureFocusState;
+        if (typeof capture === 'function') {
+            const snapshot = capture();
+            if (snapshot) {
+                localStorage.setItem('studyo_focus_snapshot', JSON.stringify(snapshot));
+            }
+        }
+        localStorage.setItem('studyo_auth_return_path', window.location.href);
+    } catch (e) {
+        // noop
+    }
+    try {
+        window.dispatchEvent(new CustomEvent('auth:expired'));
+    } catch (e) {
+        // noop
+    }
+}
+
 async function handleRequest<T>(response: Response): Promise<T> {
-    // Handle 401 Unauthorized globally
-    if (response.status === 401) {
+    // Handle 401/403 Unauthorized globally
+    if (response.status === 401 || response.status === 403) {
+        emitAuthExpired();
         removeToken();
-        // Optional: You could trigger a page reload or redirect here
         throw new Error("Session expired. Please login again.");
     }
 
@@ -213,6 +233,42 @@ export async function logout(): Promise<void> {
     } finally {
         removeToken();
     }
+}
+
+/**
+ * ==========================================
+ * Password Reset
+ * ==========================================
+ */
+
+export async function requestPasswordReset(email: string): Promise<{ detail: string }> {
+    const response = await fetch(`${BASE_URL}/auth/password-reset/request/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+        credentials: "include"
+    });
+    return handleRequest(response);
+}
+
+export async function validatePasswordReset(email: string, token: string): Promise<{ detail: string }> {
+    const params = new URLSearchParams({ email, token });
+    const response = await fetch(`${BASE_URL}/auth/password-reset/validate/?${params.toString()}`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include"
+    });
+    return handleRequest(response);
+}
+
+export async function confirmPasswordReset(email: string, token: string, password: string): Promise<{ detail: string }> {
+    const response = await fetch(`${BASE_URL}/auth/password-reset/confirm/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, token, password }),
+        credentials: "include"
+    });
+    return handleRequest(response);
 }
 
 export type OnboardingStep = 'CREATE_SUBJECT' | 'CREATE_HABIT' | 'CONFIG_POMODORO' | 'START_SESSION' | 'DONE' | 'SKIPPED';
