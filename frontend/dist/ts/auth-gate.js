@@ -11,12 +11,17 @@ import { getCurrentUser, getToken, removeToken } from "./api.js";
 const PUBLIC_ROUTES = [
     "/",
     "/index.html",
+    "/login",
     "/login.html",
+    "/register",
     "/register.html",
+    "/forgot-password",
     "/forgot-password.html",
+    "/reset-password",
     "/reset-password.html",
 ];
 const authState = {
+    status: "checking",
     isAuthenticated: false,
     token: null,
     user: null,
@@ -28,7 +33,7 @@ function updateAuthState(next) {
     try {
         window.dispatchEvent(new CustomEvent("auth:state", { detail: window.__studyoAuthState }));
     }
-    catch (e) {
+    catch (_a) {
         // noop
     }
 }
@@ -64,50 +69,59 @@ function buildLoginUrl(loginPath, currentPath) {
     const next = encodeURIComponent(window.location.href);
     return `${loginPath}?next=${next}`;
 }
+function resolveState(status, payload) {
+    updateAuthState(Object.assign({ status, authResolved: status !== "checking" }, payload));
+    if (status === "checking") {
+        ensureAuthLoadingUI();
+    }
+    else {
+        clearAuthLoadingUI();
+    }
+}
+function redirectToLogin(loginPath, currentPath) {
+    if (isPublicRoute(currentPath) || currentPath.endsWith(loginPath)) {
+        return;
+    }
+    const loginUrl = buildLoginUrl(loginPath, currentPath);
+    window.location.href = loginUrl;
+}
 export function initAuthGate(options) {
     return __awaiter(this, void 0, void 0, function* () {
         const loginPath = (options === null || options === void 0 ? void 0 : options.loginPath) || "login.html";
         const currentPath = window.location.pathname;
         const publicRoute = isPublicRoute(currentPath);
+        resolveState("checking");
         if (publicRoute) {
             const token = getToken();
-            updateAuthState({ isAuthenticated: !!token, token, user: null, authResolved: true });
-            clearAuthLoadingUI();
+            resolveState("public", { isAuthenticated: !!token, token, user: null });
             return;
         }
-        ensureAuthLoadingUI();
-        updateAuthState({ authResolved: false });
         const token = getToken();
         if (!token) {
-            updateAuthState({ isAuthenticated: false, token: null, user: null, authResolved: true });
-            clearAuthLoadingUI();
-            const loginUrl = buildLoginUrl(loginPath, currentPath);
-            if (!currentPath.endsWith(loginPath)) {
-                window.location.href = loginUrl;
-            }
+            resolveState("unauthenticated", { isAuthenticated: false, token: null, user: null });
+            redirectToLogin(loginPath, currentPath);
             return;
         }
         try {
             const user = yield getCurrentUser();
-            updateAuthState({ isAuthenticated: true, token, user, authResolved: true });
-            clearAuthLoadingUI();
+            resolveState("authenticated", { isAuthenticated: true, token, user });
         }
         catch (error) {
+            var _a, _b;
+            const statusCode = (_b = (_a = error === null || error === void 0 ? void 0 : error.status) !== null && _a !== void 0 ? _a : error === null || error === void 0 ? void 0 : error.response) === null || _b === void 0 ? void 0 : _b.status;
             removeToken();
-            updateAuthState({ isAuthenticated: false, token: null, user: null, authResolved: true });
-            clearAuthLoadingUI();
-            const loginUrl = buildLoginUrl(loginPath, currentPath);
-            if (!currentPath.endsWith(loginPath)) {
-                window.location.href = loginUrl;
+            if (statusCode === 401 || statusCode === 403) {
+                resolveState("unauthenticated", { isAuthenticated: false, token: null, user: null });
+                redirectToLogin(loginPath, currentPath);
+                return;
             }
+            resolveState("error", { isAuthenticated: false, token: null, user: null });
+            redirectToLogin(loginPath, currentPath);
         }
     });
 }
 window.addEventListener("auth:expired", () => {
-    updateAuthState({ isAuthenticated: false, token: null, user: null, authResolved: true });
     const currentPath = window.location.pathname;
-    if (!isPublicRoute(currentPath) && !currentPath.endsWith("login.html")) {
-        const loginUrl = buildLoginUrl("login.html", currentPath);
-        window.location.href = loginUrl;
-    }
+    resolveState("unauthenticated", { isAuthenticated: false, token: null, user: null });
+    redirectToLogin("login.html", currentPath);
 });

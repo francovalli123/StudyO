@@ -20,8 +20,10 @@ from apps.pomodoroSession.models import PomodoroSession
 from django.conf import settings
 from django.utils import timezone
 from django.utils.http import urlencode
+import logging
 
 User = get_user_model()
+logger = logging.getLogger("apps.user.password_reset")
 
 # ============================
 # Registro de usuarios
@@ -284,21 +286,26 @@ class PasswordResetRequestView(APIView):
             if user:
                 PasswordResetToken.objects.filter(user=user, used_at__isnull=True).update(used_at=timezone.now())
                 reset_token, raw_token = PasswordResetToken.issue_for_user(user)
+                logger.info("Password reset token created for user_id=%s", user.id)
                 query = urlencode({"token": raw_token, "email": user.email})
                 reset_link = f"{settings.SITE_URL}/reset-password.html?{query}"
 
-                send_mail(
-                    subject="StudyO - Recuperación de contraseña",
-                    message=(
-                        f"Hola {user.username},\n\n"
-                        "Recibimos una solicitud para restablecer tu contraseña.\n"
-                        f"Usá este enlace para continuar: {reset_link}\n\n"
-                        "Si no hiciste esta solicitud, podés ignorar este correo."
-                    ),
-                    from_email=settings.DEFAULT_FROM_EMAIL,
-                    recipient_list=[user.email],
-                    fail_silently=True,
-                )
+                try:
+                    send_mail(
+                        subject="StudyO - Recuperación de contraseña",
+                        message=(
+                            f"Hola {user.username},\n\n"
+                            "Recibimos una solicitud para restablecer tu contraseña.\n"
+                            f"Usá este enlace para continuar: {reset_link}\n\n"
+                            "Si no hiciste esta solicitud, podés ignorar este correo."
+                        ),
+                        from_email=settings.DEFAULT_FROM_EMAIL,
+                        recipient_list=[user.email],
+                        fail_silently=False,
+                    )
+                    logger.info("Password reset email sent to user_id=%s", user.id)
+                except Exception:
+                    logger.exception("Password reset email failed for user_id=%s", user.id)
 
         return Response({"detail": "If the email exists, a reset link was sent."}, status=status.HTTP_200_OK)
 
