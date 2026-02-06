@@ -20,7 +20,6 @@ from django.conf import settings
 from django.conf.urls.static import static
 from apps.user.views import *
 from apps.weekly_challenges.views import ActiveWeeklyChallengeView
-from rest_framework.authtoken.views import obtain_auth_token
 from apps.habits.views import *
 from apps.habitRecord.views import *
 from apps.subject.views import *
@@ -31,10 +30,13 @@ from apps.events.views import *
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/signup/', RegisterView.as_view(), name="api_signup"),
-    path('api/login/', obtain_auth_token, name='api_login'),
+    path('api/login/', LoginView.as_view(), name='api_login'),
     path('api/user/me/', CurrentUserView.as_view(), name='current_user'),
     path('api/logout/', LogoutView.as_view(), name="api_logout"),
     path('api/delete-account/', DeleteAccountView.as_view(), name='delete_account'),
+    path('api/auth/password-reset/request/', PasswordResetRequestView.as_view(), name="password_reset_request"),
+    path('api/auth/password-reset/validate/', PasswordResetValidateView.as_view(), name="password_reset_validate"),
+    path('api/auth/password-reset/confirm/', PasswordResetConfirmView.as_view(), name="password_reset_confirm"),
     path('api/habits/', HabitListCreateView.as_view(), name='habit_list_create'),
     path('api/habits/<int:pk>/', HabitDetailView.as_view(), name='habit_detail'),
     path('api/habits/<int:habit_id>/complete/', CompleteHabitView.as_view(), name='complete_habit'),
