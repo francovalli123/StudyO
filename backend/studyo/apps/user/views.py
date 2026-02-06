@@ -288,7 +288,8 @@ class PasswordResetRequestView(APIView):
                 reset_token, raw_token = PasswordResetToken.issue_for_user(user)
                 logger.info("Password reset token created for user_id=%s", user.id)
                 query = urlencode({"token": raw_token, "email": user.email})
-                reset_link = f"{settings.SITE_URL}/reset-password.html?{query}"
+                FRONTEND_URL = "http://127.0.0.1:5500"
+                reset_link = f"{FRONTEND_URL}/reset-password.html?{query}"
 
                 try:
                     send_mail(

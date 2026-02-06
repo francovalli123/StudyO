@@ -9,23 +9,36 @@ https://docs.djangoproject.com/en/5.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
-
 from pathlib import Path
 import os
-from dotenv import load_dotenv
-load_dotenv()
+from pathlib import Path
+import os
+from dotenv import load_dotenv, dotenv_values
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-EMAIL_HOST = os.getenv("EMAIL_HOST", "smtp.gmail.com")
-EMAIL_PORT = int(os.getenv("EMAIL_PORT", 587))
-EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "covalabsarg@gmail.com")
-EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "srpn dlxw jvxj bqfz")
-EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "True") == "True"
-EMAIL_BACKEND = os.getenv("EMAIL_BACKEND", "django.core.mail.backends.smtp.EmailBackend")
-EMAIL_FILE_PATH = os.getenv("EMAIL_FILE_PATH", str(BASE_DIR / "mailbox"))
+# Leer .env como única fuente de verdad
+env = dotenv_values(BASE_DIR / ".env")
 
+# ======================
+# EMAIL CONFIG (SMTP)
+# ======================
+
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+
+EMAIL_HOST = env.get("EMAIL_HOST")
+EMAIL_PORT = int(env.get("EMAIL_PORT", 587))
+EMAIL_HOST_USER = env.get("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = env.get("EMAIL_HOST_PASSWORD")
+EMAIL_USE_TLS = env.get("EMAIL_USE_TLS", "True") == "True"
+
+DEFAULT_FROM_EMAIL = env.get(
+    "DEFAULT_FROM_EMAIL",
+    EMAIL_HOST_USER
+)
+
+if not EMAIL_HOST or not EMAIL_HOST_USER or not EMAIL_HOST_PASSWORD:
+    raise RuntimeError("SMTP config missing in .env")
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/

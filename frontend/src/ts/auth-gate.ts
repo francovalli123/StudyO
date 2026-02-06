@@ -1,6 +1,11 @@
 import { getCurrentUser, getToken, removeToken } from "./api.js";
 
-export type AuthStatus = "checking" | "authenticated" | "unauthenticated" | "public" | "error";
+export type AuthStatus =
+    | "checking"
+    | "authenticated"
+    | "unauthenticated"
+    | "public"
+    | "error";
 
 export interface AuthState {
     status: AuthStatus;
@@ -16,16 +21,16 @@ declare global {
     }
 }
 
+/**
+ * Rutas que NO requieren autenticación
+ * Estas páginas JAMÁS deben quedar bloqueadas por el auth gate
+ */
 const PUBLIC_ROUTES = [
     "/",
     "/index.html",
-    "/login",
     "/login.html",
-    "/register",
     "/register.html",
-    "/forgot-password",
     "/forgot-password.html",
-    "/reset-password",
     "/reset-password.html",
 ];
 
@@ -40,33 +45,41 @@ const authState: AuthState = {
 function updateAuthState(next: Partial<AuthState>) {
     Object.assign(authState, next);
     window.__studyoAuthState = { ...authState };
+
     try {
-        window.dispatchEvent(new CustomEvent("auth:state", { detail: window.__studyoAuthState }));
+        window.dispatchEvent(
+            new CustomEvent("auth:state", {
+                detail: window.__studyoAuthState,
+            })
+        );
     } catch {
-        // noop
+        /* noop */
     }
 }
 
+/**
+ * Loader SOLO para rutas protegidas
+ */
 function ensureAuthLoadingUI() {
-    const existing = document.getElementById("auth-loading");
-    if (!existing) {
-        const loader = document.createElement("div");
-        loader.id = "auth-loading";
-        loader.innerHTML = `
-            <div class="auth-loading-spinner"></div>
-            <div class="auth-loading-text">Verificando sesión...</div>
-        `;
-        document.body.appendChild(loader);
-    }
+    if (document.getElementById("auth-loading")) return;
+
+    const loader = document.createElement("div");
+    loader.id = "auth-loading";
+    loader.innerHTML = `
+        <div class="auth-loading-spinner"></div>
+        <div class="auth-loading-text">Verificando sesión...</div>
+    `;
+    document.body.appendChild(loader);
     document.documentElement.classList.add("auth-pending");
 }
 
 function clearAuthLoadingUI() {
     document.documentElement.classList.remove("auth-pending");
+    document.getElementById("auth-loading")?.remove();
 }
 
-function isPublicRoute(route: string) {
-    return PUBLIC_ROUTES.includes(route);
+function isPublicRoute(pathname: string): boolean {
+    return PUBLIC_ROUTES.includes(pathname);
 }
 
 function safeGetToken(): string | null {
@@ -77,27 +90,13 @@ function safeGetToken(): string | null {
     }
 }
 
-function shouldAppendNext(currentPath: string, loginPath: string) {
-    if (isPublicRoute(currentPath)) {
-        return false;
-    }
-    return !currentPath.endsWith(loginPath);
-}
-
-function buildLoginUrl(loginPath: string, currentPath: string) {
-    if (!shouldAppendNext(currentPath, loginPath)) {
-        return loginPath;
-    }
-    const next = encodeURIComponent(window.location.href);
-    return `${loginPath}?next=${next}`;
-}
-
 function resolveState(status: AuthStatus, payload?: Partial<AuthState>) {
     updateAuthState({
         status,
         authResolved: status !== "checking",
         ...payload,
     });
+
     if (status === "checking") {
         ensureAuthLoadingUI();
     } else {
@@ -106,51 +105,93 @@ function resolveState(status: AuthStatus, payload?: Partial<AuthState>) {
 }
 
 function redirectToLogin(loginPath: string, currentPath: string) {
-    if (isPublicRoute(currentPath) || currentPath.endsWith(loginPath)) {
-        return;
-    }
-    const loginUrl = buildLoginUrl(loginPath, currentPath);
-    window.location.href = loginUrl;
+    if (isPublicRoute(currentPath)) return;
+    if (currentPath.endsWith(loginPath)) return;
+
+    const next = encodeURIComponent(window.location.href);
+    window.location.href = `${loginPath}?next=${next}`;
 }
 
+/**
+ * INIT AUTH GATE
+ * ─────────────────────────────────────────────
+ * ✔ Nunca deja la UI en checking infinito
+ * ✔ Páginas públicas renderizan instantáneo
+ * ✔ Rutas protegidas validan token correctamente
+ */
 export async function initAuthGate(options?: { loginPath?: string }) {
-    const loginPath = options?.loginPath || "login.html";
+    const loginPath = options?.loginPath ?? "login.html";
     const currentPath = window.location.pathname;
-    const publicRoute = isPublicRoute(currentPath);
+    const isPublic = isPublicRoute(currentPath);
 
+    // 🔓 RUTAS PÚBLICAS → resolver inmediatamente
+    if (isPublic) {
+        const token = safeGetToken();
+        resolveState("public", {
+            isAuthenticated: !!token,
+            token,
+            user: null,
+        });
+        return;
+    }
+
+    // 🔒 RUTAS PROTEGIDAS → mostrar loader
     resolveState("checking");
 
+    const token = safeGetToken();
+
+    if (!token) {
+        resolveState("unauthenticated", {
+            isAuthenticated: false,
+            token: null,
+            user: null,
+        });
+        redirectToLogin(loginPath, currentPath);
+        return;
+    }
+
     try {
-        if (publicRoute) {
-            const token = safeGetToken();
-            resolveState("public", { isAuthenticated: !!token, token, user: null });
-            return;
-        }
-
-        const token = safeGetToken();
-        if (!token) {
-            resolveState("unauthenticated", { isAuthenticated: false, token: null, user: null });
-            redirectToLogin(loginPath, currentPath);
-            return;
-        }
-
         const user = await getCurrentUser();
-        resolveState("authenticated", { isAuthenticated: true, token, user });
-    } catch (error: any) {
-        const statusCode = error?.status ?? error?.response?.status;
+
+        resolveState("authenticated", {
+            isAuthenticated: true,
+            token,
+            user,
+        });
+    } catch (err: any) {
         removeToken();
+
+        const statusCode = err?.status ?? err?.response?.status;
+
         if (statusCode === 401 || statusCode === 403) {
-            resolveState("unauthenticated", { isAuthenticated: false, token: null, user: null });
-            redirectToLogin(loginPath, currentPath);
-            return;
+            resolveState("unauthenticated", {
+                isAuthenticated: false,
+                token: null,
+                user: null,
+            });
+        } else {
+            resolveState("error", {
+                isAuthenticated: false,
+                token: null,
+                user: null,
+            });
         }
-        resolveState("error", { isAuthenticated: false, token: null, user: null });
+
         redirectToLogin(loginPath, currentPath);
     }
 }
 
+/**
+ * Expiración forzada desde cualquier parte del sistema
+ */
 window.addEventListener("auth:expired", () => {
     const currentPath = window.location.pathname;
-    resolveState("unauthenticated", { isAuthenticated: false, token: null, user: null });
+
+    resolveState("unauthenticated", {
+        isAuthenticated: false,
+        token: null,
+        user: null,
+    });
+
     redirectToLogin("login.html", currentPath);
 });

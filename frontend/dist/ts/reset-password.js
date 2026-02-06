@@ -32,7 +32,7 @@ function validateToken() {
             statusEl.textContent = "El enlace es inválido o expiró.";
             statusEl.classList.add("error");
             if (form) {
-                form.querySelectorAll("input, button").forEach((el) => (el.disabled = true));
+                form.querySelectorAll("input, button").forEach((el) => el.disabled = true);
             }
         }
     });

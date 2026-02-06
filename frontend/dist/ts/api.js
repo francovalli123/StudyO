@@ -48,6 +48,9 @@ function getHeaders(contentType = "application/json") {
     }
     return headers;
 }
+/**
+ * Centralized request handler to manage responses and errors globally.
+ */
 function emitAuthExpired() {
     try {
         const capture = window.__studyoCaptureFocusState;
@@ -69,16 +72,12 @@ function emitAuthExpired() {
         // noop
     }
 }
-/**
- * Centralized request handler to manage responses and errors globally.
- */
 function handleRequest(response) {
     return __awaiter(this, void 0, void 0, function* () {
         // Handle 401/403 Unauthorized globally
         if (response.status === 401 || response.status === 403) {
             emitAuthExpired();
             removeToken();
-            // Optional: You could trigger a page reload or redirect here
             throw new Error("Session expired. Please login again.");
         }
         // Handle 204 No Content (common in DELETE or empty PUTs)
