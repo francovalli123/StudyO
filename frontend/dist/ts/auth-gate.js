@@ -56,6 +56,14 @@ function clearAuthLoadingUI() {
 function isPublicRoute(route) {
     return PUBLIC_ROUTES.includes(route);
 }
+function safeGetToken() {
+    try {
+        return getToken();
+    }
+    catch (_a) {
+        return null;
+    }
+}
 function shouldAppendNext(currentPath, loginPath) {
     if (isPublicRoute(currentPath)) {
         return false;
@@ -91,18 +99,18 @@ export function initAuthGate(options) {
         const currentPath = window.location.pathname;
         const publicRoute = isPublicRoute(currentPath);
         resolveState("checking");
-        if (publicRoute) {
-            const token = getToken();
-            resolveState("public", { isAuthenticated: !!token, token, user: null });
-            return;
-        }
-        const token = getToken();
-        if (!token) {
-            resolveState("unauthenticated", { isAuthenticated: false, token: null, user: null });
-            redirectToLogin(loginPath, currentPath);
-            return;
-        }
         try {
+            if (publicRoute) {
+                const token = safeGetToken();
+                resolveState("public", { isAuthenticated: !!token, token, user: null });
+                return;
+            }
+            const token = safeGetToken();
+            if (!token) {
+                resolveState("unauthenticated", { isAuthenticated: false, token: null, user: null });
+                redirectToLogin(loginPath, currentPath);
+                return;
+            }
             const user = yield getCurrentUser();
             resolveState("authenticated", { isAuthenticated: true, token, user });
         }

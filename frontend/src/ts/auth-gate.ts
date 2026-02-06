@@ -69,6 +69,14 @@ function isPublicRoute(route: string) {
     return PUBLIC_ROUTES.includes(route);
 }
 
+function safeGetToken(): string | null {
+    try {
+        return getToken();
+    } catch {
+        return null;
+    }
+}
+
 function shouldAppendNext(currentPath: string, loginPath: string) {
     if (isPublicRoute(currentPath)) {
         return false;
@@ -112,20 +120,20 @@ export async function initAuthGate(options?: { loginPath?: string }) {
 
     resolveState("checking");
 
-    if (publicRoute) {
-        const token = getToken();
-        resolveState("public", { isAuthenticated: !!token, token, user: null });
-        return;
-    }
-
-    const token = getToken();
-    if (!token) {
-        resolveState("unauthenticated", { isAuthenticated: false, token: null, user: null });
-        redirectToLogin(loginPath, currentPath);
-        return;
-    }
-
     try {
+        if (publicRoute) {
+            const token = safeGetToken();
+            resolveState("public", { isAuthenticated: !!token, token, user: null });
+            return;
+        }
+
+        const token = safeGetToken();
+        if (!token) {
+            resolveState("unauthenticated", { isAuthenticated: false, token: null, user: null });
+            redirectToLogin(loginPath, currentPath);
+            return;
+        }
+
         const user = await getCurrentUser();
         resolveState("authenticated", { isAuthenticated: true, token, user });
     } catch (error: any) {
