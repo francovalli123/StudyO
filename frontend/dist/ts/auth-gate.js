@@ -8,11 +8,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import { getCurrentUser, getToken, removeToken } from "./api.js";
-const DEFAULT_PUBLIC_ROUTES = [
-    "login.html",
-    "register.html",
-    "forgot-password.html",
-    "reset-password.html"
+const PUBLIC_ROUTES = [
+    "/",
+    "/index.html",
+    "/login.html",
+    "/register.html",
+    "/forgot-password.html",
+    "/reset-password.html",
 ];
 const authState = {
     isAuthenticated: false,
@@ -46,27 +48,42 @@ function ensureAuthLoadingUI() {
 function clearAuthLoadingUI() {
     document.documentElement.classList.remove("auth-pending");
 }
-function isPublicRoute(route, publicRoutes) {
-    return publicRoutes.some((entry) => route.endsWith(entry));
+function isPublicRoute(route) {
+    return PUBLIC_ROUTES.includes(route);
 }
-function redirectToLogin(loginPath) {
+function shouldAppendNext(currentPath, loginPath) {
+    if (isPublicRoute(currentPath)) {
+        return false;
+    }
+    return !currentPath.endsWith(loginPath);
+}
+function buildLoginUrl(loginPath, currentPath) {
+    if (!shouldAppendNext(currentPath, loginPath)) {
+        return loginPath;
+    }
     const next = encodeURIComponent(window.location.href);
-    window.location.href = `${loginPath}?next=${next}`;
+    return `${loginPath}?next=${next}`;
 }
 export function initAuthGate(options) {
-    var _a;
     return __awaiter(this, void 0, void 0, function* () {
-        const publicRoutes = (options === null || options === void 0 ? void 0 : options.publicRoutes) || DEFAULT_PUBLIC_ROUTES;
         const loginPath = (options === null || options === void 0 ? void 0 : options.loginPath) || "login.html";
-        const mode = (options === null || options === void 0 ? void 0 : options.mode) || (isPublicRoute(window.location.pathname, publicRoutes) ? "public" : "protected");
+        const currentPath = window.location.pathname;
+        const publicRoute = isPublicRoute(currentPath);
+        if (publicRoute) {
+            const token = getToken();
+            updateAuthState({ isAuthenticated: !!token, token, user: null, authResolved: true });
+            clearAuthLoadingUI();
+            return;
+        }
         ensureAuthLoadingUI();
         updateAuthState({ authResolved: false });
         const token = getToken();
         if (!token) {
             updateAuthState({ isAuthenticated: false, token: null, user: null, authResolved: true });
             clearAuthLoadingUI();
-            if (mode === "protected") {
-                redirectToLogin(loginPath);
+            const loginUrl = buildLoginUrl(loginPath, currentPath);
+            if (!currentPath.endsWith(loginPath)) {
+                window.location.href = loginUrl;
             }
             return;
         }
@@ -74,23 +91,23 @@ export function initAuthGate(options) {
             const user = yield getCurrentUser();
             updateAuthState({ isAuthenticated: true, token, user, authResolved: true });
             clearAuthLoadingUI();
-            if (mode === "public" && (options === null || options === void 0 ? void 0 : options.redirectAuthenticatedTo)) {
-                window.location.href = options.redirectAuthenticatedTo;
-            }
         }
         catch (error) {
             removeToken();
             updateAuthState({ isAuthenticated: false, token: null, user: null, authResolved: true });
             clearAuthLoadingUI();
-            if (mode === "protected") {
-                redirectToLogin(loginPath);
+            const loginUrl = buildLoginUrl(loginPath, currentPath);
+            if (!currentPath.endsWith(loginPath)) {
+                window.location.href = loginUrl;
             }
         }
     });
 }
 window.addEventListener("auth:expired", () => {
     updateAuthState({ isAuthenticated: false, token: null, user: null, authResolved: true });
-    if (!isPublicRoute(window.location.pathname, DEFAULT_PUBLIC_ROUTES)) {
-        redirectToLogin("login.html");
+    const currentPath = window.location.pathname;
+    if (!isPublicRoute(currentPath) && !currentPath.endsWith("login.html")) {
+        const loginUrl = buildLoginUrl("login.html", currentPath);
+        window.location.href = loginUrl;
     }
 });

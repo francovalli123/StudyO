@@ -1,7 +1,7 @@
 import { initAuthGate } from "./auth-gate.js";
 import { requestPasswordReset } from "./api.js";
 
-initAuthGate({ mode: "public", redirectAuthenticatedTo: "dashboard.html" });
+initAuthGate();
 
 const form = document.getElementById("forgotPasswordForm") as HTMLFormElement | null;
 const emailInput = document.getElementById("email") as HTMLInputElement | null;

@@ -37,7 +37,7 @@
 
     <script type="module">
         import { initAuthGate } from './dist/ts/auth-gate.js';
-        initAuthGate({ mode: 'public', redirectAuthenticatedTo: 'dashboard.html' });
+        initAuthGate();
     </script>
     <script type="module">
         import { login, getCurrentUser, apiGet } from './dist/ts/api.js';

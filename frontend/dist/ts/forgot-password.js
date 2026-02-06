@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 import { initAuthGate } from "./auth-gate.js";
 import { requestPasswordReset } from "./api.js";
-initAuthGate({ mode: "public", redirectAuthenticatedTo: "dashboard.html" });
+initAuthGate();
 const form = document.getElementById("forgotPasswordForm");
 const emailInput = document.getElementById("email");
 const statusEl = document.getElementById("statusMessage");
