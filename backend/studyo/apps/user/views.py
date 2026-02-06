@@ -5,13 +5,21 @@ from rest_framework.generics import CreateAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from .serializers import RegisterSerializer, UserSerializer
 from django.contrib.auth import get_user_model
+from django.contrib.auth import authenticate
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
+from django.core.mail import send_mail
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 import base64
+import hashlib
 from django.core.files.base import ContentFile
 from apps.pomodoroSession.models import PomodoroSession
+from django.conf import settings
+from django.utils import timezone
+from django.utils.http import urlencode
 
 User = get_user_model()
 
@@ -30,6 +38,36 @@ class RegisterView(CreateAPIView):
         print("RAW BODY:", request.body)
         print("REQUEST.DATA:", request.data)
         return super().post(request, *args, **kwargs)
+
+
+# ============================
+# Login (Custom Token)
+# ============================
+class LoginView(APIView):
+    permission_classes = [AllowAny]
+    parser_classes = [JSONParser]
+
+    def post(self, request):
+        username = request.data.get("username")
+        password = request.data.get("password")
+
+        if not username or not password:
+            return Response({"detail": "Username and password are required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        user = authenticate(request, username=username, password=password)
+        if not user:
+            return Response({"detail": "Invalid credentials."}, status=status.HTTP_401_UNAUTHORIZED)
+
+        AuthToken.objects.filter(user=user, is_active=True).update(is_active=False, expires_at=timezone.now())
+        token = AuthToken.create_for_user(user)
+
+        return Response(
+            {
+                "token": token.key,
+                "expires_at": token.expires_at,
+            },
+            status=status.HTTP_200_OK,
+        )
 
 # ============================
 # Usuario actual
@@ -211,7 +249,9 @@ class LogoutView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        request.user.auth_token.delete()
+        token = request.auth
+        if isinstance(token, AuthToken):
+            token.mark_inactive(reason="logout")
         return Response({"detail": "Sesión cerrada exitosamente"})
 
 
@@ -228,3 +268,106 @@ class DeleteAccountView(APIView):
             {"detail": "Cuenta eliminada exitosamente."},
             status=status.HTTP_204_NO_CONTENT
         )
+
+
+# ============================
+# Password Reset
+# ============================
+class PasswordResetRequestView(APIView):
+    permission_classes = [AllowAny]
+    parser_classes = [JSONParser]
+
+    def post(self, request):
+        email = (request.data.get("email") or "").strip().lower()
+        if email:
+            user = User.objects.filter(email__iexact=email).first()
+            if user:
+                PasswordResetToken.objects.filter(user=user, used_at__isnull=True).update(used_at=timezone.now())
+                reset_token, raw_token = PasswordResetToken.issue_for_user(user)
+                query = urlencode({"token": raw_token, "email": user.email})
+                reset_link = f"{settings.SITE_URL}/reset-password.html?{query}"
+
+                send_mail(
+                    subject="StudyO - Recuperación de contraseña",
+                    message=(
+                        f"Hola {user.username},\n\n"
+                        "Recibimos una solicitud para restablecer tu contraseña.\n"
+                        f"Usá este enlace para continuar: {reset_link}\n\n"
+                        "Si no hiciste esta solicitud, podés ignorar este correo."
+                    ),
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[user.email],
+                    fail_silently=True,
+                )
+
+        return Response({"detail": "If the email exists, a reset link was sent."}, status=status.HTTP_200_OK)
+
+
+class PasswordResetValidateView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        email = (request.query_params.get("email") or "").strip().lower()
+        token = (request.query_params.get("token") or "").strip()
+        if not email or not token:
+            return Response({"detail": "Missing token."}, status=status.HTTP_400_BAD_REQUEST)
+
+        user = User.objects.filter(email__iexact=email).first()
+        if not user:
+            return Response({"detail": "Invalid token."}, status=status.HTTP_400_BAD_REQUEST)
+
+        token_hash = hashlib.sha256(token.encode("utf-8")).hexdigest()
+        reset_token = PasswordResetToken.objects.filter(
+            user=user,
+            token_hash=token_hash,
+            used_at__isnull=True,
+            expires_at__gt=timezone.now(),
+        ).first()
+
+        if not reset_token:
+            return Response({"detail": "Invalid token."}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response({"detail": "Token valid."}, status=status.HTTP_200_OK)
+
+
+class PasswordResetConfirmView(APIView):
+    permission_classes = [AllowAny]
+    parser_classes = [JSONParser]
+
+    def post(self, request):
+        email = (request.data.get("email") or "").strip().lower()
+        token = (request.data.get("token") or "").strip()
+        new_password = request.data.get("password") or ""
+
+        if not email or not token or not new_password:
+            return Response({"detail": "Missing parameters."}, status=status.HTTP_400_BAD_REQUEST)
+
+        user = User.objects.filter(email__iexact=email).first()
+        if not user:
+            return Response({"detail": "Invalid token."}, status=status.HTTP_400_BAD_REQUEST)
+
+        token_hash = hashlib.sha256(token.encode("utf-8")).hexdigest()
+        reset_token = PasswordResetToken.objects.filter(
+            user=user,
+            token_hash=token_hash,
+            used_at__isnull=True,
+            expires_at__gt=timezone.now(),
+        ).first()
+
+        if not reset_token:
+            return Response({"detail": "Invalid token."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            validate_password(new_password, user=user)
+        except ValidationError as exc:
+            return Response({"detail": exc.messages}, status=status.HTTP_400_BAD_REQUEST)
+
+        user.set_password(new_password)
+        user.save(update_fields=["password"])
+
+        reset_token.used_at = timezone.now()
+        reset_token.save(update_fields=["used_at"])
+
+        AuthToken.objects.filter(user=user, is_active=True).update(is_active=False, expires_at=timezone.now())
+
+        return Response({"detail": "Password updated."}, status=status.HTTP_200_OK)

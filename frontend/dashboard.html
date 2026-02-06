@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>StudyO Main Page</title>
     <script>
+        document.documentElement.classList.add('auth-pending');
+    </script>
+    <script>
         (function(){
             const orig = console.warn;
             console.warn = function(...args){
@@ -855,6 +858,10 @@
         </div>
     </div>
 
+    <script type="module">
+        import { initAuthGate } from './dist/ts/auth-gate.js';
+        initAuthGate({ loginPath: 'login.html' });
+    </script>
     <script type="module" src="dist/ts/dashboard.js"></script>
     <script type="module" src="dist/ts/i18n-init.js"></script>
 </body>

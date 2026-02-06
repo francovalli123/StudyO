@@ -56,7 +56,6 @@ INSTALLED_APPS = [
     'apps.routineBlock',
     'apps.weekly_challenges',
     'corsheaders',
-    'rest_framework.authtoken',
     'django_apscheduler',
     'rest_framework',
     'apps.habitRecord.apps.HabitrecordConfig',
@@ -166,7 +165,7 @@ AUTH_USER_MODEL = 'user.User'
 # REST Framework configuration
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.TokenAuthentication',
+        'apps.user.authentication.ExpiringTokenAuthentication',
         'rest_framework.authentication.SessionAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
@@ -188,3 +187,7 @@ SITE_NAME = 'StudyO'
 DEFAULT_FROM_EMAIL = 'StudyO <no-reply@studyo.local>'
 SITE_URL = os.environ.get('SITE_URL', 'http://127.0.0.1:8000')
 
+# Token/session security configuration
+AUTH_TOKEN_TTL_MINUTES = int(os.environ.get('AUTH_TOKEN_TTL_MINUTES', 60))
+AUTH_TOKEN_REFRESH_WINDOW_MINUTES = int(os.environ.get('AUTH_TOKEN_REFRESH_WINDOW_MINUTES', 10))
+PASSWORD_RESET_TOKEN_TTL_MINUTES = int(os.environ.get('PASSWORD_RESET_TOKEN_TTL_MINUTES', 30))
