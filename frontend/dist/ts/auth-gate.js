@@ -27,6 +27,13 @@ const authState = {
     user: null,
     authResolved: false,
 };
+function resetGlobalScaleState() {
+    const targets = [document.documentElement, document.body].filter((el) => Boolean(el));
+    const properties = ["zoom", "transform", "transform-origin"];
+    targets.forEach((el) => {
+        properties.forEach((prop) => el.style.removeProperty(prop));
+    });
+}
 function updateAuthState(next) {
     Object.assign(authState, next);
     window.__studyoAuthState = Object.assign({}, authState);
@@ -97,6 +104,7 @@ function redirectToLogin(loginPath, currentPath) {
 export function initAuthGate(options) {
     return __awaiter(this, void 0, void 0, function* () {
         var _a, _b, _c;
+        resetGlobalScaleState();
         const loginPath = (_a = options === null || options === void 0 ? void 0 : options.loginPath) !== null && _a !== void 0 ? _a : "login.html";
         const currentPath = window.location.pathname;
         const isPublic = isPublicRoute(currentPath);
