@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from django.db import transaction
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.permissions import IsAuthenticated
 from apps.pomodoroSession.services import evaluate_weekly_challenge_for_pomodoro
@@ -17,13 +18,19 @@ class PomodoroSessionCreateView(ListCreateAPIView):
 
     def perform_create(self, serializer):
         """Save pomodoro and evaluate weekly challenge"""
-        pomodoro = serializer.save(user=self.request.user)
+        # Wrap all writes (session creation + weekly challenge evaluation) in a
+        # single atomic transaction. This enforces idempotency under double
+        # POSTs and reduces SQLite "database is locked" errors by keeping a
+        # single write lock for the entire flow.
+        with transaction.atomic():
+            pomodoro = serializer.save(user=self.request.user)
 
-        # Only evaluate weekly challenges for newly created sessions.
-        # Serializer sets `_created` attribute when returning an existing object.
-        created = getattr(pomodoro, '_created', True)
-        if created:
-            evaluate_weekly_challenge_for_pomodoro(self.request.user, pomodoro)
+            # Only evaluate weekly challenges for newly created sessions.
+            # Serializer sets `_created` when the unique constraint returns an
+            # existing session, so we skip duplicate increments.
+            created = getattr(pomodoro, '_created', True)
+            if created:
+                evaluate_weekly_challenge_for_pomodoro(self.request.user, pomodoro)
 
 
 class PomodoroSessionDetailView(RetrieveUpdateDestroyAPIView):
