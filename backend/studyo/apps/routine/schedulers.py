@@ -1,13 +1,46 @@
+from apscheduler.executors.pool import ThreadPoolExecutor
+from apscheduler.jobstores.memory import MemoryJobStore
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
-from django_apscheduler.jobstores import DjangoJobStore
-from django_apscheduler.models import DjangoJobExecution
 from django.conf import settings
 from django.core.management import call_command
+from django_apscheduler.jobstores import DjangoJobStore
+from django_apscheduler.util import close_old_connections
 import logging
+import os
+
+try:
+    import fcntl
+except ImportError:  # pragma: no cover - Windows fallback
+    fcntl = None
 
 logger = logging.getLogger(__name__)
 _scheduler = None
+_scheduler_lock_handle = None
+
+
+def _acquire_scheduler_lock():
+    """
+    Evita múltiples instancias del scheduler (especialmente en entornos multiproceso).
+    """
+    global _scheduler_lock_handle
+    if fcntl is None:
+        return True
+    if _scheduler_lock_handle is not None:
+        return True
+    lock_path = os.path.join("/tmp", "studyo_apscheduler.lock")
+    lock_handle = open(lock_path, "a+", encoding="utf-8")
+    try:
+        fcntl.flock(lock_handle.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except OSError:
+        lock_handle.close()
+        return False
+    _scheduler_lock_handle = lock_handle
+    return True
+
+
+def _is_sqlite_backend():
+    return settings.DATABASES.get("default", {}).get("ENGINE") == "django.db.backends.sqlite3"
 
 def start():
     """
@@ -28,8 +61,27 @@ def start():
         logger.info("Scheduler is already running, skipping new initialization")
         return _scheduler
 
-    scheduler = BackgroundScheduler(timezone=settings.TIME_ZONE)
-    scheduler.add_jobstore(DjangoJobStore(), "default")
+    if not _acquire_scheduler_lock():
+        logger.warning("Scheduler lock already held; skipping start to avoid duplicate instances.")
+        return _scheduler
+
+    job_defaults = {
+        "coalesce": True,
+        "max_instances": 1,
+        "misfire_grace_time": 300,
+    }
+    executors = {
+        "default": ThreadPoolExecutor(max_workers=1 if _is_sqlite_backend() else 5),
+    }
+    scheduler = BackgroundScheduler(
+        timezone=settings.TIME_ZONE,
+        job_defaults=job_defaults,
+        executors=executors,
+    )
+    if _is_sqlite_backend():
+        scheduler.add_jobstore(MemoryJobStore(), "default")
+    else:
+        scheduler.add_jobstore(DjangoJobStore(), "default")
 
     # ROLLOVER SEMANAL: Cada lunes a las 00:00 UTC
     # Este job usa UTC porque el rollover es universal para todos los usuarios
@@ -38,6 +90,7 @@ def start():
         trigger=CronTrigger(day_of_week="0", hour="0", minute="0"),  # Monday 00:00 UTC
         id="clean_weekly_objectives",
         max_instances=1,
+        coalesce=True,
         replace_existing=True,
     )
     
@@ -50,6 +103,7 @@ def start():
         trigger=CronTrigger(minute="*/5"),  # Cada 5 min para tolerar reinicios/desfase
         id="send_key_habits_reminders",
         max_instances=1,
+        coalesce=True,
         replace_existing=True,
     )
     
@@ -62,6 +116,7 @@ def start():
         trigger=CronTrigger(minute="*/5"),  # Cada 5 min para tolerar reinicios/desfase
         id="send_weekly_challenge_reminder",
         max_instances=1,
+        coalesce=True,
         replace_existing=True,
     )
     
@@ -74,6 +129,7 @@ def start():
         trigger=CronTrigger(minute="*/5"),  # Cada 5 min para tolerar reinicios/desfase
         id="send_weekly_objectives_reminder",
         max_instances=1,
+        coalesce=True,
         replace_existing=True,
     )
     
@@ -86,6 +142,7 @@ def start():
         trigger=CronTrigger(minute="*/5"),  # Cada 5 min para tolerar reinicios/desfase
         id="send_weekly_summary",
         max_instances=1,
+        coalesce=True,
         replace_existing=True,
     )
     
@@ -97,6 +154,7 @@ def start():
     return scheduler
 
 
+@close_old_connections
 def clean_weekly_objectives():
     """
     Función que ejecuta la limpieza y archivación de objetivos semanales.
@@ -109,6 +167,7 @@ def clean_weekly_objectives():
         logger.error(f"Error cleaning weekly objectives: {e}")
 
 
+@close_old_connections
 def send_key_habits_reminders_job():
     """
     Wrapper para ejecutar envío de recordatorios de hábitos clave desde APScheduler.
@@ -120,6 +179,7 @@ def send_key_habits_reminders_job():
         logger.error(f"Error in send_key_habits_reminders_job: {e}")
 
 
+@close_old_connections
 def send_weekly_challenge_reminder_job():
     """
     Wrapper para ejecutar envío de recordatorio de desafío semanal desde APScheduler.
@@ -131,6 +191,7 @@ def send_weekly_challenge_reminder_job():
         logger.error(f"Error in send_weekly_challenge_reminder_job: {e}")
 
 
+@close_old_connections
 def send_weekly_objectives_reminder_job():
     """
     Wrapper para ejecutar envío de recordatorio de objetivos semanales desde APScheduler.
@@ -142,6 +203,7 @@ def send_weekly_objectives_reminder_job():
         logger.error(f"Error in send_weekly_objectives_reminder_job: {e}")
 
 
+@close_old_connections
 def send_weekly_summary_job():
     """
     Wrapper para ejecutar envío de resumen semanal desde APScheduler.
