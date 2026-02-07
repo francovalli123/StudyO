@@ -32,6 +32,9 @@ function resetGlobalScaleState() {
     const properties = ["zoom", "transform", "transform-origin"];
     targets.forEach((el) => {
         properties.forEach((prop) => el.style.removeProperty(prop));
+        el.style.setProperty("zoom", "1");
+        el.style.setProperty("transform", "none");
+        el.style.setProperty("transform-origin", "0 0");
     });
 }
 function updateAuthState(next) {
@@ -78,6 +81,9 @@ function safeGetToken() {
     }
 }
 function resolveState(status, payload) {
+    var _a;
+    document.documentElement.classList.remove("auth-pending");
+    (_a = document.getElementById("auth-loading")) === null || _a === void 0 ? void 0 : _a.remove();
     updateAuthState(Object.assign({ status, authResolved: status !== "checking" }, payload));
     if (status === "checking") {
         ensureAuthLoadingUI();
@@ -103,9 +109,11 @@ function redirectToLogin(loginPath, currentPath) {
  */
 export function initAuthGate(options) {
     return __awaiter(this, void 0, void 0, function* () {
-        var _a, _b, _c;
+        var _a, _b, _c, _d;
+        document.documentElement.classList.remove("auth-pending");
+        (_a = document.getElementById("auth-loading")) === null || _a === void 0 ? void 0 : _a.remove();
         resetGlobalScaleState();
-        const loginPath = (_a = options === null || options === void 0 ? void 0 : options.loginPath) !== null && _a !== void 0 ? _a : "login.html";
+        const loginPath = (_b = options === null || options === void 0 ? void 0 : options.loginPath) !== null && _b !== void 0 ? _b : "login.html";
         const currentPath = window.location.pathname;
         const isPublic = isPublicRoute(currentPath);
         // 🔓 RUTAS PÚBLICAS → resolver inmediatamente
@@ -140,7 +148,7 @@ export function initAuthGate(options) {
         }
         catch (err) {
             removeToken();
-            const statusCode = (_b = err === null || err === void 0 ? void 0 : err.status) !== null && _b !== void 0 ? _b : (_c = err === null || err === void 0 ? void 0 : err.response) === null || _c === void 0 ? void 0 : _c.status;
+            const statusCode = (_c = err === null || err === void 0 ? void 0 : err.status) !== null && _c !== void 0 ? _c : (_d = err === null || err === void 0 ? void 0 : err.response) === null || _d === void 0 ? void 0 : _d.status;
             if (statusCode === 401 || statusCode === 403) {
                 resolveState("unauthenticated", {
                     isAuthenticated: false,

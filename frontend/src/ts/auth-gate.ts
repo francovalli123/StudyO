@@ -50,6 +50,9 @@ function resetGlobalScaleState() {
 
     targets.forEach((el) => {
         properties.forEach((prop) => el.style.removeProperty(prop));
+        el.style.setProperty("zoom", "1");
+        el.style.setProperty("transform", "none");
+        el.style.setProperty("transform-origin", "0 0")
     });
 }
 
@@ -102,6 +105,8 @@ function safeGetToken(): string | null {
 }
 
 function resolveState(status: AuthStatus, payload?: Partial<AuthState>) {
+    document.documentElement.classList.remove("auth-pending");
+    document.getElementById("auth-loading")?.remove();
     updateAuthState({
         status,
         authResolved: status !== "checking",
@@ -131,6 +136,8 @@ function redirectToLogin(loginPath: string, currentPath: string) {
  * ✔ Rutas protegidas validan token correctamente
  */
 export async function initAuthGate(options?: { loginPath?: string }) {
+    document.documentElement.classList.remove("auth-pending");
+    document.getElementById("auth-loading")?.remove();
     resetGlobalScaleState();
     const loginPath = options?.loginPath ?? "login.html";
     const currentPath = window.location.pathname;
