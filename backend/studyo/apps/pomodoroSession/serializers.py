@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from django.db import IntegrityError
 from .models import PomodoroSession
 
 # El serializer define cómo se convierte la sesion de Pomodoro en JSON (y viceversa), y qué campos mostrar
@@ -35,13 +36,24 @@ class PomodoroSessionSerializer(serializers.ModelSerializer):
         # Idempotency is required because the frontend can retry/duplicate the
         # POST when a pomodoro ends; the unique constraint guarantees we reuse
         # the same session instead of double-counting it.
-        obj, created = PomodoroSession.objects.get_or_create(
-            user=user,
-            start_time=start_time,
-            end_time=end_time,
-            duration=duration,
-            defaults=defaults
-        )
+        try:
+            obj, created = PomodoroSession.objects.get_or_create(
+                user=user,
+                start_time=start_time,
+                end_time=end_time,
+                duration=duration,
+                defaults=defaults
+            )
+        except IntegrityError:
+            # Accept duplicate POSTs as successful: another request won the race
+            # and created the same session, so we reuse it without re-counting.
+            obj = PomodoroSession.objects.get(
+                user=user,
+                start_time=start_time,
+                end_time=end_time,
+                duration=duration,
+            )
+            created = False
 
         # Attach a flag so callers can know whether this was newly created
         setattr(obj, '_created', created)
