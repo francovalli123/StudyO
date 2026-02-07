@@ -106,14 +106,8 @@ def close_expired_challenges(user: User, reference_dt: datetime) -> int:
         week_end__lt=current_week_start,
         status=WeeklyChallengeStatus.ACTIVE
     )
-
-    updated = 0
-    for ch in expired_qs.select_for_update():
-        ch.status = WeeklyChallengeStatus.FAILED
-        ch.save()
-        updated += 1
-
-    return updated
+    # Use a single UPDATE to reduce write queries and avoid looped saves.
+    return expired_qs.update(status=WeeklyChallengeStatus.FAILED)
 
 
 @transaction.atomic
