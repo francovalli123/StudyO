@@ -1,5 +1,4 @@
 from rest_framework import serializers
-from django.db import transaction
 from .models import PomodoroSession
 
 # El serializer define cómo se convierte la sesion de Pomodoro en JSON (y viceversa), y qué campos mostrar
@@ -14,7 +13,7 @@ class PomodoroSessionSerializer(serializers.ModelSerializer):
         """
         Defensive, idempotent creation: if a session with same user/start/end/duration
         already exists, return it instead of creating a duplicate. Uses
-        `get_or_create` inside a transaction to avoid race conditions.
+        `get_or_create` against a unique constraint to avoid double-counting.
 
         The view calls `serializer.save(user=self.request.user)` so `user` is
         expected to be passed as kwarg. If not provided, try to obtain it from
@@ -33,14 +32,16 @@ class PomodoroSessionSerializer(serializers.ModelSerializer):
             'notes': validated_data.get('notes', ''),
         }
 
-        with transaction.atomic():
-            obj, created = PomodoroSession.objects.get_or_create(
-                user=user,
-                start_time=start_time,
-                end_time=end_time,
-                duration=duration,
-                defaults=defaults
-            )
+        # Idempotency is required because the frontend can retry/duplicate the
+        # POST when a pomodoro ends; the unique constraint guarantees we reuse
+        # the same session instead of double-counting it.
+        obj, created = PomodoroSession.objects.get_or_create(
+            user=user,
+            start_time=start_time,
+            end_time=end_time,
+            duration=duration,
+            defaults=defaults
+        )
 
         # Attach a flag so callers can know whether this was newly created
         setattr(obj, '_created', created)

@@ -16,5 +16,13 @@ class PomodoroSession(models.Model):
     duration = models.IntegerField()  # Duracion en minutos
     notes = models.TextField(blank=True) # Notas, opcional
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'start_time', 'end_time', 'duration'],
+                name='unique_pomodoro_session_per_user_time_window',
+            )
+        ]
+
     def __str__(self):
         return f"Pomodoro de {self.user.username} desde {self.start_time} hasta {self.end_time}" # Para debuggear

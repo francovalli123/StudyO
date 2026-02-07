@@ -1,4 +1,3 @@
-from django.db import transaction
 from django.utils import timezone
 from django.contrib.auth import get_user_model
 from apps.pomodoroSession.models import PomodoroSession
@@ -7,12 +6,13 @@ from apps.weekly_challenges.evaluators import evaluate_weekly_challenge
 User = get_user_model()
 
 
-@transaction.atomic
 def evaluate_weekly_challenge_for_pomodoro(user: User, pomodoro_session: PomodoroSession):
     """
     Evaluate and update the weekly challenge after a pomodoro is created.
 
     Called in PomodoroSessionCreateView.perform_create()
+    and expected to run inside the same transaction as pomodoro creation
+    to avoid duplicate progress writes when duplicate POSTs occur.
 
     Args:
         user: The user who completed the pomodoro
