@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Características | StudyO</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-dark: #05070f;
+            --violet-main: #8b5cf6;
+            --violet-soft: #c4b5fd;
+            --text-main: #f8fafc;
+            --text-muted: #b0b6c3;
+            --line-subtle: rgba(255,255,255,0.06);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            line-height: 1.7;
+        }
+
+        .container {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+        }
+
+        /* ================= ANIMATIONS ================= */
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(42px);
+            transition:
+                opacity 0.9s ease,
+                transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .reveal.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .delay-1 { transition-delay: 0.12s; }
+        .delay-2 { transition-delay: 0.24s; }
+        .delay-3 { transition-delay: 0.36s; }
+        .delay-4 { transition-delay: 0.48s; }
+        .delay-5 { transition-delay: 0.6s; }
+        .delay-6 { transition-delay: 0.72s; }
+
+        /* ================= NAV ================= */
+
+        nav {
+            position: sticky;
+            top: 0;
+            background: rgba(5, 7, 15, 0.85);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--line-subtle);
+            z-index: 100;
+        }
+
+        .nav-inner {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.4rem 2rem;
+        }
+
+        .logo {
+            font-size: 1.4rem;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+        }
+
+        .logo-brand {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-size: 1.35rem;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+        }
+
+        .logo-brand i {
+            width: 22px;
+            height: 22px;
+            color: var(--text-main);
+        }
+
+        .btn-back {
+            color: var(--text-main);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            padding: 0.5rem 1.2rem;
+            border-radius: 8px;
+            border: 1px solid var(--line-subtle);
+            transition: 0.25s ease;
+        }
+
+        .btn-back:hover {
+            border-color: var(--violet-main);
+            color: var(--violet-soft);
+        }
+
+        /* ================= HERO ================= */
+
+        .hero {
+            padding: 7rem 0 5rem;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: clamp(2.6rem, 6vw, 4rem);
+            font-weight: 800;
+            letter-spacing: -0.05em;
+            line-height: 1.1;
+            margin-bottom: 1.6rem;
+        }
+
+        .gradient-text {
+            background: linear-gradient(90deg, var(--violet-soft), var(--violet-main));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p {
+            max-width: 720px;
+            margin: 0 auto;
+            font-size: 1.15rem;
+            color: var(--text-muted);
+        }
+
+        /* ================= FEATURES ================= */
+
+        .features {
+            padding: 6rem 0;
+        }
+
+        .feature {
+            padding: 3.2rem 0;
+            border-bottom: 1px solid var(--line-subtle);
+            display: grid;
+            grid-template-columns: 80px 1fr;
+            gap: 2rem;
+        }
+
+        .feature-index {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--violet-main);
+        }
+
+        .feature h2 {
+            font-size: 1.6rem;
+            margin-bottom: 0.8rem;
+        }
+
+        .feature p {
+            color: var(--text-muted);
+            max-width: 720px;
+            margin-bottom: 0.8rem;
+        }
+
+        .feature ul {
+            list-style: none;
+            color: var(--text-muted);
+        }
+
+        .feature ul li::before {
+            content: "– ";
+            color: var(--violet-main);
+        }
+
+        /* ================= CLOSING ================= */
+
+        .closing {
+            padding: 7rem 0 6rem;
+            text-align: center;
+        }
+
+        .closing h2 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            line-height: 1.2;
+            margin-bottom: 1.4rem;
+        }
+
+        .closing p {
+            font-size: 1.1rem;
+            color: var(--text-muted);
+        }
+
+        /* ================= FOOTER ================= */
+
+        footer {
+            border-top: 1px solid var(--line-subtle);
+            padding: 3rem 0;
+            text-align: center;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        @media (max-width: 640px) {
+            .feature {
+                grid-template-columns: 1fr;
+                padding: 2.4rem 0.8rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<nav>
+    <div class="nav-inner">
+        <div class="logo-brand">
+            <i data-lucide="book-open"></i>
+            <span>StudyO</span>
+        </div>
+        <a href="index.html" class="btn-back">Volver</a>
+    </div>
+</nav>
+
+<main>
+
+<section class="hero container reveal">
+    <h1>
+        Características de StudyO<br>
+        <span class="gradient-text">Un sistema, no una app más</span>
+    </h1>
+    <p class="delay-1">
+        Cada funcionalidad de StudyO existe para resolver un problema real:
+        foco, constancia y progreso medible.
+    </p>
+</section>
+
+<section class="features container">
+
+    <div class="feature reveal">
+        <span class="feature-index">01</span>
+        <div>
+            <h2>Plan de Dominación Semanal</h2>
+            <p>Tu semana como una unidad cerrada.</p>
+            <ul>
+                <li>Prioridades claras</li>
+                <li>Historial automático</li>
+                <li>Resumen semanal</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="feature reveal delay-1">
+        <span class="feature-index">02</span>
+        <div>
+            <h2>Pomodoro Inteligente</h2>
+            <p>Tiempo convertido en datos.</p>
+            <ul>
+                <li>Modo concentración total</li>
+                <li>Asociado a materias</li>
+                <li>Registro real</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="feature reveal delay-2">
+        <span class="feature-index">03</span>
+        <div>
+            <h2>Visualización de Progreso</h2>
+            <p>El progreso deja de ser subjetivo.</p>
+            <ul>
+                <li>Distribución semanal</li>
+                <li>Ritmo de estudio</li>
+                <li>Picos de productividad</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="feature reveal delay-3">
+        <span class="feature-index">04</span>
+        <div>
+            <h2>Desafío Semanal Activo</h2>
+            <p>Superás tu propio estándar.</p>
+            <ul>
+                <li>Asignación automática</li>
+                <li>Seguimiento real</li>
+                <li>Mejora continua</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="feature reveal delay-4">
+        <span class="feature-index">05</span>
+        <div>
+            <h2>Hábitos y Constancia</h2>
+            <p>La disciplina se vuelve identidad.</p>
+            <ul>
+                <li>Rachas visibles</li>
+                <li>Recordatorios inteligentes</li>
+                <li>Seguimiento diario</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="feature reveal delay-5">
+        <span class="feature-index">06</span>
+        <div>
+            <h2>Sistema Académico Integrado</h2>
+            <p>Todo conectado a tu tiempo real.</p>
+            <ul>
+                <li>Estimado vs real</li>
+                <li>Progreso automático</li>
+                <li>Planner académico</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="feature reveal delay-6">
+        <span class="feature-index">07</span>
+        <div>
+            <h2>Progreso a Largo Plazo</h2>
+            <p>StudyO guarda tu historia.</p>
+            <ul>
+                <li>Heatmap estilo GitHub</li>
+                <li>Evolución mensual</li>
+                <li>Historial completo</li>
+            </ul>
+        </div>
+    </div>
+
+</section>
+
+<section class="closing container reveal">
+    <h2>
+        No estudias más.<br>
+        <span class="gradient-text">Estudias mejor.</span>
+    </h2>
+    <p>Esfuerzo → datos → progreso real.</p>
+</section>
+
+</main>
+
+<footer>
+    <p>&copy; 2026 StudyO · CoVaLabs. Todos los derechos reservados</p>
+</footer>
+
+<script>
+    const reveals = document.querySelectorAll('.reveal');
+
+    const observer = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('show');
+                observer.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.15 });
+
+    reveals.forEach(el => observer.observe(el));
+</script>
+<script src="https://unpkg.com/lucide@latest"></script>
+
+<script>
+    lucide.createIcons();
+</script>
+
+</body>
+</html>

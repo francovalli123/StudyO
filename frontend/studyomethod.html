@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Método StudyO</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-dark: #05070f;
+            --bg-soft: rgba(255,255,255,0.025);
+
+            --violet-main: #8b5cf6;
+            --violet-soft: #c4b5fd;
+
+            --text-main: #f8fafc;
+            --text-muted: #b0b6c3;
+
+            --line-subtle: rgba(255,255,255,0.06);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            line-height: 1.7;
+        }
+
+        .container {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+        }
+
+        /* ================= NAV ================= */
+
+        nav {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(5, 7, 15, 0.85);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--line-subtle);
+        }
+
+        .nav-inner {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.4rem 2rem;
+        }
+
+        .logo {
+            font-size: 1.4rem;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+        }
+
+                .logo-brand {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-size: 1.35rem;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+        }
+
+        .logo-brand i {
+            width: 22px;
+            height: 22px;
+            color: var(--text-main);
+        }
+
+        .btn-back {
+            color: var(--text-main);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            padding: 0.5rem 1.2rem;
+            border-radius: 8px;
+            border: 1px solid var(--line-subtle);
+            transition: transform 0.25s ease, border-color 0.25s ease, color 0.25s ease;
+        }
+
+        .btn-back:hover {
+            transform: translateY(-2px);
+            border-color: var(--violet-main);
+            color: var(--violet-soft);
+        }
+
+        /* ================= HERO ================= */
+
+        .hero {
+            padding: 7rem 0 5rem;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: clamp(2.6rem, 6vw, 4rem);
+            font-weight: 800;
+            letter-spacing: -0.05em;
+            line-height: 1.1;
+            margin-bottom: 1.6rem;
+        }
+
+        .gradient-text {
+            background: linear-gradient(90deg, var(--violet-soft), var(--violet-main));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p {
+            max-width: 680px;
+            margin: 0 auto;
+            font-size: 1.15rem;
+            color: var(--text-muted);
+        }
+
+        /* ================= SECTIONS ================= */
+
+        .manifesto,
+        .method,
+        .system,
+        .closing {
+            padding: 6.5rem 0;
+        }
+
+        .manifesto,
+        .closing {
+            text-align: center;
+        }
+
+        .manifesto h2,
+        .closing h2 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            margin-bottom: 1.5rem;
+            line-height: 1.2;
+        }
+
+        .manifesto p,
+        .closing p {
+            max-width: 760px;
+            margin: 0 auto;
+            font-size: 1.1rem;
+            color: var(--text-muted);
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 5rem;
+        }
+
+        .section-header h2 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .section-header p {
+            color: var(--text-muted);
+            font-size: 1.05rem;
+        }
+
+        /* ================= METHOD ================= */
+
+        .method-step {
+            display: grid;
+            grid-template-columns: 60px 1fr;
+            gap: 1.8rem;
+            padding: 2.8rem 0;
+            border-bottom: 1px solid var(--line-subtle);
+            transition: transform 0.3s ease;
+        }
+
+        .method-step:hover {
+            transform: translateX(6px);
+        }
+
+        .step-index {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--violet-main);
+        }
+
+        .method-step h3 {
+            font-size: 1.35rem;
+            margin-bottom: 0.6rem;
+        }
+
+        .method-step p {
+            color: var(--text-muted);
+            max-width: 700px;
+        }
+
+        /* ================= SYSTEM ================= */
+
+        .system {
+            background: linear-gradient(
+                to bottom,
+                rgba(255,255,255,0.02),
+                transparent
+            );
+        }
+
+        .system-list {
+            max-width: 720px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1.6rem;
+        }
+
+        .system-item {
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+            padding-left: 1.2rem;
+            border-left: 3px solid var(--violet-main);
+            transition: transform 0.25s ease;
+        }
+
+        .system-item:hover {
+            transform: translateX(8px);
+        }
+
+        .system-item strong {
+            color: var(--violet-soft);
+            font-weight: 600;
+        }
+
+        .system-item span {
+            color: var(--text-muted);
+        }
+
+        /* ================= FOOTER ================= */
+
+        footer {
+            border-top: 1px solid var(--line-subtle);
+            padding: 3rem 0;
+            text-align: center;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        /* ================= ANIMATIONS ================= */
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(24px);
+            transition: opacity 0.8s ease, transform 0.8s ease;
+        }
+
+        .reveal.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* ================= RESPONSIVE ================= */
+
+        @media (max-width: 640px) {
+            .method-step {
+                grid-template-columns: 1fr;
+                padding: 2.2rem 0.8rem;
+            }
+
+            .step-index {
+                margin-bottom: 0.4rem;
+            }
+        }
+
+    </style>
+</head>
+
+<body>
+
+<nav>
+    <div class="nav-inner">
+        <div class="logo-brand">
+            <i data-lucide="book-open"></i>
+            <span>StudyO</span>
+        </div>
+        <a href="index.html" class="btn-back">Volver</a>
+    </div>
+</nav>
+
+<main>
+
+    <section class="hero container reveal">
+        <h1>
+            El Método StudyO<br>
+            <span class="gradient-text">Diseñar el estudio como un sistema</span>
+        </h1>
+        <p>
+            StudyO no te empuja a estudiar más.
+            Te da una estructura clara para que el esfuerzo
+            se convierta en progreso medible.
+        </p>
+    </section>
+
+    <section class="manifesto container reveal">
+        <h2>
+            La mayoría no falla por falta de capacidad.<br>
+            <span class="gradient-text">Falla por falta de estructura.</span>
+        </h2>
+        <p>
+            En CoVaLabs creemos que los sistemas bien diseñados
+            mejoran la calidad de vida.
+            StudyO aplica esa filosofía al estudio:
+            menos improvisación, más claridad;
+            menos culpa, más control.
+        </p>
+    </section>
+
+    <section class="method container">
+        <div class="section-header reveal">
+            <h2>Cómo funciona el Método</h2>
+            <p>Un sistema simple, pero profundamente intencional.</p>
+        </div>
+
+        <div class="method-step reveal"><span class="step-index">01</span><div><h3>Dominación Semanal</h3><p>Cada semana se planifica como una unidad cerrada.</p></div></div>
+        <div class="method-step reveal"><span class="step-index">02</span><div><h3>Enfoque Profundo</h3><p>Cada sesión queda asociada a una asignatura.</p></div></div>
+        <div class="method-step reveal"><span class="step-index">03</span><div><h3>Progreso Visible</h3><p>Feedback objetivo y métricas claras.</p></div></div>
+        <div class="method-step reveal"><span class="step-index">04</span><div><h3>Desafíos Semanales</h3><p>Elevar el estándar personal.</p></div></div>
+        <div class="method-step reveal"><span class="step-index">05</span><div><h3>Constancia Automatizada</h3><p>La disciplina se vuelve natural.</p></div></div>
+    </section>
+
+    <section class="system container">
+        <div class="section-header reveal">
+            <h2>Todo está conectado</h2>
+            <p>Un solo sistema. Múltiples perspectivas.</p>
+        </div>
+
+        <div class="system-list">
+            <div class="system-item reveal"><strong>Tablero</strong><span>Foco diario.</span></div>
+            <div class="system-item reveal"><strong>Planificador</strong><span>Eventos sin fricción.</span></div>
+            <div class="system-item reveal"><strong>Asignaturas</strong><span>Esfuerzo medido.</span></div>
+            <div class="system-item reveal"><strong>Hábitos</strong><span>Constancia real.</span></div>
+            <div class="system-item reveal"><strong>Progreso</strong><span>Datos claros.</span></div>
+        </div>
+    </section>
+
+    <section class="closing container reveal">
+        <h2>No es fuerza de voluntad.<br><span class="gradient-text">Es diseño aplicado.</span></h2>
+        <p>Vos ponés el esfuerzo.<br>StudyO pone el sistema.</p>
+    </section>
+
+</main>
+
+<footer>
+    <p>&copy; 2026 StudyO · CoVaLabs. Todos los derechos reservados.</p>
+</footer>
+
+<script>
+    const observer = new IntersectionObserver(entries => {
+        entries.forEach((entry, index) => {
+            if (entry.isIntersecting) {
+                setTimeout(() => {
+                    entry.target.classList.add('show');
+                }, index * 120);
+                observer.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.15 });
+
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+<script src="https://unpkg.com/lucide@latest"></script>
+
+<script>
+    lucide.createIcons();
+</script>
+
+</body>
+</html>

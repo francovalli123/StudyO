@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Novedades | StudyO</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Lucide -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        /* =========================================
+           GLOBAL
+        ========================================= */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0B0B0D;
+            color: #fff;
+            min-height: 100vh;
+        }
+
+        /* =========================================
+           NAVBAR
+        ========================================= */
+        header nav {
+            padding: 24px 8%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 22px;
+            font-weight: 600;
+        }
+
+        .logo i {
+            width: 22px;
+            height: 22px;
+        }
+
+        /* =========================================
+           HERO
+        ========================================= */
+        .hero {
+            padding: 80px 8% 40px;
+            max-width: 1100px;
+            margin: auto;
+            text-align: center;
+        }
+
+        .hero h1 {
+            font-size: 48px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .hero h1 span {
+            color: #a78bfa;
+        }
+
+        .hero p {
+            color: #9ca3af;
+            max-width: 520px;
+            margin: auto;
+            line-height: 1.6;
+        }
+
+        /* =========================================
+           TIMELINE
+        ========================================= */
+        .timeline {
+            position: relative;
+            max-width: 900px;
+            margin: 80px auto;
+            padding-left: 40px;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 12px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: linear-gradient(
+                to bottom,
+                transparent,
+                #7c3aed,
+                #7c3aed,
+                transparent
+            );
+            opacity: 0.6;
+        }
+
+        .entry {
+            position: relative;
+            margin-bottom: 70px;
+            display: flex;
+            gap: 28px;
+        }
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            background: #a78bfa;
+            border-radius: 50%;
+            margin-top: 8px;
+            flex-shrink: 0;
+            box-shadow: 0 0 0 6px rgba(167,139,250,0.12);
+        }
+
+        .entry-content {
+            max-width: 600px;
+        }
+
+        .meta {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+            font-size: 13px;
+            color: #9ca3af;
+        }
+
+        .tag {
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.4px;
+        }
+
+        .tag.new {
+            background: #7c3aed;
+            color: white;
+        }
+
+        .tag.improve {
+            background: #0ea5e9;
+            color: #001018;
+        }
+
+        .tag.fix {
+            background: #f97316;
+            color: #180a02;
+        }
+
+        .tag.exp {
+            background: #22c55e;
+            color: #052e16;
+        }
+
+        .entry-content h2 {
+            font-size: 22px;
+            margin-bottom: 10px;
+        }
+
+        .entry-content p {
+            color: #cbd5f5;
+            line-height: 1.6;
+            margin-bottom: 8px;
+        }
+
+        .impact {
+            font-size: 14px;
+            color: #a78bfa;
+        }
+
+        /* =========================================
+           REVEAL ANIMATIONS
+        ========================================= */
+        .reveal {
+            opacity: 0;
+            transform: translateY(25px);
+            transition: all 0.7s ease;
+        }
+
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .delay-1 { transition-delay: 0.1s; }
+        .delay-2 { transition-delay: 0.2s; }
+        .delay-3 { transition-delay: 0.3s; }
+        .delay-4 { transition-delay: 0.4s; }
+
+        .btn-back {
+            font-size: 14px;
+            font-weight: 500;
+            color: white; /* 👈 BLANCO */
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.08);
+            transition: all 0.25s ease;
+        }
+
+        .btn-back:hover {
+            border-color: #a78bfa;
+            background: rgba(167,139,250,0.08);
+        }
+
+
+    </style>
+</head>
+<body>
+
+<header>
+    <nav>
+        <div class="logo">
+            <i data-lucide="book-open"></i>
+            <span>StudyO</span>
+        </div>
+
+        <a href="index.html" class="btn-back">Volver</a>
+    </nav>
+</header>
+
+
+<section class="hero">
+    <h1>Novedades de <span>StudyO</span></h1>
+    <p>
+        Cambios reales, mejoras medibles y decisiones pensadas para el foco,
+        la constancia y el progreso sostenido.
+    </p>
+</section>
+
+<section class="timeline">
+
+    <div class="entry reveal">
+        <div class="dot"></div>
+        <div class="entry-content">
+            <div class="meta">
+                <span class="date">3 Feb 2026</span>
+                <span class="tag new">NUEVO</span>
+            </div>
+            <h2>Plan de Dominación Semanal v2</h2>
+            <p>
+                Los planes semanales ahora se archivan automáticamente al cerrar la semana.
+            </p>
+            <div class="impact">
+                Impacto: historial completo sin perder contexto.
+            </div>
+        </div>
+    </div>
+
+    <div class="entry reveal delay-1">
+        <div class="dot"></div>
+        <div class="entry-content">
+            <div class="meta">
+                <span class="date">31 Ene 2026</span>
+                <span class="tag improve">MEJORA</span>
+            </div>
+            <h2>Pomodoro más preciso</h2>
+            <p>
+                Ajustamos el registro de sesiones para evitar duplicaciones en pausas y recargas.
+            </p>
+            <div class="impact">
+                Impacto: datos confiables para decisiones reales.
+            </div>
+        </div>
+    </div>
+
+    <div class="entry reveal delay-2">
+        <div class="dot"></div>
+        <div class="entry-content">
+            <div class="meta">
+                <span class="date">28 Ene 2026</span>
+                <span class="tag improve">MEJORA</span>
+            </div>
+            <h2>Distribución real de enfoque</h2>
+            <p>
+                Los gráficos ahora excluyen pausas y descansos automáticamente.
+            </p>
+            <div class="impact">
+                Impacto: mediciones de enfoque reales, podes tomarte todo el descanso que necesites.
+            </div>
+        </div>
+    </div>
+
+    <div class="entry reveal delay-3">
+        <div class="dot"></div>
+        <div class="entry-content">
+            <div class="meta">
+                <span class="date">25 Ene 2026</span>
+                <span class="tag fix">CORRECCIÓN</span>
+            </div>
+            <h2>Rachas semanales</h2>
+            <p>
+                Corregimos un bug que reiniciaba rachas por diferencia horaria.
+            </p>
+            <div class="impact">
+                Impacto: ahora tener 24 horas completas para completar tus hábitos.
+            </div>
+        </div>
+    </div>
+
+    <div class="entry reveal delay-4">
+        <div class="dot"></div>
+        <div class="entry-content">
+            <div class="meta">
+                <span class="date">22 Ene 2026</span>
+                <span class="tag exp">EXPERIMENTO</span>
+            </div>
+            <h2>Desafíos semanales dinámicos</h2>
+            <p>
+                Algunos usuarios reciben desafíos adaptados a su historial real. Esta funcionalida todavia esta en desarrollo.
+            </p>
+        </div>
+    </div>
+
+</section>
+
+<script>
+    lucide.createIcons();
+
+    const reveals = document.querySelectorAll('.reveal');
+
+    const observer = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+            }
+        });
+    }, { threshold: 0.15 });
+
+    reveals.forEach(r => observer.observe(r));
+</script>
+
+</body>
+</html>
