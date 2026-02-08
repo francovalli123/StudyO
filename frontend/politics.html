@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Políticas de Seguridad | StudyO</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-dark: #05070f;
+            --violet-main: #8b5cf6;
+            --violet-soft: #c4b5fd;
+            --text-main: #f8fafc;
+            --text-muted: #b0b6c3;
+            --line-subtle: rgba(255,255,255,0.06);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--bg-dark);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            line-height: 1.7;
+        }
+
+        /* ================= HEADER ================= */
+
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(5, 7, 15, 0.85);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--line-subtle);
+        }
+
+        .top-nav {
+            width: 100%;
+            padding: 25px 8%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 22px;
+            font-weight: 600;
+        }
+
+        .logo i {
+            width: 22px;
+            height: 22px;
+            color: white;
+        }
+
+        .btn-back {
+            padding: 10px 18px;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.12);
+            background: transparent;
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+            transition: 0.25s ease;
+        }
+
+        .btn-back:hover {
+            border-color: var(--violet-main);
+            color: var(--violet-soft);
+        }
+
+        /* ================= CONTAINER ================= */
+
+        .container {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+        }
+
+        /* ================= ANIMATIONS ================= */
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(42px);
+            transition: opacity 0.9s ease, transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .reveal.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .delay-1 { transition-delay: 0.15s; }
+        .delay-2 { transition-delay: 0.3s; }
+        .delay-3 { transition-delay: 0.45s; }
+        .delay-4 { transition-delay: 0.6s; }
+
+        /* ================= HERO ================= */
+
+        .hero {
+            padding: 7rem 0 5rem;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: clamp(2.6rem, 6vw, 3.8rem);
+            font-weight: 800;
+            letter-spacing: -0.05em;
+            line-height: 1.1;
+            margin-bottom: 1.6rem;
+        }
+
+        .gradient-text {
+            background: linear-gradient(90deg, var(--violet-soft), var(--violet-main));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p {
+            max-width: 720px;
+            margin: 0 auto;
+            font-size: 1.1rem;
+            color: var(--text-muted);
+        }
+
+        /* ================= SECTIONS ================= */
+
+        .policy-section {
+            padding: 4.5rem 0;
+            border-top: 1px solid var(--line-subtle);
+        }
+
+        .policy-section h2 {
+            font-size: 1.8rem;
+            margin-bottom: 1.2rem;
+        }
+
+        .policy-section p {
+            max-width: 720px;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+        }
+
+        .policy-section ul {
+            list-style: none;
+            max-width: 720px;
+            color: var(--text-muted);
+        }
+
+        .policy-section ul li {
+            margin-bottom: 0.6rem;
+        }
+
+        .policy-section ul li::before {
+            content: "– ";
+            color: var(--violet-main);
+        }
+
+        /* ================= FOOTER ================= */
+
+        footer {
+            border-top: 1px solid var(--line-subtle);
+            padding: 3rem 0;
+            text-align: center;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <nav class="top-nav">
+        <div class="logo">
+            <i data-lucide="book-open"></i>
+            <span>StudyO</span>
+        </div>
+
+        <a href="index.html" class="btn-back">Volver</a>
+    </nav>
+</header>
+
+<main>
+
+<section class="hero container reveal">
+    <h1>
+        Políticas de <span class="gradient-text">Seguridad</span>
+    </h1>
+    <p>
+        StudyO fue diseñado como un sistema confiable desde su núcleo.
+        La seguridad no es un agregado: es parte de la arquitectura.
+    </p>
+</section>
+
+<section class="policy-section container reveal delay-1">
+    <h2>Principios</h2>
+    <ul>
+        <li><strong>Zero Trust:</strong> cada request valida token, usuario y permisos antes de acceder a datos o acciones protegidas.</li>
+        <li><strong>Seguridad sin fricción cognitiva:</strong> la sesión se mantiene viva mientras exista actividad legítima.</li>
+        <li><strong>Menor privilegio:</strong> todas las rutas son privadas por defecto.</li>
+    </ul>
+</section>
+
+<section class="policy-section container reveal delay-2">
+    <h2>Autenticación y sesión</h2>
+    <ul>
+        <li>Token propio con expiración por actividad (TTL base + extensión segura).</li>
+        <li>Revocación inmediata de tokens en logout y cambio de contraseña.</li>
+        <li>Invalidación de sesiones previas al iniciar sesión.</li>
+    </ul>
+</section>
+
+<section class="policy-section container reveal delay-3">
+    <h2>Recuperación de contraseña</h2>
+    <ul>
+        <li>Respuestas uniformes para evitar enumeración de cuentas.</li>
+        <li>Tokens de alta entropía con hash y expiración corta.</li>
+        <li>Invalidación de sesiones activas al confirmar el cambio.</li>
+    </ul>
+</section>
+
+<section class="policy-section container reveal delay-4">
+    <h2>Integridad, privacidad y operación</h2>
+    <ul>
+        <li>Validaciones server-side y ORM en todas las operaciones.</li>
+        <li>Contraseñas gestionadas con métodos seguros.</li>
+        <li>Sin logs de credenciales ni tokens.</li>
+        <li>CORS y CSRF configurados por entorno.</li>
+        <li>Parámetros sensibles controlados por variables de entorno.</li>
+    </ul>
+</section>
+
+</main>
+
+<footer>
+    <p>&copy; 2026 StudyO · CoVaLabs. Todos los derechos reservados.</p>
+</footer>
+
+<script>
+    const reveals = document.querySelectorAll('.reveal');
+
+    const observer = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('show');
+                observer.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.15 });
+
+    reveals.forEach(el => observer.observe(el));
+</script>
+
+<script src="https://unpkg.com/lucide@latest"></script>
+<script>
+    lucide.createIcons();
+</script>
+
+</body>
+</html>

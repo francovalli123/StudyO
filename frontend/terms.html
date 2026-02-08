@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Términos | StudyO</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Lucide -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        /* =========================================
+           GLOBAL
+        ========================================= */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0B0B0D;
+            color: #fff;
+            min-height: 100vh;
+        }
+
+        /* =========================================
+           NAVBAR
+        ========================================= */
+        header nav {
+            padding: 24px 8%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 22px;
+            font-weight: 600;
+        }
+
+        .logo i {
+            width: 22px;
+            height: 22px;
+        }
+
+        .btn-back {
+            font-size: 14px;
+            font-weight: 500;
+            color: white;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.08);
+            transition: all 0.25s ease;
+        }
+
+        .btn-back:hover {
+            border-color: #a78bfa;
+            background: rgba(167,139,250,0.08);
+        }
+
+        /* =========================================
+           HERO
+        ========================================= */
+        .hero {
+            padding: 80px 8% 40px;
+            max-width: 1100px;
+            margin: auto;
+            text-align: center;
+        }
+
+        .hero h1 {
+            font-size: 48px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .hero h1 span {
+            color: #a78bfa;
+        }
+
+        .hero p {
+            color: #9ca3af;
+            max-width: 620px;
+            margin: auto;
+            line-height: 1.6;
+        }
+
+        /* =========================================
+           CONTENT
+        ========================================= */
+        .content {
+            max-width: 900px;
+            margin: 80px auto;
+            padding: 0 8%;
+        }
+
+        .section {
+            margin-bottom: 60px;
+        }
+
+        .section h2 {
+            font-size: 22px;
+            font-weight: 600;
+            margin-bottom: 14px;
+            color: #fff;
+        }
+
+        .section p {
+            color: #cbd5f5;
+            line-height: 1.7;
+            margin-bottom: 10px;
+            max-width: 760px;
+        }
+
+        .section ul {
+            margin-top: 12px;
+            padding-left: 20px;
+            color: #cbd5f5;
+        }
+
+        .section ul li {
+            margin-bottom: 8px;
+            line-height: 1.6;
+        }
+
+        /* =========================================
+           REVEAL ANIMATIONS
+        ========================================= */
+        .reveal {
+            opacity: 0;
+            transform: translateY(25px);
+            transition: all 0.7s ease;
+        }
+
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .delay-1 { transition-delay: 0.1s; }
+        .delay-2 { transition-delay: 0.2s; }
+        .delay-3 { transition-delay: 0.3s; }
+        .delay-4 { transition-delay: 0.4s; }
+        .delay-5 { transition-delay: 0.5s; }
+        .delay-6 { transition-delay: 0.6s; }
+        /* ================= FOOTER ================= */
+
+        footer {
+            border-top: 1px solid var(--line-subtle);
+            padding: 3rem 0;
+            text-align: center;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <nav>
+        <div class="logo">
+            <i data-lucide="book-open"></i>
+            <span>StudyO</span>
+        </div>
+
+        <a href="index.html" class="btn-back">Volver</a>
+    </nav>
+</header>
+
+<section class="hero">
+    <h1>Términos de <span>StudyO</span></h1>
+    <p>
+        Estos términos regulan el uso de la plataforma. Al acceder o utilizar StudyO,
+        aceptás cumplirlos en su totalidad.
+    </p>
+</section>
+
+<section class="content">
+
+    <div class="section reveal">
+        <h2>1. Descripción del servicio</h2>
+        <p>
+            StudyO es una plataforma orientada a la organización, seguimiento y optimización
+            de hábitos académicos. El servicio se ofrece “tal como está” y puede evolucionar
+            o modificarse sin previo aviso.
+        </p>
+    </div>
+
+    <div class="section reveal delay-1">
+        <h2>2. Cuenta y uso responsable</h2>
+        <p>
+            El usuario es responsable del uso de su cuenta y de mantener la confidencialidad
+            de sus credenciales.
+        </p>
+        <ul>
+            <li>No está permitido compartir credenciales.</li>
+            <li>No se permite acceder a cuentas de terceros.</li>
+            <li>Queda prohibido el uso malicioso, automatizado o abusivo del sistema.</li>
+        </ul>
+    </div>
+
+    <div class="section reveal delay-2">
+        <h2>3. Seguridad y privacidad</h2>
+        <p>
+            StudyO aplica principios de seguridad por defecto y protección de datos.
+            El detalle técnico se encuentra documentado en la <a href="politics.html">Política de Seguridad</a>.
+        </p>
+    </div>
+
+    <div class="section reveal delay-3">
+        <h2>4. Disponibilidad del servicio</h2>
+        <p>
+            No se garantiza disponibilidad continua. El servicio puede experimentar
+            interrupciones por mantenimiento, mejoras o fallas técnicas.
+        </p>
+    </div>
+
+    <div class="section reveal delay-4">
+        <h2>5. Limitación de responsabilidad</h2>
+        <p>
+            StudyO no se responsabiliza por pérdidas de datos, interrupciones del servicio,
+            resultados académicos o daños indirectos derivados del uso de la plataforma.
+        </p>
+    </div>
+
+    <div class="section reveal delay-5">
+        <h2>6. Modificaciones</h2>
+        <p>
+            Estos términos pueden actualizarse en cualquier momento.
+            El uso continuado del servicio implica la aceptación de dichas modificaciones.
+        </p>
+    </div>
+
+    <div class="section reveal delay-6">
+        <h2>7. Contacto</h2>
+        <p>
+            Para consultas relacionadas con estos términos, podés contactar al equipo
+            de StudyO a través de los canales oficiales del proyecto. Adicionalmente, puedes mandarnos un correo a covalabsarg@gmail.com
+        </p>
+    </div>
+
+</section>
+<footer>
+    <p>&copy; 2026 StudyO · CoVaLabs. Todos los derechos reservados</p>
+</footer>
+
+<script>
+    lucide.createIcons();
+
+    const reveals = document.querySelectorAll('.reveal');
+
+    const observer = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+            }
+        });
+    }, { threshold: 0.15 });
+
+    reveals.forEach(r => observer.observe(r));
+</script>
+
+</body>
+</html>
