@@ -7,6 +7,7 @@ from .models import Habit, HabitRecord
 from .serializers import HabitRecordSerializer
 from apps.weekly_challenges.evaluators import evaluate_weekly_challenge
 from django.utils import timezone as dj_timezone
+from utils.datetime import get_user_local_date
 
 class CompleteHabitView(APIView):
     permission_classes = [IsAuthenticated]
@@ -18,7 +19,7 @@ class CompleteHabitView(APIView):
         except Habit.DoesNotExist:
             return Response({'error': 'Hábito no encontrado.'}, status=status.HTTP_404_NOT_FOUND)
 
-        today = timezone.localdate()
+        today = get_user_local_date(request.user, timezone.now())
 
         if HabitRecord.objects.filter(habit=habit, date=today).exists():
             return Response({'detail': 'Ya marcaste este hábito como completado hoy.'}, status=status.HTTP_200_OK)
@@ -55,7 +56,7 @@ class CompleteHabitView(APIView):
         except Habit.DoesNotExist:
             return Response({'error': 'Hábito no encontrado.'}, status=status.HTTP_404_NOT_FOUND)
 
-        today = timezone.localdate()
+        today = get_user_local_date(request.user, timezone.now())
 
         try:
             record = HabitRecord.objects.get(habit=habit, date=today)
