@@ -953,20 +953,25 @@ function loadPomodoroStats() {
         try {
             // Fetch all Pomodoro sessions from API
             const sessions = yield apiGet("/pomodoro/");
-            // Get today's date at midnight for display purposes
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
+            const userTimezone = (yield getCurrentUser()).timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
+            const getDateKeyInTimezone = (dateInput, tz) => (new Intl.DateTimeFormat('en-CA', {
+                timeZone: tz,
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+            }).format(dateInput));
+            // Get today's key in user's timezone for display purposes
+            const todayKey = getDateKeyInTimezone(new Date(), userTimezone);
             // Filter sessions from today
             const todaySessions = sessions.filter(s => {
                 const sessionDate = new Date(s.start_time);
-                sessionDate.setHours(0, 0, 0, 0);
-                return sessionDate.getTime() === today.getTime();
+                return getDateKeyInTimezone(sessionDate, userTimezone) === todayKey;
             });
             // Calculate today's statistics (display)
             const totalMinutesToday = todaySessions.reduce((sum, s) => sum + s.duration, 0);
             const totalSessionsToday = todaySessions.length;
             // Compute week start (client local) and count sessions this week
-            const weekStart = getStartOfWeekInUserTZ((yield getCurrentUser()).timezone || Intl.DateTimeFormat().resolvedOptions().timeZone);
+            const weekStart = getStartOfWeekInUserTZ(userTimezone);
             const totalSessionsThisWeek = sessions.filter(s => new Date(s.start_time) >= weekStart).length;
             // Update statistics display
             const sessionsTodayEl = document.getElementById("sessions-today");
@@ -978,7 +983,7 @@ function loadPomodoroStats() {
             // Notify listeners about updated session counts so in-memory counters
             // can sync inside the Pomodoro IIFE (avoids cross-scope references)
             try {
-                document.dispatchEvent(new CustomEvent('pomodoro:sessionsUpdated', { detail: { totalSessionsThisWeek } }));
+                document.dispatchEvent(new CustomEvent('pomodoro:sessionsUpdated', { detail: { totalSessionsThisWeek, totalSessionsToday } }));
             }
             catch (e) { /* ignore if environment disallows CustomEvent */ }
             // Display recent sessions (last 5)
@@ -1856,7 +1861,8 @@ else {
             }
         });
     }
-} /**
+}
+/**
  * ==========================================
  * Pomodoro Timer Functionality
  * ==========================================
