@@ -3,6 +3,7 @@ from django.conf import settings
 from datetime import timedelta, date
 from apps.subject.models import *
 from django.utils import timezone
+from utils.datetime import get_user_local_date
 
 class Habit(models.Model):
     # Defino las constantes para la frecuencia
@@ -42,7 +43,7 @@ class Habit(models.Model):
     @property
     def is_completed_today(self):
         # localdate() usa la hora configurada en tu settings.py (TIME_ZONE)
-        today = timezone.localdate() 
+        today = get_user_local_date(self.user, timezone.now())
         return self.records.filter(date=today, completed=True).exists()
 
     # Lógica de Racha que se resetea a 0 si fallas
@@ -53,7 +54,7 @@ class Habit(models.Model):
         if not records.exists():
             return 0
 
-        today = timezone.localdate()
+        today = get_user_local_date(self.user, timezone.now())
         last_record_date = records[0].date
         streak = 0
         
