@@ -35,10 +35,7 @@ class RegisterView(CreateAPIView):
     parser_classes = [JSONParser]
 
     def post(self, request, *args, **kwargs):
-        print("HEADERS:", request.headers)
-        print("CONTENT TYPE:", request.content_type)
-        print("RAW BODY:", request.body)
-        print("REQUEST.DATA:", request.data)
+
         return super().post(request, *args, **kwargs)
 
 

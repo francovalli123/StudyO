@@ -20,41 +20,54 @@
             <input type="text" id="firstName" placeholder="Nombre" required>
             <input type="text" id="lastName" placeholder="Apellido" required>
             <input type="email" id="email" placeholder="Email" required>
+
             <input type="password" id="password" placeholder="Contraseña" required>
+            <input type="password" id="passwordConfirm" placeholder="Confirmar contraseña" required>
+
+            <!-- Password rules -->
+            <ul id="passwordRules" style="font-size: 13px; margin-bottom: 15px;">
+                <li id="rule-length">❌ Mínimo 8 caracteres</li>
+                <li id="rule-uppercase">❌ Al menos una mayúscula</li>
+                <li id="rule-number">❌ Al menos un número</li>
+                <li id="rule-match">❌ Las contraseñas coinciden</li>
+            </ul>
+
             <select id="country" required style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; margin-bottom: 15px;">
-                <option value="">Selecciona tu país</option>
-                <option value="AR">🇦🇷 Argentina</option>
-                <option value="BO">🇧🇴 Bolivia</option>
-                <option value="BR">🇧🇷 Brasil</option>
-                <option value="CL">🇨🇱 Chile</option>
-                <option value="CO">🇨🇴 Colombia</option>
-                <option value="CR">🇨🇷 Costa Rica</option>
-                <option value="CU">🇨🇺 Cuba</option>
-                <option value="DO">🇩🇴 República Dominicana</option>
-                <option value="EC">🇪🇨 Ecuador</option>
-                <option value="SV">🇸🇻 El Salvador</option>
-                <option value="GT">🇬🇹 Guatemala</option>
-                <option value="HN">🇭🇳 Honduras</option>
-                <option value="MX">🇲🇽 México</option>
-                <option value="NI">🇳🇮 Nicaragua</option>
-                <option value="PA">🇵🇦 Panamá</option>
-                <option value="PY">🇵🇾 Paraguay</option>
-                <option value="PE">🇵🇪 Perú</option>
-                <option value="PR">🇵🇷 Puerto Rico</option>
-                <option value="UY">🇺🇾 Uruguay</option>
-                <option value="VE">🇻🇪 Venezuela</option>
-                <option value="US">🇺🇸 Estados Unidos</option>
-                <option value="CA">🇨🇦 Canadá</option>
-                <option value="ES">🇪🇸 España</option>
-                <option value="FR">🇫🇷 Francia</option>
-                <option value="IT">🇮🇹 Italia</option>
-                <option value="DE">🇩🇪 Alemania</option>
+                <option value="">Selecciona tu país</option> 
+                <option value="AR">🇦🇷 Argentina</option> 
+                <option value="BO">🇧🇴 Bolivia</option> 
+                <option value="BR">🇧🇷 Brasil</option> 
+                <option value="CL">🇨🇱 Chile</option> 
+                <option value="CO">🇨🇴 Colombia</option> 
+                <option value="CR">🇨🇷 Costa Rica</option> 
+                <option value="CU">🇨🇺 Cuba</option> 
+                <option value="DO">🇩🇴 República Dominicana</option> 
+                <option value="EC">🇪🇨 Ecuador</option> 
+                <option value="SV">🇸🇻 El Salvador</option> 
+                <option value="GT">🇬🇹 Guatemala</option> 
+                <option value="HN">🇭🇳 Honduras</option> 
+                <option value="MX">🇲🇽 México</option> 
+                <option value="NI">🇳🇮 Nicaragua</option> 
+                <option value="PA">🇵🇦 Panamá</option> 
+                <option value="PY">🇵🇾 Paraguay</option> 
+                <option value="PE">🇵🇪 Perú</option> 
+                <option value="PR">🇵🇷 Puerto Rico</option> 
+                <option value="UY">🇺🇾 Uruguay</option> 
+                <option value="VE">🇻🇪 Venezuela</option> 
+                <option value="US">🇺🇸 Estados Unidos</option> 
+                <option value="CA">🇨🇦 Canadá</option> 
+                <option value="ES">🇪🇸 España</option> 
+                <option value="FR">🇫🇷 Francia</option> 
+                <option value="IT">🇮🇹 Italia</option> 
+                <option value="DE">🇩🇪 Alemania</option> 
                 <option value="GB">🇬🇧 Reino Unido</option>
-                <option value="PT">🇵🇹 Portugal</option>
+                <option value="PT">🇵🇹 Portugal</option> 
                 <option value="OTHER">🌍 Otro</option>
             </select>
+
             <div id="errorMessage" style="color: red; display: none; margin-bottom: 10px;"></div>
             <div id="successMessage" style="color: green; display: none; margin-bottom: 10px;"></div>
+
             <button type="submit" class="btn-primary" style="width: 100%; border-radius: 10px;">
                 Crear cuenta
             </button>
@@ -70,53 +83,77 @@
         import { initAuthGate } from './dist/ts/auth-gate.js';
         initAuthGate();
     </script>
+
     <script type="module">
         import { register } from './dist/ts/api.js';
 
         const form = document.getElementById('registerForm');
+        const passwordInput = document.getElementById('password');
+        const confirmInput = document.getElementById('passwordConfirm');
+
+        const ruleLength = document.getElementById('rule-length');
+        const ruleUppercase = document.getElementById('rule-uppercase');
+        const ruleNumber = document.getElementById('rule-number');
+        const ruleMatch = document.getElementById('rule-match');
+
         const errorMessage = document.getElementById('errorMessage');
         const successMessage = document.getElementById('successMessage');
 
+        function validatePassword() {
+            const password = passwordInput.value;
+            const confirm = confirmInput.value;
+
+            const hasLength = password.length >= 8;
+            const hasUppercase = /[A-Z]/.test(password);
+            const hasNumber = /[0-9]/.test(password);
+            const matches = password && confirm && password === confirm;
+
+            updateRule(ruleLength, hasLength);
+            updateRule(ruleUppercase, hasUppercase);
+            updateRule(ruleNumber, hasNumber);
+            updateRule(ruleMatch, matches);
+
+            return hasLength && hasUppercase && hasNumber && matches;
+        }
+
+        function updateRule(element, valid) {
+            element.textContent = element.textContent.replace(/^✔️|❌/, valid ? '✔️' : '❌');
+            element.style.color = valid ? 'green' : 'red';
+        }
+
+        passwordInput.addEventListener('input', validatePassword);
+        confirmInput.addEventListener('input', validatePassword);
+
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
-            
+
+            errorMessage.style.display = 'none';
+            successMessage.style.display = 'none';
+
+            if (!validatePassword()) {
+                errorMessage.textContent = 'La contraseña no cumple los requisitos.';
+                errorMessage.style.display = 'block';
+                return;
+            }
+
             const username = document.getElementById('username').value;
             const firstName = document.getElementById('firstName').value;
             const lastName = document.getElementById('lastName').value;
             const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
+            const password = passwordInput.value;
             const country = document.getElementById('country').value;
 
-            console.log('Form data:', { username, firstName, lastName, email, password, country });
-
-            // Reset messages
-            errorMessage.style.display = 'none';
-            errorMessage.textContent = '';
-            successMessage.style.display = 'none';
-            successMessage.textContent = '';
-
             try {
-                const data = await register(username, email, password, firstName, lastName, country);
+                await register(username, email, password, firstName, lastName, country);
+
                 successMessage.textContent = '¡Cuenta creada exitosamente! Redirigiendo...';
                 successMessage.style.display = 'block';
-                
-                // Redirect to login after 1.5 seconds
+
                 setTimeout(() => {
                     window.location.href = 'login.html';
                 }, 1500);
             } catch (error) {
-                let errorText = 'Error al crear la cuenta. ';
-                try {
-                    const errorObj = JSON.parse(error.message);
-                    // Format Django validation errors
-                    const errors = Object.entries(errorObj)
-                        .map(([field, messages]) => `${field}: ${Array.isArray(messages) ? messages.join(', ') : messages}`)
-                        .join('; ');
-                    errorText += errors;
-                } catch {
-                    errorText += error.message || 'Verifica los datos ingresados.';
-                }
-                errorMessage.textContent = errorText;
+                errorMessage.textContent = error.message || 'Error al crear la cuenta.';
                 errorMessage.style.display = 'block';
             }
         });
