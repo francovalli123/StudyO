@@ -1998,21 +1998,18 @@ h1, h2, h3, h4, p, span, a, li {
     nav.has-mobile-nav>.btn-nav {
         position: fixed;
         right: 20px;
-        bottom: 24px;
-        top: auto;
+        top: calc(80px + 16rem);
         width: calc(min(84vw, 320px) - 40px);
         justify-content: center;
         z-index: 1202;
         opacity: 0;
-        visibility: hidden;
         pointer-events: none;
         transform: translateX(100%);
-        transition: transform 0.28s ease, opacity 0.2s ease, visibility 0.2s ease;
+        transition: transform 0.28s ease, opacity 0.2s ease;
     }
 
     nav.has-mobile-nav.mobile-open>.btn-nav {
         opacity: 1;
-        visibility: visible;
         pointer-events: auto;
         transform: translateX(0);
     }
@@ -2098,25 +2095,6 @@ h1, h2, h3, h4, p, span, a, li {
         min-width: 0;
     }
 
-    /* Planner desktop split layout must stack on mobile */
-    main > .p-8.h-full.flex.gap-6 {
-        flex-direction: column;
-        height: auto;
-        padding: 16px;
-        gap: 16px;
-    }
-
-    main > .p-8.h-full.flex.gap-6 > .w-80,
-    main > .p-8.h-full.flex.gap-6 > .flex-1 {
-        width: 100%;
-        max-width: none;
-        min-width: 0;
-    }
-
-    main > .p-8.h-full.flex.gap-6 > .flex-1 {
-        min-height: 420px;
-    }
-
     /* Dashboard filter chips must wrap on narrow screens */
     #weeklyObjectivesFilters {
         flex-wrap: wrap;
@@ -2125,11 +2103,6 @@ h1, h2, h3, h4, p, span, a, li {
     #weeklyObjectivesFilters .filter-btn {
         flex: 1 1 calc(50% - 6px);
         min-width: 0;
-    }
-
-    #addSubjectBtn {
-        min-width: 0;
-        flex-shrink: 1;
     }
 
     /* make room for mobile sidebar button in app headers */
