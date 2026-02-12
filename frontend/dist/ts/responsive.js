@@ -3,6 +3,15 @@
     document.body.classList.toggle('no-scroll', lock);
   }
 
+  if (window.innerWidth < 768) {
+    document.body.classList.remove('sidebar-collapsed');
+    try {
+      localStorage.setItem('sidebarCollapsed', '0');
+    } catch (e) {
+      // ignore storage errors
+    }
+  }
+
   function setupTopNav() {
     const navs = Array.from(document.querySelectorAll('header nav, body > nav, .top-nav, nav'));
     navs.forEach((nav, index) => {
@@ -67,7 +76,6 @@
 
     const appRoot = sidebar.nextElementSibling;
     const appMain = appRoot ? appRoot.querySelector('main') : null;
-    const desktopSidebarToggle = document.getElementById('sidebarToggleBtn');
 
     let overlay = document.querySelector('.app-sidebar-overlay');
     if (!overlay) {
@@ -250,23 +258,40 @@
 
     overlay.addEventListener('click', closeSidebar);
 
-    if (desktopSidebarToggle) {
-      desktopSidebarToggle.addEventListener('click', (event) => {
-        if (window.innerWidth >= 768) return;
-        event.preventDefault();
-        event.stopPropagation();
-        if (typeof event.stopImmediatePropagation === 'function') {
-          event.stopImmediatePropagation();
-        }
-        if (document.body.classList.contains('mobile-sidebar-open')) closeSidebar();
-        else openSidebar();
-      }, true);
-    }
+    const handleMobileSidebarToggleClick = (event) => {
+      if (window.innerWidth >= 768) return;
+      const target = event.target instanceof Element ? event.target : null;
+      if (!target) return;
+      const desktopToggleHit = target.closest('#sidebarToggleBtn, [data-sidebar-toggle]');
+      if (!desktopToggleHit) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+      if (typeof event.stopImmediatePropagation === 'function') {
+        event.stopImmediatePropagation();
+      }
+
+      if (document.body.classList.contains('mobile-sidebar-open')) closeSidebar();
+      else openSidebar();
+    };
+
+    document.addEventListener('click', handleMobileSidebarToggleClick, true);
+
+    document.addEventListener('pointerdown', (event) => {
+      if (window.innerWidth >= 768) return;
+      if (!document.body.classList.contains('mobile-sidebar-open')) return;
+      const target = event.target instanceof Element ? event.target : null;
+      if (!target) return;
+      if (target.closest('#sidebar')) return;
+      if (target.closest('#mobileSidebarToggle, #sidebarToggleBtn, [data-sidebar-toggle]')) return;
+      closeSidebar();
+    }, true);
 
     const normalizeMobileCollapsedState = () => {
       if (window.innerWidth >= 768) return;
-      if (!document.body.classList.contains('sidebar-collapsed')) return;
-      document.body.classList.remove('sidebar-collapsed');
+      if (document.body.classList.contains('sidebar-collapsed')) {
+        document.body.classList.remove('sidebar-collapsed');
+      }
       try {
         localStorage.setItem('sidebarCollapsed', '0');
       } catch (e) {
@@ -283,6 +308,13 @@
       link.addEventListener('click', () => {
         if (window.innerWidth < 768) closeSidebar();
       });
+    });
+
+    sidebar.addEventListener('pointerdown', () => {
+      if (window.innerWidth >= 768) return;
+      if (!document.body.classList.contains('mobile-sidebar-open')) {
+        openSidebar();
+      }
     });
 
     window.addEventListener('resize', () => {
