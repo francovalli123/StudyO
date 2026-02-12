@@ -121,33 +121,33 @@
 
         /* --- SIDEBAR COLLAPSE STYLES (CORREGIDO) --- */
         aside { transition: width 0.22s ease; overflow: hidden; }
-        body.sidebar-collapsed aside { width: 80px !important; min-width: 80px !important; }
+        body.is-desktop-sidebar-collapsed aside { width: 80px !important; min-width: 80px !important; }
         
         /* 1. Ocultar textos y títulos */
-        body.sidebar-collapsed aside .logo-text,
-        body.sidebar-collapsed aside nav a span,
-        body.sidebar-collapsed aside .border-t a span, /* Texto footer */
-        body.sidebar-collapsed aside .border-t .text-xs /* Título AJUSTES */
+        body.is-desktop-sidebar-collapsed aside .logo-text,
+        body.is-desktop-sidebar-collapsed aside nav a span,
+        body.is-desktop-sidebar-collapsed aside .border-t a span, /* Texto footer */
+        body.is-desktop-sidebar-collapsed aside .border-t .text-xs /* Título AJUSTES */
         { display: none; }
 
         /* 2. Centrar elementos */
-        body.sidebar-collapsed aside nav a,
-        body.sidebar-collapsed aside .border-t a /* Items footer */
+        body.is-desktop-sidebar-collapsed aside nav a,
+        body.is-desktop-sidebar-collapsed aside .border-t a /* Items footer */
         { justify-content: center; padding-left: 0.75rem; padding-right: 0.75rem; }
 
         /* 3. Ajustar tamaño de iconos */
-        body.sidebar-collapsed aside nav a i,
-        body.sidebar-collapsed aside nav a [data-lucide],
-        body.sidebar-collapsed aside .border-t a i, /* Iconos footer */
-        body.sidebar-collapsed aside .border-t a [data-lucide]
+        body.is-desktop-sidebar-collapsed aside nav a i,
+        body.is-desktop-sidebar-collapsed aside nav a [data-lucide],
+        body.is-desktop-sidebar-collapsed aside .border-t a i, /* Iconos footer */
+        body.is-desktop-sidebar-collapsed aside .border-t a [data-lucide]
         { width: 28px !important; height: 28px !important; }
 
         /* Otros ajustes */
         [data-sidebar-toggle] { transition: transform 0.2s ease; }
-        body.sidebar-collapsed [data-sidebar-toggle] { transform: rotate(180deg); }
-        body.sidebar-collapsed #sidebarToggleBtn i { width: 20px !important; height: 20px !important; }
-        body.sidebar-collapsed aside .w-1.h-1,
-        body.sidebar-collapsed aside .w-1.h-1.rounded-full { display: none !important; }
+        body.is-desktop-sidebar-collapsed [data-sidebar-toggle] { transform: rotate(180deg); }
+        body.is-desktop-sidebar-collapsed #sidebarToggleBtn i { width: 20px !important; height: 20px !important; }
+        body.is-desktop-sidebar-collapsed aside .w-1.h-1,
+        body.is-desktop-sidebar-collapsed aside .w-1.h-1.rounded-full { display: none !important; }
     </style>
 </head>
 <body class="bg-dark-bg text-gray-300 h-screen flex overflow-hidden selection:bg-purple-500 selection:text-white">
