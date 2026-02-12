@@ -1943,6 +1943,11 @@ h1, h2, h3, h4, p, span, a, li {
     display: none;
 }
 
+/* Sidebar state classes */
+body.is-desktop-sidebar-collapsed {
+    --sidebar-width: 80px;
+}
+
 @media (max-width: 768px) {
     body {
         overflow-x: clip;
@@ -2055,22 +2060,22 @@ h1, h2, h3, h4, p, span, a, li {
     }
 
     aside#sidebar {
-        position: fixed !important;
+        position: fixed;
         top: 0;
         left: 0;
         bottom: 0;
-        width: min(84vw, 320px) !important;
-        min-width: min(84vw, 320px) !important;
+        width: min(84vw, 320px);
+        min-width: min(84vw, 320px);
         transform: translateX(-102%);
         transition: transform 0.28s ease;
         z-index: 1240;
     }
 
-    body.mobile-sidebar-open aside#sidebar {
+    body.is-mobile-sidebar-open aside#sidebar {
         transform: translateX(0);
     }
 
-    body.mobile-sidebar-open .app-sidebar-overlay {
+    body.is-mobile-sidebar-open .app-sidebar-overlay {
         opacity: 1;
         pointer-events: auto;
     }
@@ -2096,6 +2101,7 @@ h1, h2, h3, h4, p, span, a, li {
     body.has-app-sidebar main {
         width: 100%;
         min-width: 0;
+        overflow-x: hidden;
     }
 
     /* Planner desktop split layout must stack on mobile */
