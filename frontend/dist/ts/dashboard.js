@@ -421,17 +421,17 @@ function loadWeeklyObjectives() {
                         data-objective-id="${obj.id}" 
                         style="box-shadow: 0 0 0 1px rgba(255,255,255,0.05);">
                         
-                        <div class="flex justify-between items-start mb-3">
-                            <div class="flex items-center gap-2.5 flex-1">
+                        <div class="objective-header flex justify-between items-start mb-3 relative">
+                            <div class="objective-meta flex items-center gap-2.5 flex-1 min-w-0">
                                 <span class="text-lg filter drop-shadow-md icon-display cursor-pointer hover:text-2xl transition-all" data-id="${obj.id}" title="Haz clic para editar" data-field="icon">
                                     ${displayIcon}
                                 </span>
-                                <span class="text-sm font-bold text-transparent bg-clip-text bg-gradient-to-r from-gray-200 to-gray-400 tracking-wide area-display cursor-pointer hover:opacity-80 transition-all" data-id="${obj.id}" title="Haz clic para editar" data-field="area">
+                                <span class="objective-area text-sm font-bold text-transparent bg-clip-text bg-gradient-to-r from-gray-200 to-gray-400 tracking-wide area-display cursor-pointer hover:opacity-80 transition-all" data-id="${obj.id}" title="Haz clic para editar" data-field="area">
                                     ${displayArea}
                                 </span>
                             </div>
                             
-                            <div class="flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                            <div class="objective-actions flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                                 <button class="complete-objective p-1.5 rounded-lg text-gray-400 hover:text-green-400 hover:bg-green-500/10 transition-all duration-200" data-id="${obj.id}" title="Completar">
                                     <i data-lucide="check" class="w-4 h-4"></i>
                                 </button>
@@ -459,7 +459,7 @@ function loadWeeklyObjectives() {
                             </span>
                             
                             ${obj.notes ? `
-                            <div class="flex items-center gap-1.5 text-xs text-purple-400/80">
+                            <div class="objective-notes flex items-center gap-1.5 text-xs text-purple-400/80">
                                 <i data-lucide="folder-open" class="w-3 h-3"></i>
                                 <span class="italic truncate max-w-[120px]">${obj.notes}</span>
                             </div>` : ''}
@@ -1682,9 +1682,9 @@ function loadNextEvent() {
             container.innerHTML = `
             <div class="space-y-4">
                 <div class="event-item ${typeClass} p-4">
-                    <div class="flex items-start justify-between mb-2">
-                        <h3 class="text-lg font-bold text-white">${nextEvent.title}</h3>
-                        <span class="text-xs px-2 py-1 rounded bg-purple-500/20 text-purple-400">${typeNames[nextEvent.type] || 'Evento'}</span>
+                    <div class="mb-2">
+                        <span class="inline-flex text-xs px-2 py-1 rounded bg-purple-500/20 text-purple-400 mb-2">${typeNames[nextEvent.type] || 'Evento'}</span>
+                        <h3 class="text-lg font-bold text-white leading-tight">${nextEvent.title}</h3>
                     </div>
                     <div class="flex items-center gap-4 text-sm text-gray-400">
                         <div class="flex items-center gap-1">

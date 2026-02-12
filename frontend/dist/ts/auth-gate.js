@@ -26,6 +26,16 @@ const authState = {
 const AUTH_CHECK_TIMEOUT_MS = 8000;
 const AUTH_RETRY_ATTEMPTS = 1;
 const AUTH_RETRY_DELAY_MS = 1200;
+function getAuthCheckingText() {
+    const lang = localStorage.getItem("appLanguage");
+    if (lang === "en")
+        return "Checking session...";
+    if (lang === "pt")
+        return "Verificando sessão...";
+    if (lang === "zh")
+        return "Checking session...";
+    return "Verificando sesión...";
+}
 function withTimeout(promise, timeoutMs, timeoutMessage) {
     return new Promise((resolve, reject) => {
         const timer = window.setTimeout(() => reject(new Error(timeoutMessage)), timeoutMs);
@@ -72,7 +82,7 @@ function ensureAuthLoadingUI() {
     loader.id = "auth-loading";
     loader.innerHTML = `
         <div class="auth-loading-spinner"></div>
-        <div class="auth-loading-text">Verificando sesión...</div>
+        <div class="auth-loading-text">${getAuthCheckingText()}</div>
     `;
     document.body.appendChild(loader);
     document.documentElement.classList.add("auth-pending");
@@ -106,7 +116,7 @@ function ensureAuthErrorUI(loginPath, detail) {
         panel.style.boxShadow = "0 8px 26px rgba(0,0,0,0.35)";
         panel.style.color = "#e5e7eb";
         panel.innerHTML = `
-            <div style="font-size:14px;font-weight:600;margin-bottom:8px">No se pudo validar tu sesión.</div>
+            <div style="font-size:14px;font-weight:600;margin-bottom:8px">No se pudo validar tu sesiÃ³n.</div>
             <div id="auth-error-detail" style="font-size:13px;opacity:.9;margin-bottom:12px"></div>
             <div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap">
                 <button id="auth-retry-btn" type="button" style="background:#1f2937;color:#fff;border:1px solid #374151;border-radius:8px;padding:7px 12px;cursor:pointer">Reintentar</button>
@@ -124,7 +134,7 @@ function ensureAuthErrorUI(loginPath, detail) {
     }
     const detailNode = panel.querySelector("#auth-error-detail");
     if (detailNode) {
-        detailNode.textContent = detail || "Revisa tu conexión o intenta nuevamente.";
+        detailNode.textContent = detail || "Revisa tu conexiÃ³n o intenta nuevamente.";
     }
 }
 function isPublicRoute(pathname) {
@@ -147,7 +157,7 @@ function getErrorStatus(err) {
 }
 function getErrorMessage(err) {
     const message = err === null || err === void 0 ? void 0 : err.message;
-    return typeof message === "string" && message.trim().length ? message : "Error de conexión";
+    return typeof message === "string" && message.trim().length ? message : "Error de conexiÃ³n";
 }
 function isRetryableAuthError(statusCode, err) {
     if (statusCode === 401 || statusCode === 403)
