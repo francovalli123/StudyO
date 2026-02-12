@@ -42,7 +42,7 @@
         nav.classList.remove('mobile-open');
         document.body.classList.remove('nav-open');
         toggle.setAttribute('aria-expanded', 'false');
-        lockBodyScroll(document.body.classList.contains('mobile-sidebar-open'));
+        lockBodyScroll(document.body.classList.contains('is-mobile-sidebar-open'));
       };
 
       const openMenu = (): void => {
@@ -158,7 +158,7 @@
 
     const syncSidebarLayout = (): void => {
       const mobile = window.innerWidth < 768;
-      const isOpen = document.body.classList.contains('mobile-sidebar-open');
+      const isOpen = document.body.classList.contains('is-mobile-sidebar-open');
 
       if (mobile) {
         document.body.classList.remove('sidebar-collapsed');
@@ -204,7 +204,7 @@
         applyPlannerMobileStack(true);
         applySubjectsMobileHeader(true);
       } else {
-        document.body.classList.remove('mobile-sidebar-open');
+        document.body.classList.remove('is-mobile-sidebar-open');
         document.body.style.removeProperty('display');
         document.body.style.removeProperty('min-height');
         document.body.style.removeProperty('height');
@@ -248,19 +248,19 @@
     };
 
     const closeSidebar = (): void => {
-      document.body.classList.remove('mobile-sidebar-open');
+      document.body.classList.remove('is-mobile-sidebar-open');
       syncSidebarLayout();
       lockBodyScroll(document.body.classList.contains('nav-open'));
     };
 
     const openSidebar = (): void => {
-      document.body.classList.add('mobile-sidebar-open');
+      document.body.classList.add('is-mobile-sidebar-open');
       syncSidebarLayout();
       lockBodyScroll(true);
     };
 
     toggle.addEventListener('click', () => {
-      if (document.body.classList.contains('mobile-sidebar-open')) {
+      if (document.body.classList.contains('is-mobile-sidebar-open')) {
         closeSidebar();
       } else {
         openSidebar();
@@ -280,7 +280,7 @@
       event.stopPropagation();
       event.stopImmediatePropagation();
 
-      if (document.body.classList.contains('mobile-sidebar-open')) {
+      if (document.body.classList.contains('is-mobile-sidebar-open')) {
         closeSidebar();
       } else {
         openSidebar();
@@ -293,7 +293,7 @@
       'pointerdown',
       (event) => {
         if (window.innerWidth >= 768) return;
-        if (!document.body.classList.contains('mobile-sidebar-open')) return;
+        if (!document.body.classList.contains('is-mobile-sidebar-open')) return;
         const target = event.target instanceof Element ? event.target : null;
         if (!target) return;
         if (target.closest('#sidebar')) return;
@@ -330,7 +330,7 @@
 
     sidebar.addEventListener('pointerdown', () => {
       if (window.innerWidth >= 768) return;
-      if (!document.body.classList.contains('mobile-sidebar-open')) {
+      if (!document.body.classList.contains('is-mobile-sidebar-open')) {
         openSidebar();
       }
     });
