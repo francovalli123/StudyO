@@ -927,7 +927,7 @@ nav .btn-nav,
 .testimonials-grid {
     display: grid;
     /* Responsive: minimum 320px wide columns */
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
     gap: 32px;
 }
 
@@ -1880,4 +1880,296 @@ nav .menu a.active {
 @keyframes onboardingCtaShimmer {
     0% { transform: translateX(-120%); }
     60%,100% { transform: translateX(120%); }
+}
+
+/* =========================================
+   13. STABILIZATION PASS: RESPONSIVE SAFETY
+   ========================================= */
+
+/* Prevent long strings/cards from forcing horizontal scroll */
+img,
+svg,
+canvas,
+video,
+iframe,
+table {
+    max-width: 100%;
+}
+
+h1, h2, h3, h4, p, span, a, li {
+    overflow-wrap: anywhere;
+}
+
+.no-scroll {
+    overflow: hidden;
+}
+
+/* Generic mobile nav toggle (landing and marketing pages) */
+.mobile-menu-toggle {
+    display: none;
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: #121218;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 5px;
+    cursor: pointer;
+    margin-left: 12px;
+}
+
+.mobile-menu-toggle span {
+    width: 18px;
+    height: 2px;
+    border-radius: 2px;
+    background: #fff;
+    transition: transform 0.25s ease, opacity 0.25s ease;
+}
+
+.mobile-menu-overlay,
+.app-sidebar-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+    z-index: 1100;
+}
+
+.mobile-sidebar-toggle {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    body {
+        overflow-x: clip;
+    }
+
+    .btn-primary,
+    .btn-secondary,
+    .btn-nav,
+    button,
+    input,
+    select,
+    textarea {
+        min-height: 44px;
+    }
+
+    /* Landing/auth/marketing top navigation */
+    header nav.has-mobile-nav,
+    body>nav.has-mobile-nav,
+    .top-nav.has-mobile-nav,
+    nav.has-mobile-nav {
+        position: relative;
+        z-index: 1200;
+        padding: 16px 5%;
+        gap: 12px;
+    }
+
+    nav.has-mobile-nav>.menu {
+        position: fixed;
+        top: 0;
+        right: 0;
+        height: 100dvh;
+        width: min(84vw, 320px);
+        background: #11131a;
+        border-left: 1px solid rgba(255, 255, 255, 0.08);
+        padding: 80px 20px 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        transform: translateX(100%);
+        transition: transform 0.28s ease;
+        z-index: 1201;
+    }
+
+    nav.has-mobile-nav.mobile-open>.menu {
+        transform: translateX(0);
+    }
+
+    body.nav-open .mobile-menu-overlay {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    nav.has-mobile-nav>.btn-nav {
+        position: fixed;
+        right: 20px;
+        bottom: 24px;
+        top: auto;
+        width: calc(min(84vw, 320px) - 40px);
+        justify-content: center;
+        z-index: 1202;
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+        transform: translateX(100%);
+        transition: transform 0.28s ease, opacity 0.2s ease, visibility 0.2s ease;
+    }
+
+    nav.has-mobile-nav.mobile-open>.btn-nav {
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
+        transform: translateX(0);
+    }
+
+
+    .mobile-menu-toggle {
+        display: inline-flex;
+    }
+
+    nav.has-mobile-nav.mobile-open .mobile-menu-toggle span:nth-child(1) {
+        transform: translateY(7px) rotate(45deg);
+    }
+
+    nav.has-mobile-nav.mobile-open .mobile-menu-toggle span:nth-child(2) {
+        opacity: 0;
+    }
+
+    nav.has-mobile-nav.mobile-open .mobile-menu-toggle span:nth-child(3) {
+        transform: translateY(-7px) rotate(-45deg);
+    }
+
+    /* App sidebar off-canvas for mobile */
+    .mobile-sidebar-toggle {
+        position: fixed;
+        top: 14px;
+        left: 14px;
+        z-index: 1250;
+        width: 44px;
+        height: 44px;
+        border-radius: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        background: #121218;
+        color: #fff;
+        font-size: 20px;
+        line-height: 1;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+    }
+
+    aside#sidebar {
+        position: fixed !important;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        width: min(84vw, 320px) !important;
+        min-width: min(84vw, 320px) !important;
+        transform: translateX(-102%);
+        transition: transform 0.28s ease;
+        z-index: 1240;
+    }
+
+    body.mobile-sidebar-open aside#sidebar {
+        transform: translateX(0);
+    }
+
+    body.mobile-sidebar-open .app-sidebar-overlay {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    /* Ensure app pages stop using desktop flex shell on small screens */
+    body.has-app-sidebar {
+        display: block;
+        min-height: 100vh;
+        height: auto;
+        overflow-y: auto;
+    }
+
+    body.has-app-sidebar > aside#sidebar + * {
+        width: 100%;
+        min-width: 0;
+        flex: none;
+    }
+
+    body.has-app-sidebar > .flex-1 {
+        overflow: visible;
+    }
+
+    body.has-app-sidebar main {
+        width: 100%;
+        min-width: 0;
+    }
+
+    /* Planner desktop split layout must stack on mobile */
+    main > .p-8.h-full.flex.gap-6 {
+        flex-direction: column;
+        height: auto;
+        padding: 16px;
+        gap: 16px;
+    }
+
+    main > .p-8.h-full.flex.gap-6 > .w-80,
+    main > .p-8.h-full.flex.gap-6 > .flex-1 {
+        width: 100%;
+        max-width: none;
+        min-width: 0;
+    }
+
+    main > .p-8.h-full.flex.gap-6 > .flex-1 {
+        min-height: 420px;
+    }
+
+    /* Dashboard filter chips must wrap on narrow screens */
+    #weeklyObjectivesFilters {
+        flex-wrap: wrap;
+    }
+
+    #weeklyObjectivesFilters .filter-btn {
+        flex: 1 1 calc(50% - 6px);
+        min-width: 0;
+    }
+
+    #addSubjectBtn {
+        min-width: 0;
+        flex-shrink: 1;
+    }
+
+    /* make room for mobile sidebar button in app headers */
+    main header {
+        padding-left: 58px;
+    }
+
+    /* Modal safety */
+    .modal-content {
+        width: min(90vw, 560px);
+        max-height: 85dvh;
+        overflow-y: auto;
+        margin: 16px;
+    }
+
+    table {
+        display: block;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        white-space: nowrap;
+    }
+}
+
+@media (max-width: 480px) {
+    .hero h1 {
+        font-size: clamp(2rem, 10vw, 2.4rem);
+    }
+
+    .hero-buttons {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .hero-buttons .btn-primary,
+    .hero-buttons .btn-secondary {
+        width: 100%;
+    }
+
+    .auth-container {
+        width: min(100%, 94vw);
+        padding: 24px 16px;
+    }
 }
