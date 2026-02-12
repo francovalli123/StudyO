@@ -49,7 +49,7 @@
         nav.classList.remove('mobile-open');
         document.body.classList.remove('nav-open');
         toggle.setAttribute('aria-expanded', 'false');
-        lockBodyScroll(document.body.classList.contains(MOBILE_SIDEBAR_OPEN_CLASS));
+        lockBodyScroll(document.body.classList.contains('is-mobile-sidebar-open'));
       };
 
       const openMenu = (): void => {
@@ -107,28 +107,68 @@
 
     const syncSidebarLayout = (): void => {
       const mobile = window.innerWidth < 768;
+      const isOpen = document.body.classList.contains('is-mobile-sidebar-open');
 
       if (mobile) {
         clearDesktopSidebarCollapsed();
       } else {
-        document.body.classList.remove(MOBILE_SIDEBAR_OPEN_CLASS);
+        document.body.classList.remove('is-mobile-sidebar-open');
+        document.body.style.removeProperty('display');
+        document.body.style.removeProperty('min-height');
+        document.body.style.removeProperty('height');
+        document.body.style.removeProperty('overflow-y');
+
+        sidebar.style.removeProperty('position');
+        sidebar.style.removeProperty('top');
+        sidebar.style.removeProperty('left');
+        sidebar.style.removeProperty('bottom');
+        sidebar.style.removeProperty('height');
+        sidebar.style.removeProperty('width');
+        sidebar.style.removeProperty('min-width');
+        sidebar.style.removeProperty('max-width');
+        sidebar.style.removeProperty('z-index');
+        sidebar.style.removeProperty('overflow-y');
+        sidebar.style.removeProperty('overflow-x');
+        sidebar.style.removeProperty('transform');
+        sidebar.style.removeProperty('transition');
+
+        if (appRoot) {
+          appRoot.style.removeProperty('width');
+          appRoot.style.removeProperty('max-width');
+          appRoot.style.removeProperty('margin-left');
+          appRoot.style.removeProperty('min-width');
+          appRoot.style.removeProperty('flex');
+          appRoot.style.removeProperty('overflow');
+          appRoot.style.removeProperty('overflow-x');
+          appRoot.style.removeProperty('transition');
+        }
+
+        if (appMain) {
+          appMain.style.removeProperty('width');
+          appMain.style.removeProperty('max-width');
+          appMain.style.removeProperty('min-width');
+          appMain.style.removeProperty('overflow-x');
+        }
+
+        applyPlannerMobileStack(false);
+        applySubjectsMobileHeader(false);
       }
     };
 
     const closeSidebar = (): void => {
-      document.body.classList.remove(MOBILE_SIDEBAR_OPEN_CLASS);
+      document.body.classList.remove('is-mobile-sidebar-open');
       syncSidebarLayout();
       lockBodyScroll(document.body.classList.contains('nav-open'));
     };
 
     const openSidebar = (): void => {
-      document.body.classList.add(MOBILE_SIDEBAR_OPEN_CLASS);
+      document.body.classList.add('is-mobile-sidebar-open');
       syncSidebarLayout();
       lockBodyScroll(true);
     };
 
     toggle.addEventListener('click', () => {
-      if (document.body.classList.contains(MOBILE_SIDEBAR_OPEN_CLASS)) {
+      if (document.body.classList.contains('is-mobile-sidebar-open')) {
         closeSidebar();
       } else {
         openSidebar();
@@ -148,7 +188,7 @@
       event.stopPropagation();
       event.stopImmediatePropagation();
 
-      if (document.body.classList.contains(MOBILE_SIDEBAR_OPEN_CLASS)) {
+      if (document.body.classList.contains('is-mobile-sidebar-open')) {
         closeSidebar();
       } else {
         openSidebar();
@@ -161,7 +201,7 @@
       'pointerdown',
       (event) => {
         if (window.innerWidth >= 768) return;
-        if (!document.body.classList.contains(MOBILE_SIDEBAR_OPEN_CLASS)) return;
+        if (!document.body.classList.contains('is-mobile-sidebar-open')) return;
         const target = event.target instanceof Element ? event.target : null;
         if (!target) return;
         if (target.closest('#sidebar')) return;
@@ -199,7 +239,7 @@
 
     sidebar.addEventListener('pointerdown', () => {
       if (window.innerWidth >= 768) return;
-      if (!document.body.classList.contains(MOBILE_SIDEBAR_OPEN_CLASS)) {
+      if (!document.body.classList.contains('is-mobile-sidebar-open')) {
         openSidebar();
       }
     });
