@@ -28,7 +28,6 @@
         document.body.appendChild(overlay);
       }
 
-
       const closeMenu = () => {
         nav.classList.remove('mobile-open');
         document.body.classList.remove('nav-open');
@@ -65,16 +64,100 @@
     if (!sidebar) return;
 
     document.body.classList.add('has-app-sidebar');
+    const appRoot = sidebar.nextElementSibling;
+    const appMain = appRoot ? appRoot.querySelector('main') : null;
 
-    if (document.getElementById('mobileSidebarToggle')) return;
+    const applyAppShellLayout = () => {
+      const mobile = window.innerWidth < 768;
 
-    const toggle = document.createElement('button');
-    toggle.type = 'button';
-    toggle.id = 'mobileSidebarToggle';
-    toggle.className = 'mobile-sidebar-toggle';
-    toggle.setAttribute('aria-label', 'Abrir navegación lateral');
-    toggle.innerHTML = '☰';
-    document.body.appendChild(toggle);
+      if (mobile) {
+        document.body.classList.remove('sidebar-collapsed');
+
+        document.body.style.display = 'block';
+        document.body.style.minHeight = '100vh';
+        document.body.style.height = 'auto';
+        document.body.style.overflowY = 'auto';
+
+        if (appRoot) {
+          appRoot.style.width = '100%';
+          appRoot.style.minWidth = '0';
+          appRoot.style.flex = 'none';
+          appRoot.style.overflow = 'visible';
+        }
+
+        if (appMain) {
+          appMain.style.width = '100%';
+          appMain.style.minWidth = '0';
+        }
+
+        const addSubjectBtn = document.getElementById('addSubjectBtn');
+        if (addSubjectBtn) {
+          const row = addSubjectBtn.parentElement;
+          if (row) {
+            row.style.flexWrap = 'wrap';
+            row.style.gap = '12px';
+          }
+          addSubjectBtn.style.width = '100%';
+          addSubjectBtn.style.justifyContent = 'center';
+        }
+
+        const plannerWrap = document.querySelector('main > .p-8.h-full.flex.gap-6');
+        if (plannerWrap) {
+          plannerWrap.style.flexDirection = 'column';
+          plannerWrap.style.height = 'auto';
+          plannerWrap.style.padding = '16px';
+          plannerWrap.style.gap = '16px';
+          Array.from(plannerWrap.children).forEach((child) => {
+            child.style.width = '100%';
+            child.style.maxWidth = 'none';
+            child.style.minWidth = '0';
+            child.style.flexBasis = 'auto';
+          });
+        }
+      } else {
+        document.body.style.removeProperty('display');
+        document.body.style.removeProperty('min-height');
+        document.body.style.removeProperty('height');
+        document.body.style.removeProperty('overflow-y');
+
+        if (appRoot) {
+          appRoot.style.removeProperty('width');
+          appRoot.style.removeProperty('min-width');
+          appRoot.style.removeProperty('flex');
+          appRoot.style.removeProperty('overflow');
+        }
+
+        if (appMain) {
+          appMain.style.removeProperty('width');
+          appMain.style.removeProperty('min-width');
+        }
+
+        const addSubjectBtn = document.getElementById('addSubjectBtn');
+        if (addSubjectBtn) {
+          const row = addSubjectBtn.parentElement;
+          if (row) {
+            row.style.removeProperty('flex-wrap');
+            row.style.removeProperty('gap');
+          }
+          addSubjectBtn.style.removeProperty('width');
+          addSubjectBtn.style.removeProperty('justify-content');
+        }
+
+        const plannerWrap = document.querySelector('main > .p-8.h-full.flex.gap-6');
+        if (plannerWrap) {
+          plannerWrap.style.removeProperty('flex-direction');
+          plannerWrap.style.removeProperty('height');
+          plannerWrap.style.removeProperty('padding');
+          plannerWrap.style.removeProperty('gap');
+          Array.from(plannerWrap.children).forEach((child) => {
+            child.style.removeProperty('width');
+            child.style.removeProperty('max-width');
+            child.style.removeProperty('min-width');
+            child.style.removeProperty('flex-basis');
+          });
+        }
+      }
+    };
 
     let overlay = document.querySelector('.app-sidebar-overlay');
     if (!overlay) {
@@ -83,32 +166,44 @@
       document.body.appendChild(overlay);
     }
 
-    const closeSidebar = () => {
-      document.body.classList.remove('mobile-sidebar-open');
-      lockBodyScroll(document.body.classList.contains('nav-open'));
-    };
+    if (!document.getElementById('mobileSidebarToggle')) {
+      const toggle = document.createElement('button');
+      toggle.type = 'button';
+      toggle.id = 'mobileSidebarToggle';
+      toggle.className = 'mobile-sidebar-toggle';
+      toggle.setAttribute('aria-label', 'Abrir navegación lateral');
+      toggle.innerHTML = '☰';
+      document.body.appendChild(toggle);
 
-    const openSidebar = () => {
-      document.body.classList.add('mobile-sidebar-open');
-      lockBodyScroll(true);
-    };
+      const closeSidebar = () => {
+        document.body.classList.remove('mobile-sidebar-open');
+        lockBodyScroll(document.body.classList.contains('nav-open'));
+      };
 
-    toggle.addEventListener('click', () => {
-      if (document.body.classList.contains('mobile-sidebar-open')) closeSidebar();
-      else openSidebar();
-    });
+      const openSidebar = () => {
+        document.body.classList.add('mobile-sidebar-open');
+        lockBodyScroll(true);
+      };
 
-    overlay.addEventListener('click', closeSidebar);
-
-    sidebar.querySelectorAll('a').forEach((link) => {
-      link.addEventListener('click', () => {
-        if (window.innerWidth < 768) closeSidebar();
+      toggle.addEventListener('click', () => {
+        if (document.body.classList.contains('mobile-sidebar-open')) closeSidebar();
+        else openSidebar();
       });
-    });
 
-    window.addEventListener('resize', () => {
-      if (window.innerWidth > 767) closeSidebar();
-    });
+      overlay.addEventListener('click', closeSidebar);
+      sidebar.querySelectorAll('a').forEach((link) => {
+        link.addEventListener('click', () => {
+          if (window.innerWidth < 768) closeSidebar();
+        });
+      });
+
+      window.addEventListener('resize', () => {
+        applyAppShellLayout();
+        if (window.innerWidth > 767) closeSidebar();
+      });
+    }
+
+    applyAppShellLayout();
   }
 
   document.addEventListener('DOMContentLoaded', function () {
