@@ -64,11 +64,84 @@
     if (!sidebar) return;
 
     document.body.classList.add('has-app-sidebar');
+
     const appRoot = sidebar.nextElementSibling;
     const appMain = appRoot ? appRoot.querySelector('main') : null;
 
-    const applyAppShellLayout = () => {
+    let overlay = document.querySelector('.app-sidebar-overlay');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.className = 'app-sidebar-overlay';
+      document.body.appendChild(overlay);
+    }
+
+    let toggle = document.getElementById('mobileSidebarToggle');
+    if (!toggle) {
+      toggle = document.createElement('button');
+      toggle.type = 'button';
+      toggle.id = 'mobileSidebarToggle';
+      toggle.className = 'mobile-sidebar-toggle';
+      toggle.setAttribute('aria-label', 'Abrir navegación lateral');
+      toggle.innerHTML = '☰';
+      document.body.appendChild(toggle);
+    }
+
+    const sidebarWidthValue = () => `${Math.min(Math.round(window.innerWidth * 0.84), 320)}px`;
+
+    const applyPlannerMobileStack = (mobile) => {
+      const plannerWrap = document.querySelector('main > .p-8.h-full.flex.gap-6');
+      if (!plannerWrap) return;
+
+      if (mobile) {
+        plannerWrap.style.flexDirection = 'column';
+        plannerWrap.style.height = 'auto';
+        plannerWrap.style.padding = '16px';
+        plannerWrap.style.gap = '16px';
+        Array.from(plannerWrap.children).forEach((child) => {
+          child.style.width = '100%';
+          child.style.maxWidth = 'none';
+          child.style.minWidth = '0';
+          child.style.flexBasis = 'auto';
+        });
+      } else {
+        plannerWrap.style.removeProperty('flex-direction');
+        plannerWrap.style.removeProperty('height');
+        plannerWrap.style.removeProperty('padding');
+        plannerWrap.style.removeProperty('gap');
+        Array.from(plannerWrap.children).forEach((child) => {
+          child.style.removeProperty('width');
+          child.style.removeProperty('max-width');
+          child.style.removeProperty('min-width');
+          child.style.removeProperty('flex-basis');
+        });
+      }
+    };
+
+    const applySubjectsMobileHeader = (mobile) => {
+      const addSubjectBtn = document.getElementById('addSubjectBtn');
+      if (!addSubjectBtn) return;
+
+      const row = addSubjectBtn.parentElement;
+      if (mobile) {
+        if (row) {
+          row.style.flexWrap = 'wrap';
+          row.style.gap = '12px';
+        }
+        addSubjectBtn.style.width = '100%';
+        addSubjectBtn.style.justifyContent = 'center';
+      } else {
+        if (row) {
+          row.style.removeProperty('flex-wrap');
+          row.style.removeProperty('gap');
+        }
+        addSubjectBtn.style.removeProperty('width');
+        addSubjectBtn.style.removeProperty('justify-content');
+      }
+    };
+
+    const syncSidebarLayout = () => {
       const mobile = window.innerWidth < 768;
+      const isOpen = document.body.classList.contains('mobile-sidebar-open');
 
       if (mobile) {
         document.body.classList.remove('sidebar-collapsed');
@@ -78,11 +151,24 @@
         document.body.style.height = 'auto';
         document.body.style.overflowY = 'auto';
 
+        const width = sidebarWidthValue();
+        sidebar.style.position = 'fixed';
+        sidebar.style.top = '0';
+        sidebar.style.left = '0';
+        sidebar.style.bottom = '0';
+        sidebar.style.width = width;
+        sidebar.style.minWidth = width;
+        sidebar.style.zIndex = '1240';
+        sidebar.style.transform = isOpen ? 'translateX(0)' : 'translateX(-102%)';
+        sidebar.style.transition = 'transform 0.28s ease';
+
         if (appRoot) {
-          appRoot.style.width = '100%';
+          appRoot.style.width = isOpen ? `calc(100% - ${width})` : '100%';
+          appRoot.style.marginLeft = isOpen ? width : '0';
           appRoot.style.minWidth = '0';
           appRoot.style.flex = 'none';
           appRoot.style.overflow = 'visible';
+          appRoot.style.transition = 'margin-left 0.28s ease, width 0.28s ease';
         }
 
         if (appMain) {
@@ -90,41 +176,34 @@
           appMain.style.minWidth = '0';
         }
 
-        const addSubjectBtn = document.getElementById('addSubjectBtn');
-        if (addSubjectBtn) {
-          const row = addSubjectBtn.parentElement;
-          if (row) {
-            row.style.flexWrap = 'wrap';
-            row.style.gap = '12px';
-          }
-          addSubjectBtn.style.width = '100%';
-          addSubjectBtn.style.justifyContent = 'center';
-        }
+        overlay.style.display = 'none';
 
-        const plannerWrap = document.querySelector('main > .p-8.h-full.flex.gap-6');
-        if (plannerWrap) {
-          plannerWrap.style.flexDirection = 'column';
-          plannerWrap.style.height = 'auto';
-          plannerWrap.style.padding = '16px';
-          plannerWrap.style.gap = '16px';
-          Array.from(plannerWrap.children).forEach((child) => {
-            child.style.width = '100%';
-            child.style.maxWidth = 'none';
-            child.style.minWidth = '0';
-            child.style.flexBasis = 'auto';
-          });
-        }
+        applyPlannerMobileStack(true);
+        applySubjectsMobileHeader(true);
       } else {
+        document.body.classList.remove('mobile-sidebar-open');
         document.body.style.removeProperty('display');
         document.body.style.removeProperty('min-height');
         document.body.style.removeProperty('height');
         document.body.style.removeProperty('overflow-y');
 
+        sidebar.style.removeProperty('position');
+        sidebar.style.removeProperty('top');
+        sidebar.style.removeProperty('left');
+        sidebar.style.removeProperty('bottom');
+        sidebar.style.removeProperty('width');
+        sidebar.style.removeProperty('min-width');
+        sidebar.style.removeProperty('z-index');
+        sidebar.style.removeProperty('transform');
+        sidebar.style.removeProperty('transition');
+
         if (appRoot) {
           appRoot.style.removeProperty('width');
+          appRoot.style.removeProperty('margin-left');
           appRoot.style.removeProperty('min-width');
           appRoot.style.removeProperty('flex');
           appRoot.style.removeProperty('overflow');
+          appRoot.style.removeProperty('transition');
         }
 
         if (appMain) {
@@ -132,78 +211,44 @@
           appMain.style.removeProperty('min-width');
         }
 
-        const addSubjectBtn = document.getElementById('addSubjectBtn');
-        if (addSubjectBtn) {
-          const row = addSubjectBtn.parentElement;
-          if (row) {
-            row.style.removeProperty('flex-wrap');
-            row.style.removeProperty('gap');
-          }
-          addSubjectBtn.style.removeProperty('width');
-          addSubjectBtn.style.removeProperty('justify-content');
-        }
+        overlay.style.removeProperty('display');
 
-        const plannerWrap = document.querySelector('main > .p-8.h-full.flex.gap-6');
-        if (plannerWrap) {
-          plannerWrap.style.removeProperty('flex-direction');
-          plannerWrap.style.removeProperty('height');
-          plannerWrap.style.removeProperty('padding');
-          plannerWrap.style.removeProperty('gap');
-          Array.from(plannerWrap.children).forEach((child) => {
-            child.style.removeProperty('width');
-            child.style.removeProperty('max-width');
-            child.style.removeProperty('min-width');
-            child.style.removeProperty('flex-basis');
-          });
-        }
+        applyPlannerMobileStack(false);
+        applySubjectsMobileHeader(false);
       }
     };
 
-    let overlay = document.querySelector('.app-sidebar-overlay');
-    if (!overlay) {
-      overlay = document.createElement('div');
-      overlay.className = 'app-sidebar-overlay';
-      document.body.appendChild(overlay);
-    }
+    const closeSidebar = () => {
+      document.body.classList.remove('mobile-sidebar-open');
+      syncSidebarLayout();
+      lockBodyScroll(document.body.classList.contains('nav-open'));
+    };
 
-    if (!document.getElementById('mobileSidebarToggle')) {
-      const toggle = document.createElement('button');
-      toggle.type = 'button';
-      toggle.id = 'mobileSidebarToggle';
-      toggle.className = 'mobile-sidebar-toggle';
-      toggle.setAttribute('aria-label', 'Abrir navegación lateral');
-      toggle.innerHTML = '☰';
-      document.body.appendChild(toggle);
+    const openSidebar = () => {
+      document.body.classList.add('mobile-sidebar-open');
+      syncSidebarLayout();
+      lockBodyScroll(true);
+    };
 
-      const closeSidebar = () => {
-        document.body.classList.remove('mobile-sidebar-open');
-        lockBodyScroll(document.body.classList.contains('nav-open'));
-      };
+    toggle.addEventListener('click', () => {
+      if (document.body.classList.contains('mobile-sidebar-open')) closeSidebar();
+      else openSidebar();
+    });
 
-      const openSidebar = () => {
-        document.body.classList.add('mobile-sidebar-open');
-        lockBodyScroll(true);
-      };
+    overlay.addEventListener('click', closeSidebar);
 
-      toggle.addEventListener('click', () => {
-        if (document.body.classList.contains('mobile-sidebar-open')) closeSidebar();
-        else openSidebar();
+    sidebar.querySelectorAll('a').forEach((link) => {
+      link.addEventListener('click', () => {
+        if (window.innerWidth < 768) closeSidebar();
       });
+    });
 
-      overlay.addEventListener('click', closeSidebar);
-      sidebar.querySelectorAll('a').forEach((link) => {
-        link.addEventListener('click', () => {
-          if (window.innerWidth < 768) closeSidebar();
-        });
-      });
+    window.addEventListener('resize', () => {
+      syncSidebarLayout();
+      if (window.innerWidth > 767) closeSidebar();
+    });
 
-      window.addEventListener('resize', () => {
-        applyAppShellLayout();
-        if (window.innerWidth > 767) closeSidebar();
-      });
-    }
-
-    applyAppShellLayout();
+    syncSidebarLayout();
   }
 
   document.addEventListener('DOMContentLoaded', function () {
