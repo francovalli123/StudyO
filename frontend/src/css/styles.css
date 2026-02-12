@@ -1996,15 +1996,24 @@ h1, h2, h3, h4, p, span, a, li {
     }
 
     nav.has-mobile-nav>.btn-nav {
-        display: none;
+        position: fixed;
+        right: 20px;
+        top: calc(80px + 16rem);
+        width: calc(min(84vw, 320px) - 40px);
+        justify-content: center;
+        z-index: 1202;
+        opacity: 0;
+        pointer-events: none;
+        transform: translateX(100%);
+        transition: transform 0.28s ease, opacity 0.2s ease;
     }
 
-    nav.has-mobile-nav .mobile-menu-cta {
-        display: inline-flex;
-        width: 100%;
-        justify-content: center;
-        margin-top: 6px;
+    nav.has-mobile-nav.mobile-open>.btn-nav {
+        opacity: 1;
+        pointer-events: auto;
+        transform: translateX(0);
     }
+
 
     .mobile-menu-toggle {
         display: inline-flex;
@@ -2061,6 +2070,39 @@ h1, h2, h3, h4, p, span, a, li {
     body.mobile-sidebar-open .app-sidebar-overlay {
         opacity: 1;
         pointer-events: auto;
+    }
+
+    /* Ensure app pages stop using desktop flex shell on small screens */
+    body.has-app-sidebar {
+        display: block;
+        min-height: 100vh;
+        height: auto;
+        overflow-y: auto;
+    }
+
+    body.has-app-sidebar > aside#sidebar + * {
+        width: 100%;
+        min-width: 0;
+        flex: none;
+    }
+
+    body.has-app-sidebar > .flex-1 {
+        overflow: visible;
+    }
+
+    body.has-app-sidebar main {
+        width: 100%;
+        min-width: 0;
+    }
+
+    /* Dashboard filter chips must wrap on narrow screens */
+    #weeklyObjectivesFilters {
+        flex-wrap: wrap;
+    }
+
+    #weeklyObjectivesFilters .filter-btn {
+        flex: 1 1 calc(50% - 6px);
+        min-width: 0;
     }
 
     /* make room for mobile sidebar button in app headers */

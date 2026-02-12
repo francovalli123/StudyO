@@ -10,6 +10,8 @@
       if (!menu) return;
 
       nav.classList.add('has-mobile-nav');
+      if (nav.querySelector('.mobile-menu-toggle')) return;
+
       const toggle = document.createElement('button');
       toggle.type = 'button';
       toggle.className = 'mobile-menu-toggle';
@@ -18,17 +20,14 @@
       toggle.innerHTML = '<span></span><span></span><span></span>';
       nav.appendChild(toggle);
 
-      const overlay = document.createElement('div');
-      overlay.className = 'mobile-menu-overlay';
-      overlay.dataset.navOverlay = String(index);
-      document.body.appendChild(overlay);
-
-      const cta = nav.querySelector('.btn-nav');
-      if (cta && !menu.querySelector('.mobile-menu-cta')) {
-        const clone = cta.cloneNode(true);
-        clone.classList.add('mobile-menu-cta');
-        menu.appendChild(clone);
+      let overlay = document.querySelector(`.mobile-menu-overlay[data-nav-overlay="${index}"]`);
+      if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.className = 'mobile-menu-overlay';
+        overlay.dataset.navOverlay = String(index);
+        document.body.appendChild(overlay);
       }
+
 
       const closeMenu = () => {
         nav.classList.remove('mobile-open');
@@ -65,6 +64,10 @@
     const sidebar = document.getElementById('sidebar');
     if (!sidebar) return;
 
+    document.body.classList.add('has-app-sidebar');
+
+    if (document.getElementById('mobileSidebarToggle')) return;
+
     const toggle = document.createElement('button');
     toggle.type = 'button';
     toggle.id = 'mobileSidebarToggle';
@@ -73,9 +76,12 @@
     toggle.innerHTML = '☰';
     document.body.appendChild(toggle);
 
-    const overlay = document.createElement('div');
-    overlay.className = 'app-sidebar-overlay';
-    document.body.appendChild(overlay);
+    let overlay = document.querySelector('.app-sidebar-overlay');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.className = 'app-sidebar-overlay';
+      document.body.appendChild(overlay);
+    }
 
     const closeSidebar = () => {
       document.body.classList.remove('mobile-sidebar-open');
