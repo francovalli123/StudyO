@@ -76,6 +76,14 @@
         const sidebar = document.getElementById('sidebar');
         if (!sidebar)
             return;
+        const appRoot = document.getElementById('app-root');
+        const appMain = document.querySelector('main');
+        const applyPlannerMobileStack = (mobile) => {
+            document.body.classList.toggle('planner-mobile-stack', mobile);
+        };
+        const applySubjectsMobileHeader = (mobile) => {
+            document.body.classList.toggle('subjects-mobile-header', mobile);
+        };
         document.body.classList.add('has-app-sidebar');
         let overlay = document.querySelector('.app-sidebar-overlay');
         if (!overlay) {
@@ -98,6 +106,8 @@
             const isOpen = document.body.classList.contains('is-mobile-sidebar-open');
             if (mobile) {
                 clearDesktopSidebarCollapsed();
+                applyPlannerMobileStack(isOpen);
+                applySubjectsMobileHeader(isOpen);
             }
             else {
                 document.body.classList.remove('is-mobile-sidebar-open');

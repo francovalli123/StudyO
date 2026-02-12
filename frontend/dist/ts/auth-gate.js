@@ -27,6 +27,21 @@ const authState = {
     user: null,
     authResolved: false,
 };
+const AUTH_CHECK_TIMEOUT_MS = 8000;
+function withTimeout(promise, timeoutMs, timeoutMessage) {
+    return new Promise((resolve, reject) => {
+        const timer = window.setTimeout(() => reject(new Error(timeoutMessage)), timeoutMs);
+        promise
+            .then((value) => {
+            window.clearTimeout(timer);
+            resolve(value);
+        })
+            .catch((error) => {
+            window.clearTimeout(timer);
+            reject(error);
+        });
+    });
+}
 function resetGlobalScaleState() {
     const targets = [document.documentElement, document.body].filter((el) => Boolean(el));
     const properties = ["zoom", "transform", "transform-origin"];
@@ -139,7 +154,7 @@ export function initAuthGate(options) {
             return;
         }
         try {
-            const user = yield getCurrentUser();
+            const user = yield withTimeout(getCurrentUser(), AUTH_CHECK_TIMEOUT_MS, "Auth check timeout");
             resolveState("authenticated", {
                 isAuthenticated: true,
                 token,
@@ -147,23 +162,23 @@ export function initAuthGate(options) {
             });
         }
         catch (err) {
-            removeToken();
             const statusCode = (_c = err === null || err === void 0 ? void 0 : err.status) !== null && _c !== void 0 ? _c : (_d = err === null || err === void 0 ? void 0 : err.response) === null || _d === void 0 ? void 0 : _d.status;
             if (statusCode === 401 || statusCode === 403) {
+                removeToken();
                 resolveState("unauthenticated", {
                     isAuthenticated: false,
                     token: null,
                     user: null,
                 });
+                redirectToLogin(loginPath, currentPath);
+                return;
             }
-            else {
-                resolveState("error", {
-                    isAuthenticated: false,
-                    token: null,
-                    user: null,
-                });
-            }
-            redirectToLogin(loginPath, currentPath);
+            resolveState("error", {
+                isAuthenticated: false,
+                token,
+                user: null,
+            });
+            // Keep token on transient network/auth-service issues so user can retry without forced logout loop.
         }
     });
 }

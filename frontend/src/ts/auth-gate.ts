@@ -42,6 +42,23 @@ const authState: AuthState = {
     authResolved: false,
 };
 
+const AUTH_CHECK_TIMEOUT_MS = 8000;
+
+function withTimeout<T>(promise: Promise<T>, timeoutMs: number, timeoutMessage: string): Promise<T> {
+    return new Promise<T>((resolve, reject) => {
+        const timer = window.setTimeout(() => reject(new Error(timeoutMessage)), timeoutMs);
+        promise
+            .then((value) => {
+                window.clearTimeout(timer);
+                resolve(value);
+            })
+            .catch((error) => {
+                window.clearTimeout(timer);
+                reject(error);
+            });
+    });
+}
+
 function resetGlobalScaleState() {
     const targets = [document.documentElement, document.body].filter(
         (el): el is HTMLElement => Boolean(el)
@@ -170,7 +187,7 @@ export async function initAuthGate(options?: { loginPath?: string }) {
     }
 
     try {
-        const user = await getCurrentUser();
+        const user = await withTimeout(getCurrentUser(), AUTH_CHECK_TIMEOUT_MS, "Auth check timeout");
 
         resolveState("authenticated", {
             isAuthenticated: true,
@@ -178,25 +195,26 @@ export async function initAuthGate(options?: { loginPath?: string }) {
             user,
         });
     } catch (err: any) {
-        removeToken();
-
         const statusCode = err?.status ?? err?.response?.status;
 
         if (statusCode === 401 || statusCode === 403) {
+            removeToken();
             resolveState("unauthenticated", {
                 isAuthenticated: false,
                 token: null,
                 user: null,
             });
-        } else {
-            resolveState("error", {
-                isAuthenticated: false,
-                token: null,
-                user: null,
-            });
+            redirectToLogin(loginPath, currentPath);
+            return;
         }
 
-        redirectToLogin(loginPath, currentPath);
+        resolveState("error", {
+            isAuthenticated: false,
+            token,
+            user: null,
+        });
+
+        // Keep token on transient network/auth-service issues so user can retry without forced logout loop.
     }
 }
 
