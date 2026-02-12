@@ -11,6 +11,19 @@ const BASE_URL = "http://127.0.0.1:8000/api";
  * ==========================================
  */
 
+
+export class ApiError extends Error {
+    status?: number;
+    payload?: unknown;
+
+    constructor(message: string, status?: number, payload?: unknown) {
+        super(message);
+        this.name = 'ApiError';
+        this.status = status;
+        this.payload = payload;
+    }
+}
+
 export function getToken(): string | null {
     return localStorage.getItem('authToken');
 }
@@ -73,11 +86,31 @@ function emitAuthExpired(): void {
 }
 
 async function handleRequest<T>(response: Response): Promise<T> {
+    const parseErrorPayload = async (): Promise<{ message: string; payload?: unknown }> => {
+        const fallbackMessage = `HTTP Error ${response.status}`;
+        const clonedResponse = response.clone();
+
+        try {
+            const payload = await clonedResponse.json();
+            const detail = (payload as any)?.detail || (payload as any)?.message;
+            const message = typeof detail === 'string' ? detail : JSON.stringify(payload);
+            return { message, payload };
+        } catch {
+            try {
+                const message = await response.text() || fallbackMessage;
+                return { message };
+            } catch {
+                return { message: fallbackMessage };
+            }
+        }
+    };
+
     // Handle 401/403 Unauthorized globally
     if (response.status === 401 || response.status === 403) {
         emitAuthExpired();
         removeToken();
-        throw new Error("Session expired. Please login again.");
+        const { message, payload } = await parseErrorPayload();
+        throw new ApiError(message || 'Session expired. Please login again.', response.status, payload);
     }
 
     // Handle 204 No Content (common in DELETE or empty PUTs)
@@ -87,23 +120,8 @@ async function handleRequest<T>(response: Response): Promise<T> {
 
     // Handle standard errors
     if (!response.ok) {
-        let errorMessage = `HTTP Error ${response.status}`;
-        // Clone the response to read it multiple times if needed
-        const clonedResponse = response.clone();
-        try {
-            const errorBody = await clonedResponse.json();
-            // Stringify solely for the Error object message
-            errorMessage = JSON.stringify(errorBody);
-        } catch (e) {
-            // Fallback if response isn't JSON
-            try {
-                errorMessage = await response.text() || errorMessage;
-            } catch (textError) {
-                // If we can't read text either, use default message
-                errorMessage = `HTTP Error ${response.status}`;
-            }
-        }
-        throw new Error(errorMessage);
+        const { message, payload } = await parseErrorPayload();
+        throw new ApiError(message, response.status, payload);
     }
 
     return response.json();

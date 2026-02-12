@@ -18,6 +18,14 @@ const BASE_URL = "http://127.0.0.1:8000/api";
  * Token Management
  * ==========================================
  */
+export class ApiError extends Error {
+    constructor(message, status, payload) {
+        super(message);
+        this.name = 'ApiError';
+        this.status = status;
+        this.payload = payload;
+    }
+}
 export function getToken() {
     return localStorage.getItem('authToken');
 }
@@ -74,11 +82,31 @@ function emitAuthExpired() {
 }
 function handleRequest(response) {
     return __awaiter(this, void 0, void 0, function* () {
+        const parseErrorPayload = () => __awaiter(this, void 0, void 0, function* () {
+            const fallbackMessage = `HTTP Error ${response.status}`;
+            const clonedResponse = response.clone();
+            try {
+                const payload = yield clonedResponse.json();
+                const detail = (payload === null || payload === void 0 ? void 0 : payload.detail) || (payload === null || payload === void 0 ? void 0 : payload.message);
+                const message = typeof detail === 'string' ? detail : JSON.stringify(payload);
+                return { message, payload };
+            }
+            catch (_a) {
+                try {
+                    const message = (yield response.text()) || fallbackMessage;
+                    return { message };
+                }
+                catch (_b) {
+                    return { message: fallbackMessage };
+                }
+            }
+        });
         // Handle 401/403 Unauthorized globally
         if (response.status === 401 || response.status === 403) {
             emitAuthExpired();
             removeToken();
-            throw new Error("Session expired. Please login again.");
+            const { message, payload } = yield parseErrorPayload();
+            throw new ApiError(message || 'Session expired. Please login again.', response.status, payload);
         }
         // Handle 204 No Content (common in DELETE or empty PUTs)
         if (response.status === 204) {
@@ -86,25 +114,8 @@ function handleRequest(response) {
         }
         // Handle standard errors
         if (!response.ok) {
-            let errorMessage = `HTTP Error ${response.status}`;
-            // Clone the response to read it multiple times if needed
-            const clonedResponse = response.clone();
-            try {
-                const errorBody = yield clonedResponse.json();
-                // Stringify solely for the Error object message
-                errorMessage = JSON.stringify(errorBody);
-            }
-            catch (e) {
-                // Fallback if response isn't JSON
-                try {
-                    errorMessage = (yield response.text()) || errorMessage;
-                }
-                catch (textError) {
-                    // If we can't read text either, use default message
-                    errorMessage = `HTTP Error ${response.status}`;
-                }
-            }
-            throw new Error(errorMessage);
+            const { message, payload } = yield parseErrorPayload();
+            throw new ApiError(message, response.status, payload);
         }
         return response.json();
     });

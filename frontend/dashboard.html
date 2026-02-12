@@ -742,36 +742,42 @@
         });
     </script>
     <script type="module">
-        import { logout, getCurrentUser } from './dist/ts/api.js';
+        import { logout } from './dist/ts/api.js';
 
-        document.addEventListener('DOMContentLoaded', async function() {
-            // Cargar nombre del usuario
-            try {
-                const user = await getCurrentUser();
+        document.addEventListener('DOMContentLoaded', function() {
+            const applyUser = (user) => {
+                if (!user) return;
                 const firstNameElement = document.getElementById('firstName');
-
                 if (firstNameElement) {
                     const nameToDisplay = user.first_name ? user.first_name : user.username;
                     firstNameElement.textContent = nameToDisplay;
                 }
 
-                // Set dashboard avatar if available (plain JS, no TS casts)
                 const avatarEl = document.getElementById('dashAvatarImg');
-                const profileBtn = document.getElementById('profileAvatarBtn');
                 const possible = user.avatar || user.avatar_url || user.photo || user.profile_image;
                 if (avatarEl instanceof HTMLImageElement && possible) avatarEl.src = possible;
-                if (profileBtn) profileBtn.addEventListener('click', () => { window.location.href = 'profile.html'; });
+            };
 
-            } catch (error) {
-                console.error('Error al cargar información del usuario:', error);
-                if (error.message === "No autenticado" || error.message === "Sesión expirada") {
-                    window.location.href = 'login.html';
-                }
+            const currentAuthState = window.__studyoAuthState;
+            if (currentAuthState && currentAuthState.status === 'authenticated' && currentAuthState.user) {
+                applyUser(currentAuthState.user);
             }
 
-            // Configurar botón de logout
+            window.addEventListener('auth:state', (event) => {
+                const detail = event && event.detail ? event.detail : null;
+                if (!detail) return;
+                if (detail.status === 'authenticated') {
+                    applyUser(detail.user);
+                }
+                if (detail.status === 'unauthenticated') {
+                    window.location.href = 'login.html';
+                }
+            });
+
+            const profileBtn = document.getElementById('profileAvatarBtn');
+            if (profileBtn) profileBtn.addEventListener('click', () => { window.location.href = 'profile.html'; });
+
             const logoutBtn = document.getElementById('logoutBtn');
-            
             if (logoutBtn) {
                 logoutBtn.addEventListener('click', async (e) => {
                     e.preventDefault();

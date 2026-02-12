@@ -84,6 +84,16 @@
   const setupAppSidebar = (): void => {
     const sidebar = document.getElementById('sidebar');
     if (!sidebar) return;
+    const appRoot = document.getElementById('app-root') as HTMLElement | null;
+    const appMain = document.querySelector<HTMLElement>('main');
+
+    const applyPlannerMobileStack = (mobile: boolean): void => {
+      document.body.classList.toggle('planner-mobile-stack', mobile);
+    };
+
+    const applySubjectsMobileHeader = (mobile: boolean): void => {
+      document.body.classList.toggle('subjects-mobile-header', mobile);
+    };
 
     document.body.classList.add('has-app-sidebar');
 
@@ -111,6 +121,8 @@
 
       if (mobile) {
         clearDesktopSidebarCollapsed();
+        applyPlannerMobileStack(isOpen);
+        applySubjectsMobileHeader(isOpen);
       } else {
         document.body.classList.remove('is-mobile-sidebar-open');
         document.body.style.removeProperty('display');

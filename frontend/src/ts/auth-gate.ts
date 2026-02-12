@@ -1,4 +1,4 @@
-import { getCurrentUser, getToken, removeToken } from "./api.js";
+import { ApiError, getCurrentUser, getToken, removeToken } from "./api.js";
 
 export type AuthStatus =
     | "checking"
@@ -21,10 +21,6 @@ declare global {
     }
 }
 
-/**
- * Rutas que NO requieren autenticación
- * Estas páginas JAMÁS deben quedar bloqueadas por el auth gate
- */
 const PUBLIC_ROUTES = [
     "/",
     "/index.html",
@@ -42,6 +38,29 @@ const authState: AuthState = {
     authResolved: false,
 };
 
+const AUTH_CHECK_TIMEOUT_MS = 8000;
+const AUTH_RETRY_ATTEMPTS = 1;
+const AUTH_RETRY_DELAY_MS = 1200;
+
+function withTimeout<T>(promise: Promise<T>, timeoutMs: number, timeoutMessage: string): Promise<T> {
+    return new Promise<T>((resolve, reject) => {
+        const timer = window.setTimeout(() => reject(new Error(timeoutMessage)), timeoutMs);
+        promise
+            .then((value) => {
+                window.clearTimeout(timer);
+                resolve(value);
+            })
+            .catch((error) => {
+                window.clearTimeout(timer);
+                reject(error);
+            });
+    });
+}
+
+function wait(ms: number): Promise<void> {
+    return new Promise((resolve) => window.setTimeout(resolve, ms));
+}
+
 function resetGlobalScaleState() {
     const targets = [document.documentElement, document.body].filter(
         (el): el is HTMLElement => Boolean(el)
@@ -52,7 +71,7 @@ function resetGlobalScaleState() {
         properties.forEach((prop) => el.style.removeProperty(prop));
         el.style.setProperty("zoom", "1");
         el.style.setProperty("transform", "none");
-        el.style.setProperty("transform-origin", "0 0")
+        el.style.setProperty("transform-origin", "0 0");
     });
 }
 
@@ -71,9 +90,6 @@ function updateAuthState(next: Partial<AuthState>) {
     }
 }
 
-/**
- * Loader SOLO para rutas protegidas
- */
 function ensureAuthLoadingUI() {
     if (document.getElementById("auth-loading")) return;
 
@@ -92,6 +108,54 @@ function clearAuthLoadingUI() {
     document.getElementById("auth-loading")?.remove();
 }
 
+function clearAuthErrorUI(): void {
+    document.getElementById("auth-error")?.remove();
+}
+
+function ensureAuthErrorUI(loginPath: string, detail?: string): void {
+    let panel = document.getElementById("auth-error") as HTMLDivElement | null;
+    if (!panel) {
+        panel = document.createElement("div");
+        panel.id = "auth-error";
+        panel.style.position = "fixed";
+        panel.style.left = "50%";
+        panel.style.bottom = "24px";
+        panel.style.transform = "translateX(-50%)";
+        panel.style.zIndex = "10000";
+        panel.style.maxWidth = "640px";
+        panel.style.width = "calc(100% - 32px)";
+        panel.style.background = "rgba(13,16,22,0.98)";
+        panel.style.border = "1px solid rgba(168,85,247,0.45)";
+        panel.style.borderRadius = "14px";
+        panel.style.padding = "14px";
+        panel.style.boxShadow = "0 8px 26px rgba(0,0,0,0.35)";
+        panel.style.color = "#e5e7eb";
+        panel.innerHTML = `
+            <div style="font-size:14px;font-weight:600;margin-bottom:8px">No se pudo validar tu sesión.</div>
+            <div id="auth-error-detail" style="font-size:13px;opacity:.9;margin-bottom:12px"></div>
+            <div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap">
+                <button id="auth-retry-btn" type="button" style="background:#1f2937;color:#fff;border:1px solid #374151;border-radius:8px;padding:7px 12px;cursor:pointer">Reintentar</button>
+                <button id="auth-login-btn" type="button" style="background:linear-gradient(90deg,#7c3aed,#d946ef);color:#fff;border:none;border-radius:8px;padding:7px 12px;cursor:pointer">Ir al login</button>
+            </div>
+        `;
+        document.body.appendChild(panel);
+
+        panel.querySelector<HTMLButtonElement>("#auth-retry-btn")?.addEventListener("click", () => {
+            void initAuthGate({ loginPath });
+        });
+
+        panel.querySelector<HTMLButtonElement>("#auth-login-btn")?.addEventListener("click", () => {
+            const currentPath = window.location.pathname;
+            redirectToLogin(loginPath, currentPath);
+        });
+    }
+
+    const detailNode = panel.querySelector<HTMLDivElement>("#auth-error-detail");
+    if (detailNode) {
+        detailNode.textContent = detail || "Revisa tu conexión o intenta nuevamente.";
+    }
+}
+
 function isPublicRoute(pathname: string): boolean {
     return PUBLIC_ROUTES.includes(pathname);
 }
@@ -104,9 +168,32 @@ function safeGetToken(): string | null {
     }
 }
 
+function getErrorStatus(err: unknown): number | undefined {
+    if (err instanceof ApiError) return err.status;
+    const status = (err as any)?.status ?? (err as any)?.response?.status;
+    return typeof status === "number" ? status : undefined;
+}
+
+function getErrorMessage(err: unknown): string {
+    const message = (err as any)?.message;
+    return typeof message === "string" && message.trim().length ? message : "Error de conexión";
+}
+
+function isRetryableAuthError(statusCode: number | undefined, err: unknown): boolean {
+    if (statusCode === 401 || statusCode === 403) return false;
+    const message = getErrorMessage(err).toLowerCase();
+    if (message.includes("auth check timeout")) return true;
+    if (message.includes("network") || message.includes("failed to fetch")) return true;
+    return statusCode === undefined || statusCode >= 500;
+}
+
 function resolveState(status: AuthStatus, payload?: Partial<AuthState>) {
     document.documentElement.classList.remove("auth-pending");
     document.getElementById("auth-loading")?.remove();
+    if (status !== "error") {
+        clearAuthErrorUI();
+    }
+
     updateAuthState({
         status,
         authResolved: status !== "checking",
@@ -128,22 +215,16 @@ function redirectToLogin(loginPath: string, currentPath: string) {
     window.location.href = `${loginPath}?next=${next}`;
 }
 
-/**
- * INIT AUTH GATE
- * ─────────────────────────────────────────────
- * ✔ Nunca deja la UI en checking infinito
- * ✔ Páginas públicas renderizan instantáneo
- * ✔ Rutas protegidas validan token correctamente
- */
 export async function initAuthGate(options?: { loginPath?: string }) {
     document.documentElement.classList.remove("auth-pending");
     document.getElementById("auth-loading")?.remove();
+    clearAuthErrorUI();
     resetGlobalScaleState();
+
     const loginPath = options?.loginPath ?? "login.html";
     const currentPath = window.location.pathname;
     const isPublic = isPublicRoute(currentPath);
 
-    // 🔓 RUTAS PÚBLICAS → resolver inmediatamente
     if (isPublic) {
         const token = safeGetToken();
         resolveState("public", {
@@ -154,7 +235,6 @@ export async function initAuthGate(options?: { loginPath?: string }) {
         return;
     }
 
-    // 🔒 RUTAS PROTEGIDAS → mostrar loader
     resolveState("checking");
 
     const token = safeGetToken();
@@ -169,40 +249,49 @@ export async function initAuthGate(options?: { loginPath?: string }) {
         return;
     }
 
-    try {
-        const user = await getCurrentUser();
+    let attempts = 0;
 
-        resolveState("authenticated", {
-            isAuthenticated: true,
-            token,
-            user,
-        });
-    } catch (err: any) {
-        removeToken();
+    while (attempts <= AUTH_RETRY_ATTEMPTS) {
+        try {
+            const user = await withTimeout(getCurrentUser(), AUTH_CHECK_TIMEOUT_MS, "Auth check timeout");
 
-        const statusCode = err?.status ?? err?.response?.status;
-
-        if (statusCode === 401 || statusCode === 403) {
-            resolveState("unauthenticated", {
-                isAuthenticated: false,
-                token: null,
-                user: null,
+            resolveState("authenticated", {
+                isAuthenticated: true,
+                token,
+                user,
             });
-        } else {
+            return;
+        } catch (err: unknown) {
+            const statusCode = getErrorStatus(err);
+
+            if (statusCode === 401 || statusCode === 403) {
+                removeToken();
+                resolveState("unauthenticated", {
+                    isAuthenticated: false,
+                    token: null,
+                    user: null,
+                });
+                redirectToLogin(loginPath, currentPath);
+                return;
+            }
+
+            if (attempts < AUTH_RETRY_ATTEMPTS && isRetryableAuthError(statusCode, err)) {
+                attempts += 1;
+                await wait(AUTH_RETRY_DELAY_MS * attempts);
+                continue;
+            }
+
             resolveState("error", {
                 isAuthenticated: false,
-                token: null,
+                token,
                 user: null,
             });
+            ensureAuthErrorUI(loginPath, getErrorMessage(err));
+            return;
         }
-
-        redirectToLogin(loginPath, currentPath);
     }
 }
 
-/**
- * Expiración forzada desde cualquier parte del sistema
- */
 window.addEventListener("auth:expired", () => {
     const currentPath = window.location.pathname;
 
