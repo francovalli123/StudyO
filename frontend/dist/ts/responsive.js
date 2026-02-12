@@ -1,16 +1,21 @@
 "use strict";
 (() => {
+    const MOBILE_SIDEBAR_OPEN_CLASS = 'is-mobile-sidebar-open';
+    const DESKTOP_SIDEBAR_COLLAPSED_CLASS = 'is-desktop-sidebar-collapsed';
     const lockBodyScroll = (lock) => {
         document.body.classList.toggle('no-scroll', lock);
     };
-    if (window.innerWidth < 768) {
-        document.body.classList.remove('sidebar-collapsed');
+    const clearDesktopSidebarCollapsed = () => {
+        document.body.classList.remove('sidebar-collapsed', DESKTOP_SIDEBAR_COLLAPSED_CLASS);
         try {
             localStorage.setItem('sidebarCollapsed', '0');
         }
         catch (_error) {
             // ignore storage errors
         }
+    };
+    if (window.innerWidth < 768) {
+        clearDesktopSidebarCollapsed();
     }
     const setupTopNav = () => {
         const navs = Array.from(document.querySelectorAll('header nav, body > nav, .top-nav, nav'));
@@ -68,13 +73,10 @@
         });
     };
     const setupAppSidebar = () => {
-        var _a;
         const sidebar = document.getElementById('sidebar');
         if (!sidebar)
             return;
         document.body.classList.add('has-app-sidebar');
-        const appRoot = sidebar.nextElementSibling;
-        const appMain = (_a = appRoot === null || appRoot === void 0 ? void 0 : appRoot.querySelector('main')) !== null && _a !== void 0 ? _a : null;
         let overlay = document.querySelector('.app-sidebar-overlay');
         if (!overlay) {
             overlay = document.createElement('div');
@@ -91,101 +93,11 @@
             toggle.innerHTML = '☰';
             document.body.appendChild(toggle);
         }
-        const sidebarWidthValue = () => `${Math.min(Math.round(window.innerWidth * 0.84), 320)}px`;
-        const applyPlannerMobileStack = (mobile) => {
-            const plannerWrap = document.querySelector('main > .p-8.h-full.flex.gap-6');
-            if (!plannerWrap)
-                return;
-            if (mobile) {
-                plannerWrap.style.flexDirection = 'column';
-                plannerWrap.style.height = 'auto';
-                plannerWrap.style.padding = '16px';
-                plannerWrap.style.gap = '16px';
-                Array.from(plannerWrap.children).forEach((child) => {
-                    const elementChild = child;
-                    elementChild.style.width = '100%';
-                    elementChild.style.maxWidth = 'none';
-                    elementChild.style.minWidth = '0';
-                    elementChild.style.flexBasis = 'auto';
-                });
-            }
-            else {
-                plannerWrap.style.removeProperty('flex-direction');
-                plannerWrap.style.removeProperty('height');
-                plannerWrap.style.removeProperty('padding');
-                plannerWrap.style.removeProperty('gap');
-                Array.from(plannerWrap.children).forEach((child) => {
-                    const elementChild = child;
-                    elementChild.style.removeProperty('width');
-                    elementChild.style.removeProperty('max-width');
-                    elementChild.style.removeProperty('min-width');
-                    elementChild.style.removeProperty('flex-basis');
-                });
-            }
-        };
-        const applySubjectsMobileHeader = (mobile) => {
-            const addSubjectBtn = document.getElementById('addSubjectBtn');
-            if (!addSubjectBtn)
-                return;
-            const row = addSubjectBtn.parentElement;
-            if (mobile) {
-                if (row) {
-                    row.style.flexWrap = 'wrap';
-                    row.style.gap = '12px';
-                }
-                addSubjectBtn.style.width = '100%';
-                addSubjectBtn.style.justifyContent = 'center';
-            }
-            else {
-                if (row) {
-                    row.style.removeProperty('flex-wrap');
-                    row.style.removeProperty('gap');
-                }
-                addSubjectBtn.style.removeProperty('width');
-                addSubjectBtn.style.removeProperty('justify-content');
-            }
-        };
         const syncSidebarLayout = () => {
             const mobile = window.innerWidth < 768;
             const isOpen = document.body.classList.contains('is-mobile-sidebar-open');
             if (mobile) {
-                document.body.classList.remove('sidebar-collapsed');
-                document.body.style.display = 'block';
-                document.body.style.minHeight = '100vh';
-                document.body.style.height = 'auto';
-                document.body.style.overflowY = 'auto';
-                const width = sidebarWidthValue();
-                sidebar.style.position = 'fixed';
-                sidebar.style.top = '0';
-                sidebar.style.left = '0';
-                sidebar.style.bottom = '0';
-                sidebar.style.height = '100dvh';
-                sidebar.style.width = width;
-                sidebar.style.minWidth = width;
-                sidebar.style.maxWidth = width;
-                sidebar.style.zIndex = '1240';
-                sidebar.style.overflowY = 'auto';
-                sidebar.style.overflowX = 'hidden';
-                sidebar.style.transform = isOpen ? 'translateX(0)' : 'translateX(-102%)';
-                sidebar.style.transition = 'transform 0.28s ease';
-                if (appRoot) {
-                    appRoot.style.width = '100%';
-                    appRoot.style.maxWidth = '100vw';
-                    appRoot.style.marginLeft = '0';
-                    appRoot.style.minWidth = '0';
-                    appRoot.style.flex = 'none';
-                    appRoot.style.overflow = 'visible';
-                    appRoot.style.overflowX = 'hidden';
-                    appRoot.style.transition = 'none';
-                }
-                if (appMain) {
-                    appMain.style.width = '100%';
-                    appMain.style.maxWidth = '100vw';
-                    appMain.style.minWidth = '0';
-                    appMain.style.overflowX = 'hidden';
-                }
-                applyPlannerMobileStack(true);
-                applySubjectsMobileHeader(true);
+                clearDesktopSidebarCollapsed();
             }
             else {
                 document.body.classList.remove('is-mobile-sidebar-open');
@@ -282,18 +194,18 @@
         const normalizeMobileCollapsedState = () => {
             if (window.innerWidth >= 768)
                 return;
-            if (document.body.classList.contains('sidebar-collapsed')) {
-                document.body.classList.remove('sidebar-collapsed');
-            }
-            try {
-                localStorage.setItem('sidebarCollapsed', '0');
-            }
-            catch (_error) {
-                // ignore storage errors
-            }
+            clearDesktopSidebarCollapsed();
+        };
+        const syncDesktopCollapsedClass = () => {
+            if (window.innerWidth < 768)
+                return;
+            const collapsed = document.body.classList.contains('sidebar-collapsed') || document.body.classList.contains(DESKTOP_SIDEBAR_COLLAPSED_CLASS);
+            document.body.classList.toggle(DESKTOP_SIDEBAR_COLLAPSED_CLASS, collapsed);
+            document.body.classList.remove('sidebar-collapsed');
         };
         const bodyClassObserver = new MutationObserver(() => {
             normalizeMobileCollapsedState();
+            syncDesktopCollapsedClass();
         });
         bodyClassObserver.observe(document.body, { attributes: true, attributeFilter: ['class'] });
         sidebar.querySelectorAll('a').forEach((link) => {
@@ -319,6 +231,7 @@
         });
         syncSidebarLayout();
         normalizeMobileCollapsedState();
+        syncDesktopCollapsedClass();
     };
     document.addEventListener('DOMContentLoaded', () => {
         setupTopNav();

@@ -1,15 +1,22 @@
 (() => {
+  const MOBILE_SIDEBAR_OPEN_CLASS = 'is-mobile-sidebar-open';
+  const DESKTOP_SIDEBAR_COLLAPSED_CLASS = 'is-desktop-sidebar-collapsed';
+
   const lockBodyScroll = (lock: boolean): void => {
     document.body.classList.toggle('no-scroll', lock);
   };
 
-  if (window.innerWidth < 768) {
-    document.body.classList.remove('sidebar-collapsed');
+  const clearDesktopSidebarCollapsed = (): void => {
+    document.body.classList.remove('sidebar-collapsed', DESKTOP_SIDEBAR_COLLAPSED_CLASS);
     try {
       localStorage.setItem('sidebarCollapsed', '0');
     } catch (_error) {
       // ignore storage errors
     }
+  };
+
+  if (window.innerWidth < 768) {
+    clearDesktopSidebarCollapsed();
   }
 
   const setupTopNav = (): void => {
@@ -80,9 +87,6 @@
 
     document.body.classList.add('has-app-sidebar');
 
-    const appRoot = sidebar.nextElementSibling as HTMLElement | null;
-    const appMain = appRoot?.querySelector<HTMLElement>('main') ?? null;
-
     let overlay = document.querySelector<HTMLDivElement>('.app-sidebar-overlay');
     if (!overlay) {
       overlay = document.createElement('div');
@@ -101,108 +105,12 @@
       document.body.appendChild(toggle);
     }
 
-    const sidebarWidthValue = (): string => `${Math.min(Math.round(window.innerWidth * 0.84), 320)}px`;
-
-    const applyPlannerMobileStack = (mobile: boolean): void => {
-      const plannerWrap = document.querySelector<HTMLElement>('main > .p-8.h-full.flex.gap-6');
-      if (!plannerWrap) return;
-
-      if (mobile) {
-        plannerWrap.style.flexDirection = 'column';
-        plannerWrap.style.height = 'auto';
-        plannerWrap.style.padding = '16px';
-        plannerWrap.style.gap = '16px';
-        Array.from(plannerWrap.children).forEach((child) => {
-          const elementChild = child as HTMLElement;
-          elementChild.style.width = '100%';
-          elementChild.style.maxWidth = 'none';
-          elementChild.style.minWidth = '0';
-          elementChild.style.flexBasis = 'auto';
-        });
-      } else {
-        plannerWrap.style.removeProperty('flex-direction');
-        plannerWrap.style.removeProperty('height');
-        plannerWrap.style.removeProperty('padding');
-        plannerWrap.style.removeProperty('gap');
-        Array.from(plannerWrap.children).forEach((child) => {
-          const elementChild = child as HTMLElement;
-          elementChild.style.removeProperty('width');
-          elementChild.style.removeProperty('max-width');
-          elementChild.style.removeProperty('min-width');
-          elementChild.style.removeProperty('flex-basis');
-        });
-      }
-    };
-
-    const applySubjectsMobileHeader = (mobile: boolean): void => {
-      const addSubjectBtn = document.getElementById('addSubjectBtn') as HTMLButtonElement | null;
-      if (!addSubjectBtn) return;
-
-      const row = addSubjectBtn.parentElement;
-      if (mobile) {
-        if (row) {
-          row.style.flexWrap = 'wrap';
-          row.style.gap = '12px';
-        }
-        addSubjectBtn.style.width = '100%';
-        addSubjectBtn.style.justifyContent = 'center';
-      } else {
-        if (row) {
-          row.style.removeProperty('flex-wrap');
-          row.style.removeProperty('gap');
-        }
-        addSubjectBtn.style.removeProperty('width');
-        addSubjectBtn.style.removeProperty('justify-content');
-      }
-    };
-
     const syncSidebarLayout = (): void => {
       const mobile = window.innerWidth < 768;
       const isOpen = document.body.classList.contains('is-mobile-sidebar-open');
 
       if (mobile) {
-        document.body.classList.remove('sidebar-collapsed');
-
-        document.body.style.display = 'block';
-        document.body.style.minHeight = '100vh';
-        document.body.style.height = 'auto';
-        document.body.style.overflowY = 'auto';
-
-        const width = sidebarWidthValue();
-        sidebar.style.position = 'fixed';
-        sidebar.style.top = '0';
-        sidebar.style.left = '0';
-        sidebar.style.bottom = '0';
-        sidebar.style.height = '100dvh';
-        sidebar.style.width = width;
-        sidebar.style.minWidth = width;
-        sidebar.style.maxWidth = width;
-        sidebar.style.zIndex = '1240';
-        sidebar.style.overflowY = 'auto';
-        sidebar.style.overflowX = 'hidden';
-        sidebar.style.transform = isOpen ? 'translateX(0)' : 'translateX(-102%)';
-        sidebar.style.transition = 'transform 0.28s ease';
-
-        if (appRoot) {
-          appRoot.style.width = '100%';
-          appRoot.style.maxWidth = '100vw';
-          appRoot.style.marginLeft = '0';
-          appRoot.style.minWidth = '0';
-          appRoot.style.flex = 'none';
-          appRoot.style.overflow = 'visible';
-          appRoot.style.overflowX = 'hidden';
-          appRoot.style.transition = 'none';
-        }
-
-        if (appMain) {
-          appMain.style.width = '100%';
-          appMain.style.maxWidth = '100vw';
-          appMain.style.minWidth = '0';
-          appMain.style.overflowX = 'hidden';
-        }
-
-        applyPlannerMobileStack(true);
-        applySubjectsMobileHeader(true);
+        clearDesktopSidebarCollapsed();
       } else {
         document.body.classList.remove('is-mobile-sidebar-open');
         document.body.style.removeProperty('display');
@@ -305,18 +213,19 @@
 
     const normalizeMobileCollapsedState = (): void => {
       if (window.innerWidth >= 768) return;
-      if (document.body.classList.contains('sidebar-collapsed')) {
-        document.body.classList.remove('sidebar-collapsed');
-      }
-      try {
-        localStorage.setItem('sidebarCollapsed', '0');
-      } catch (_error) {
-        // ignore storage errors
-      }
+      clearDesktopSidebarCollapsed();
+    };
+
+    const syncDesktopCollapsedClass = (): void => {
+      if (window.innerWidth < 768) return;
+      const collapsed = document.body.classList.contains('sidebar-collapsed') || document.body.classList.contains(DESKTOP_SIDEBAR_COLLAPSED_CLASS);
+      document.body.classList.toggle(DESKTOP_SIDEBAR_COLLAPSED_CLASS, collapsed);
+      document.body.classList.remove('sidebar-collapsed');
     };
 
     const bodyClassObserver = new MutationObserver(() => {
       normalizeMobileCollapsedState();
+      syncDesktopCollapsedClass();
     });
     bodyClassObserver.observe(document.body, { attributes: true, attributeFilter: ['class'] });
 
@@ -345,6 +254,7 @@
 
     syncSidebarLayout();
     normalizeMobileCollapsedState();
+    syncDesktopCollapsedClass();
   };
 
   document.addEventListener('DOMContentLoaded', () => {
