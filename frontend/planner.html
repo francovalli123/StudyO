@@ -298,55 +298,7 @@
         </div>
     </main>
 
-        <script>
-            (function(){
-                function setCollapsed(collapsed) {
-                    if (collapsed) document.body.classList.add('sidebar-collapsed');
-                    else document.body.classList.remove('sidebar-collapsed');
-                    try { localStorage.setItem('sidebarCollapsed', collapsed ? '1' : '0'); } catch(e) {}
-                }
-
-                document.addEventListener('DOMContentLoaded', function(){
-                    const saved = localStorage.getItem('sidebarCollapsed') === '1';
-                    setCollapsed(saved);
-
-                    function attachToggle(el) {
-                        if (!el) return;
-                        try {
-                            el.addEventListener('click', function(e){
-                                e.preventDefault();
-                                const next = !document.body.classList.contains('sidebar-collapsed');
-                                console.debug('sidebar: toggle clicked, next=', next);
-                                setCollapsed(next);
-                            });
-                        } catch (err) {
-                            console.debug('sidebar: attachToggle error', err);
-                        }
-                    }
-
-                    const btn = document.getElementById('sidebarToggleBtn');
-                    if (btn) {
-                        console.debug('sidebar: attaching to #sidebarToggleBtn');
-                        attachToggle(btn);
-                    } else {
-                        const toggles = Array.from(document.querySelectorAll('[data-sidebar-toggle], [data-lucide="chevron-left"]'));
-                        if (toggles.length) {
-                            console.debug('sidebar: attaching to', toggles.length, 'toggle elements');
-                            toggles.forEach(function(el){ attachToggle(el); });
-                        } else {
-                            const header = document.querySelector('#sidebar .p-6');
-                            if (header) header.addEventListener('click', function(e){
-                                const target = e.target;
-                                const el = (target instanceof Element) ? target : null;
-                                if (el && (el.closest('[data-lucide="chevron-left"]') || el.closest('[data-sidebar-toggle]'))) {
-                                    setCollapsed(!document.body.classList.contains('sidebar-collapsed'));
-                                }
-                            });
-                        }
-                    }
-                });
-            })();
-        </script>
+        
 
     <div id="eventModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50" style="display: none;">
         <div class="bg-dark-card border border-gray-800 rounded-2xl p-6 w-full max-w-md mx-4 shadow-2xl shadow-purple-900/20 max-h-[90vh] overflow-y-auto">

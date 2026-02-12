@@ -295,31 +295,7 @@
       </div>
     </main>
 
-    <script>
-      // Sidebar collapse and logout behavior (same lightweight logic as dashboard)
-      (function(){
-        function setCollapsed(collapsed) {
-          if (collapsed) document.body.classList.add('sidebar-collapsed');
-          else document.body.classList.remove('sidebar-collapsed');
-          try { localStorage.setItem('sidebarCollapsed', collapsed ? '1' : '0'); } catch(e) {}
-        }
-
-        document.addEventListener('DOMContentLoaded', function(){
-          const saved = localStorage.getItem('sidebarCollapsed') === '1';
-          setCollapsed(saved);
-          const btn = document.getElementById('sidebarToggleBtn');
-          if (btn) btn.addEventListener('click', function(e){ e.preventDefault(); setCollapsed(!document.body.classList.contains('sidebar-collapsed')); });
-
-          // logout handler placeholder: uses same API in dist/ts/api.js if present
-          try {
-            import('./dist/ts/api.js').then(mod => {
-              const logoutBtn = document.getElementById('logoutBtn');
-              if (logoutBtn) logoutBtn.addEventListener('click', async (e) => { e.preventDefault(); await mod.logout(); window.location.href = 'index.html'; });
-            }).catch(()=>{});
-          } catch(e) {}
-        });
-      })();
-    </script>
+    
     <script type="module">
         import { initAuthGate } from './dist/ts/auth-gate.js';
         initAuthGate({ loginPath: 'login.html' });
