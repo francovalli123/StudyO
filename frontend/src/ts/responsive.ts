@@ -1,16 +1,20 @@
 (() => {
-  const MOBILE_BREAKPOINT = 768;
-
-  function lockBodyScroll(lock: boolean): void {
+  const lockBodyScroll = (lock: boolean): void => {
     document.body.classList.toggle('no-scroll', lock);
+  };
+
+  if (window.innerWidth < 768) {
+    document.body.classList.remove('sidebar-collapsed');
+    try {
+      localStorage.setItem('sidebarCollapsed', '0');
+    } catch (_error) {
+      // ignore storage errors
+    }
   }
 
-  function isMobileViewport(): boolean {
-    return window.innerWidth < MOBILE_BREAKPOINT;
-  }
-
-  function setupTopNav(): void {
+  const setupTopNav = (): void => {
     const navs = Array.from(document.querySelectorAll<HTMLElement>('header nav, body > nav, .top-nav, nav'));
+
     navs.forEach((nav, index) => {
       const menu = nav.querySelector<HTMLElement>('.menu');
       if (!menu) return;
@@ -26,7 +30,7 @@
       toggle.innerHTML = '<span></span><span></span><span></span>';
       nav.appendChild(toggle);
 
-      let overlay = document.querySelector<HTMLElement>(`.mobile-menu-overlay[data-nav-overlay="${index}"]`);
+      let overlay = document.querySelector<HTMLDivElement>(`.mobile-menu-overlay[data-nav-overlay="${index}"]`);
       if (!overlay) {
         overlay = document.createElement('div');
         overlay.className = 'mobile-menu-overlay';
@@ -34,15 +38,15 @@
         document.body.appendChild(overlay);
       }
 
-      const closeMenu = () => {
+      const closeMenu = (): void => {
         nav.classList.remove('mobile-open');
         document.body.classList.remove('nav-open');
         toggle.setAttribute('aria-expanded', 'false');
         lockBodyScroll(document.body.classList.contains('mobile-sidebar-open'));
       };
 
-      const openMenu = () => {
-        document.querySelectorAll('.has-mobile-nav.mobile-open').forEach((openNav) => {
+      const openMenu = (): void => {
+        document.querySelectorAll<HTMLElement>('.has-mobile-nav.mobile-open').forEach((openNav) => {
           openNav.classList.remove('mobile-open');
         });
         nav.classList.add('mobile-open');
@@ -52,20 +56,25 @@
       };
 
       toggle.addEventListener('click', () => {
-        if (nav.classList.contains('mobile-open')) closeMenu();
-        else openMenu();
+        if (nav.classList.contains('mobile-open')) {
+          closeMenu();
+        } else {
+          openMenu();
+        }
       });
 
-      overlay?.addEventListener('click', closeMenu);
+      overlay.addEventListener('click', closeMenu);
       menu.querySelectorAll('a').forEach((link) => link.addEventListener('click', closeMenu));
 
       window.addEventListener('resize', () => {
-        if (window.innerWidth > MOBILE_BREAKPOINT - 1 && nav.classList.contains('mobile-open')) closeMenu();
+        if (window.innerWidth > 767 && nav.classList.contains('mobile-open')) {
+          closeMenu();
+        }
       });
     });
-  }
+  };
 
-  function setupAppSidebar(): void {
+  const setupAppSidebar = (): void => {
     const sidebar = document.getElementById('sidebar');
     if (!sidebar) return;
 
@@ -74,7 +83,7 @@
     const appRoot = sidebar.nextElementSibling as HTMLElement | null;
     const appMain = appRoot?.querySelector<HTMLElement>('main') ?? null;
 
-    let overlay = document.querySelector<HTMLElement>('.app-sidebar-overlay');
+    let overlay = document.querySelector<HTMLDivElement>('.app-sidebar-overlay');
     if (!overlay) {
       overlay = document.createElement('div');
       overlay.className = 'app-sidebar-overlay';
@@ -104,11 +113,11 @@
         plannerWrap.style.padding = '16px';
         plannerWrap.style.gap = '16px';
         Array.from(plannerWrap.children).forEach((child) => {
-          const element = child as HTMLElement;
-          element.style.width = '100%';
-          element.style.maxWidth = 'none';
-          element.style.minWidth = '0';
-          element.style.flexBasis = 'auto';
+          const elementChild = child as HTMLElement;
+          elementChild.style.width = '100%';
+          elementChild.style.maxWidth = 'none';
+          elementChild.style.minWidth = '0';
+          elementChild.style.flexBasis = 'auto';
         });
       } else {
         plannerWrap.style.removeProperty('flex-direction');
@@ -116,20 +125,20 @@
         plannerWrap.style.removeProperty('padding');
         plannerWrap.style.removeProperty('gap');
         Array.from(plannerWrap.children).forEach((child) => {
-          const element = child as HTMLElement;
-          element.style.removeProperty('width');
-          element.style.removeProperty('max-width');
-          element.style.removeProperty('min-width');
-          element.style.removeProperty('flex-basis');
+          const elementChild = child as HTMLElement;
+          elementChild.style.removeProperty('width');
+          elementChild.style.removeProperty('max-width');
+          elementChild.style.removeProperty('min-width');
+          elementChild.style.removeProperty('flex-basis');
         });
       }
     };
 
     const applySubjectsMobileHeader = (mobile: boolean): void => {
-      const addSubjectBtn = document.getElementById('addSubjectBtn') as HTMLElement | null;
+      const addSubjectBtn = document.getElementById('addSubjectBtn') as HTMLButtonElement | null;
       if (!addSubjectBtn) return;
 
-      const row = addSubjectBtn.parentElement as HTMLElement | null;
+      const row = addSubjectBtn.parentElement;
       if (mobile) {
         if (row) {
           row.style.flexWrap = 'wrap';
@@ -148,7 +157,7 @@
     };
 
     const syncSidebarLayout = (): void => {
-      const mobile = isMobileViewport();
+      const mobile = window.innerWidth < 768;
       const isOpen = document.body.classList.contains('mobile-sidebar-open');
 
       if (mobile) {
@@ -238,104 +247,52 @@
       }
     };
 
-    const setDesktopCollapsed = (collapsed: boolean): void => {
-      if (isMobileViewport()) {
-        try {
-          localStorage.setItem('sidebarCollapsed', '0');
-        } catch (_e) {
-          // ignore storage errors
-        }
-        document.body.classList.remove('sidebar-collapsed');
-        return;
-      }
-
-      document.body.classList.toggle('sidebar-collapsed', collapsed);
-      try {
-        localStorage.setItem('sidebarCollapsed', collapsed ? '1' : '0');
-      } catch (_e) {
-        // ignore storage errors
-      }
+    const closeSidebar = (): void => {
+      document.body.classList.remove('mobile-sidebar-open');
+      syncSidebarLayout();
+      lockBodyScroll(document.body.classList.contains('nav-open'));
     };
 
     const openSidebar = (): void => {
-      if (isMobileViewport()) {
-        document.body.classList.add('mobile-sidebar-open');
-        syncSidebarLayout();
-        lockBodyScroll(true);
-        return;
-      }
-      setDesktopCollapsed(false);
+      document.body.classList.add('mobile-sidebar-open');
       syncSidebarLayout();
-      lockBodyScroll(document.body.classList.contains('nav-open'));
+      lockBodyScroll(true);
     };
 
-    const closeSidebar = (): void => {
-      if (isMobileViewport()) {
-        document.body.classList.remove('mobile-sidebar-open');
-        syncSidebarLayout();
-        lockBodyScroll(document.body.classList.contains('nav-open'));
-        return;
+    toggle.addEventListener('click', () => {
+      if (document.body.classList.contains('mobile-sidebar-open')) {
+        closeSidebar();
+      } else {
+        openSidebar();
       }
-      setDesktopCollapsed(true);
-      syncSidebarLayout();
-      lockBodyScroll(document.body.classList.contains('nav-open'));
-    };
-
-    const toggleSidebar = (): void => {
-      if (isMobileViewport()) {
-        if (document.body.classList.contains('mobile-sidebar-open')) closeSidebar();
-        else openSidebar();
-        return;
-      }
-      setDesktopCollapsed(!document.body.classList.contains('sidebar-collapsed'));
-      syncSidebarLayout();
-    };
-
-    const sidebarApi = {
-      openSidebar,
-      closeSidebar,
-      toggleSidebar,
-      setDesktopCollapsed,
-    };
-
-    (window as Window & { sidebarControls?: typeof sidebarApi }).sidebarControls = sidebarApi;
+    });
 
     overlay.addEventListener('click', closeSidebar);
 
-    const normalizeMobileCollapsedState = (): void => {
-      if (!isMobileViewport()) return;
-      if (document.body.classList.contains('sidebar-collapsed')) {
-        document.body.classList.remove('sidebar-collapsed');
-      }
-      try {
-        localStorage.setItem('sidebarCollapsed', '0');
-      } catch (_e) {
-        // ignore storage errors
+    const handleMobileSidebarToggleClick = (event: MouseEvent): void => {
+      if (window.innerWidth >= 768) return;
+      const target = event.target instanceof Element ? event.target : null;
+      if (!target) return;
+      const desktopToggleHit = target.closest('#sidebarToggleBtn, [data-sidebar-toggle]');
+      if (!desktopToggleHit) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+      event.stopImmediatePropagation();
+
+      if (document.body.classList.contains('mobile-sidebar-open')) {
+        closeSidebar();
+      } else {
+        openSidebar();
       }
     };
 
-    document.addEventListener(
-      'click',
-      (event) => {
-        const target = event.target instanceof Element ? event.target : null;
-        if (!target) return;
-        if (!target.closest('#mobileSidebarToggle, #sidebarToggleBtn, [data-sidebar-toggle]')) return;
-
-        event.preventDefault();
-        event.stopPropagation();
-        if (typeof event.stopImmediatePropagation === 'function') {
-          event.stopImmediatePropagation();
-        }
-
-        toggleSidebar();
-      },
-      true,
-    );
+    document.addEventListener('click', handleMobileSidebarToggleClick, true);
 
     document.addEventListener(
       'pointerdown',
       (event) => {
-        if (!isMobileViewport()) return;
+        if (window.innerWidth >= 768) return;
         if (!document.body.classList.contains('mobile-sidebar-open')) return;
         const target = event.target instanceof Element ? event.target : null;
         if (!target) return;
@@ -343,8 +300,20 @@
         if (target.closest('#mobileSidebarToggle, #sidebarToggleBtn, [data-sidebar-toggle]')) return;
         closeSidebar();
       },
-      true,
+      true
     );
+
+    const normalizeMobileCollapsedState = (): void => {
+      if (window.innerWidth >= 768) return;
+      if (document.body.classList.contains('sidebar-collapsed')) {
+        document.body.classList.remove('sidebar-collapsed');
+      }
+      try {
+        localStorage.setItem('sidebarCollapsed', '0');
+      } catch (_error) {
+        // ignore storage errors
+      }
+    };
 
     const bodyClassObserver = new MutationObserver(() => {
       normalizeMobileCollapsedState();
@@ -353,12 +322,14 @@
 
     sidebar.querySelectorAll('a').forEach((link) => {
       link.addEventListener('click', () => {
-        if (isMobileViewport()) closeSidebar();
+        if (window.innerWidth < 768) {
+          closeSidebar();
+        }
       });
     });
 
     sidebar.addEventListener('pointerdown', () => {
-      if (!isMobileViewport()) return;
+      if (window.innerWidth >= 768) return;
       if (!document.body.classList.contains('mobile-sidebar-open')) {
         openSidebar();
       }
@@ -367,32 +338,14 @@
     window.addEventListener('resize', () => {
       syncSidebarLayout();
       normalizeMobileCollapsedState();
-      if (!isMobileViewport()) {
-        document.body.classList.remove('mobile-sidebar-open');
-        lockBodyScroll(document.body.classList.contains('nav-open'));
+      if (window.innerWidth > 767) {
+        closeSidebar();
       }
     });
 
     syncSidebarLayout();
-
-    try {
-      const savedCollapsed = localStorage.getItem('sidebarCollapsed') === '1';
-      setDesktopCollapsed(savedCollapsed);
-    } catch (_e) {
-      // ignore storage errors
-    }
-
     normalizeMobileCollapsedState();
-  }
-
-  if (isMobileViewport()) {
-    document.body.classList.remove('sidebar-collapsed');
-    try {
-      localStorage.setItem('sidebarCollapsed', '0');
-    } catch (_e) {
-      // ignore storage errors
-    }
-  }
+  };
 
   document.addEventListener('DOMContentLoaded', () => {
     setupTopNav();

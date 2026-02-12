@@ -1,0 +1,25 @@
+name: Dist sync check
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  verify-dist-sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify dist changes come from source changes
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            RANGE="${{ github.event.pull_request.base.sha }}...${{ github.sha }}"
+            bash scripts/check-dist-sync.sh --range "$RANGE"
+          else
+            bash scripts/check-dist-sync.sh --range "HEAD~1...HEAD"
+          fi
