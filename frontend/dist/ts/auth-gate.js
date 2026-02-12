@@ -27,6 +27,21 @@ const authState = {
     user: null,
     authResolved: false,
 };
+const AUTH_CHECK_TIMEOUT_MS = 8000;
+function withTimeout(promise, timeoutMs, timeoutMessage) {
+    return new Promise((resolve, reject) => {
+        const timer = window.setTimeout(() => reject(new Error(timeoutMessage)), timeoutMs);
+        promise
+            .then((value) => {
+            window.clearTimeout(timer);
+            resolve(value);
+        })
+            .catch((error) => {
+            window.clearTimeout(timer);
+            reject(error);
+        });
+    });
+}
 function resetGlobalScaleState() {
     const targets = [document.documentElement, document.body].filter((el) => Boolean(el));
     const properties = ["zoom", "transform", "transform-origin"];
@@ -139,7 +154,7 @@ export function initAuthGate(options) {
             return;
         }
         try {
-            const user = yield getCurrentUser();
+            const user = yield withTimeout(getCurrentUser(), AUTH_CHECK_TIMEOUT_MS, "Auth check timeout");
             resolveState("authenticated", {
                 isAuthenticated: true,
                 token,
