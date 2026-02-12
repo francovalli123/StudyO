@@ -67,6 +67,7 @@
 
     const appRoot = sidebar.nextElementSibling;
     const appMain = appRoot ? appRoot.querySelector('main') : null;
+    const desktopSidebarToggle = document.getElementById('sidebarToggleBtn');
 
     let overlay = document.querySelector('.app-sidebar-overlay');
     if (!overlay) {
@@ -156,27 +157,33 @@
         sidebar.style.top = '0';
         sidebar.style.left = '0';
         sidebar.style.bottom = '0';
+        sidebar.style.height = '100dvh';
         sidebar.style.width = width;
         sidebar.style.minWidth = width;
+        sidebar.style.maxWidth = width;
         sidebar.style.zIndex = '1240';
+        sidebar.style.overflowY = 'auto';
+        sidebar.style.overflowX = 'hidden';
         sidebar.style.transform = isOpen ? 'translateX(0)' : 'translateX(-102%)';
         sidebar.style.transition = 'transform 0.28s ease';
 
         if (appRoot) {
-          appRoot.style.width = isOpen ? `calc(100% - ${width})` : '100%';
-          appRoot.style.marginLeft = isOpen ? width : '0';
+          appRoot.style.width = '100%';
+          appRoot.style.maxWidth = '100vw';
+          appRoot.style.marginLeft = '0';
           appRoot.style.minWidth = '0';
           appRoot.style.flex = 'none';
           appRoot.style.overflow = 'visible';
-          appRoot.style.transition = 'margin-left 0.28s ease, width 0.28s ease';
+          appRoot.style.overflowX = 'hidden';
+          appRoot.style.transition = 'none';
         }
 
         if (appMain) {
           appMain.style.width = '100%';
+          appMain.style.maxWidth = '100vw';
           appMain.style.minWidth = '0';
+          appMain.style.overflowX = 'hidden';
         }
-
-        overlay.style.display = 'none';
 
         applyPlannerMobileStack(true);
         applySubjectsMobileHeader(true);
@@ -191,27 +198,33 @@
         sidebar.style.removeProperty('top');
         sidebar.style.removeProperty('left');
         sidebar.style.removeProperty('bottom');
+        sidebar.style.removeProperty('height');
         sidebar.style.removeProperty('width');
         sidebar.style.removeProperty('min-width');
+        sidebar.style.removeProperty('max-width');
         sidebar.style.removeProperty('z-index');
+        sidebar.style.removeProperty('overflow-y');
+        sidebar.style.removeProperty('overflow-x');
         sidebar.style.removeProperty('transform');
         sidebar.style.removeProperty('transition');
 
         if (appRoot) {
           appRoot.style.removeProperty('width');
+          appRoot.style.removeProperty('max-width');
           appRoot.style.removeProperty('margin-left');
           appRoot.style.removeProperty('min-width');
           appRoot.style.removeProperty('flex');
           appRoot.style.removeProperty('overflow');
+          appRoot.style.removeProperty('overflow-x');
           appRoot.style.removeProperty('transition');
         }
 
         if (appMain) {
           appMain.style.removeProperty('width');
+          appMain.style.removeProperty('max-width');
           appMain.style.removeProperty('min-width');
+          appMain.style.removeProperty('overflow-x');
         }
-
-        overlay.style.removeProperty('display');
 
         applyPlannerMobileStack(false);
         applySubjectsMobileHeader(false);
@@ -237,6 +250,35 @@
 
     overlay.addEventListener('click', closeSidebar);
 
+    if (desktopSidebarToggle) {
+      desktopSidebarToggle.addEventListener('click', (event) => {
+        if (window.innerWidth >= 768) return;
+        event.preventDefault();
+        event.stopPropagation();
+        if (typeof event.stopImmediatePropagation === 'function') {
+          event.stopImmediatePropagation();
+        }
+        if (document.body.classList.contains('mobile-sidebar-open')) closeSidebar();
+        else openSidebar();
+      }, true);
+    }
+
+    const normalizeMobileCollapsedState = () => {
+      if (window.innerWidth >= 768) return;
+      if (!document.body.classList.contains('sidebar-collapsed')) return;
+      document.body.classList.remove('sidebar-collapsed');
+      try {
+        localStorage.setItem('sidebarCollapsed', '0');
+      } catch (e) {
+        // ignore storage errors
+      }
+    };
+
+    const bodyClassObserver = new MutationObserver(() => {
+      normalizeMobileCollapsedState();
+    });
+    bodyClassObserver.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+
     sidebar.querySelectorAll('a').forEach((link) => {
       link.addEventListener('click', () => {
         if (window.innerWidth < 768) closeSidebar();
@@ -245,10 +287,12 @@
 
     window.addEventListener('resize', () => {
       syncSidebarLayout();
+      normalizeMobileCollapsedState();
       if (window.innerWidth > 767) closeSidebar();
     });
 
     syncSidebarLayout();
+    normalizeMobileCollapsedState();
   }
 
   document.addEventListener('DOMContentLoaded', function () {
