@@ -195,25 +195,26 @@ export async function initAuthGate(options?: { loginPath?: string }) {
             user,
         });
     } catch (err: any) {
-        removeToken();
-
         const statusCode = err?.status ?? err?.response?.status;
 
         if (statusCode === 401 || statusCode === 403) {
+            removeToken();
             resolveState("unauthenticated", {
                 isAuthenticated: false,
                 token: null,
                 user: null,
             });
-        } else {
-            resolveState("error", {
-                isAuthenticated: false,
-                token: null,
-                user: null,
-            });
+            redirectToLogin(loginPath, currentPath);
+            return;
         }
 
-        redirectToLogin(loginPath, currentPath);
+        resolveState("error", {
+            isAuthenticated: false,
+            token,
+            user: null,
+        });
+
+        // Keep token on transient network/auth-service issues so user can retry without forced logout loop.
     }
 }
 

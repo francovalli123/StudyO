@@ -162,23 +162,23 @@ export function initAuthGate(options) {
             });
         }
         catch (err) {
-            removeToken();
             const statusCode = (_c = err === null || err === void 0 ? void 0 : err.status) !== null && _c !== void 0 ? _c : (_d = err === null || err === void 0 ? void 0 : err.response) === null || _d === void 0 ? void 0 : _d.status;
             if (statusCode === 401 || statusCode === 403) {
+                removeToken();
                 resolveState("unauthenticated", {
                     isAuthenticated: false,
                     token: null,
                     user: null,
                 });
+                redirectToLogin(loginPath, currentPath);
+                return;
             }
-            else {
-                resolveState("error", {
-                    isAuthenticated: false,
-                    token: null,
-                    user: null,
-                });
-            }
-            redirectToLogin(loginPath, currentPath);
+            resolveState("error", {
+                isAuthenticated: false,
+                token,
+                user: null,
+            });
+            // Keep token on transient network/auth-service issues so user can retry without forced logout loop.
         }
     });
 }
