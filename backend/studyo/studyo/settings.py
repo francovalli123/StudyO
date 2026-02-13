@@ -14,6 +14,7 @@ import os
 from pathlib import Path
 import os
 from dotenv import load_dotenv, dotenv_values
+import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -43,13 +44,12 @@ if not EMAIL_HOST or not EMAIL_HOST_USER or not EMAIL_HOST_PASSWORD:
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-fku*n(leruz$ii1(7sh9)0a7v9!&&+=@(ia#@gjcss3k7v-fj&'
+SECRET_KEY = os.getenv("SECRET_KEY")
+DEBUG = os.getenv("DEBUG", "False") == "True"
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    "studyo.onrender.com"
+]
 
 
 # Application definition
@@ -77,8 +77,9 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
-    'corsheaders.middleware.CorsMiddleware',  # CORS debe estar antes de CommonMiddleware
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -87,8 +88,11 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
+    "https://studyo.vercel.app",
     "http://localhost:3000",
     "http://localhost:5500",  # Live Server
     "http://localhost:8080",  # Otros servidores comunes
@@ -124,27 +128,15 @@ WSGI_APPLICATION = 'studyo.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-#DATABASES = {
-#    'default': {
-#        'ENGINE': 'django.db.backends.sqlite3',
-#        'NAME': BASE_DIR / 'db.sqlite3',
-#        'OPTIONS': {
-#            'timeout': 30,
-#        },
-#    }
-#}
-
 load_dotenv()
 
 DATABASES = {
-        'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': os.environ.get('NAME'),
-        'USER': os.environ.get('USER'),
-        'PASSWORD': os.environ.get('PASSWORD'),
-        'PORT': os.environ.get('PORT'),
-        'HOST': os.environ.get('HOST'),
-    }
+    "default": dj_database_url.config(
+        default=os.getenv("DATABASE_URL"),
+        conn_max_age=600,
+        ssl_require= False
+    )    
+    
 }
 
 # Password validation
