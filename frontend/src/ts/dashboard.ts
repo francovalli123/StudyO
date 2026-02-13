@@ -968,11 +968,7 @@ function renderWeeklyChallengeUI(challenge: WeeklyChallengeDTO): void {
           <span class="text-xs text-gray-500">${challenge.progress_percentage.toFixed(0)}%</span>
         </div>
       </div>
-      
-      <div class="text-xs text-gray-400 pt-2 border-t border-gray-800">
-        <span>${trans.dashboard.weeklyChallengeRewardLabel} </span>
-        <span class="text-purple-400 font-medium">+50 XP</span>
-      </div>
+
     </div>
   `;
   
