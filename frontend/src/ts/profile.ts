@@ -21,6 +21,23 @@ async function clearMessage() {
     } catch(e){}
 }
 
+function setSwitchState(btn: HTMLElement | null, checked: boolean) {
+    if (!btn) return;
+    btn.setAttribute('data-state', checked ? 'checked' : 'unchecked');
+    btn.setAttribute('aria-checked', checked ? 'true' : 'false');
+    btn.style.background = checked
+        ? 'linear-gradient(90deg, rgba(168,85,247,0.95), rgba(217,70,239,0.95))'
+        : 'rgba(51,65,85,0.55)';
+    btn.style.boxShadow = checked
+        ? '0 0 0 1px rgba(168,85,247,0.45), 0 0 12px rgba(168,85,247,0.25)'
+        : '0 0 0 1px rgba(148,163,184,0.25)';
+    const span = btn.querySelector('span');
+    if (span) {
+        if (checked) span.classList.add('translate-x-5');
+        else span.classList.remove('translate-x-5');
+    }
+}
+
 function refreshLanguageSelectOptions(select: HTMLSelectElement | null) {
     if (!select) return;
     const current = select.value as Language;
@@ -96,18 +113,13 @@ async function init() {
                 darkModeBtn.setAttribute('aria-checked', 'true');
                 const span = darkModeBtn.querySelector('span'); if (span) span.classList.add('translate-x-5');
             }
-            if (taskReminders && prefs.task_reminders) {
-                taskReminders.setAttribute('data-state', 'checked'); taskReminders.setAttribute('aria-checked', 'true');
-                const span = taskReminders.querySelector('span'); if (span) span.classList.add('translate-x-5');
-            }
-            if (habitReminders && prefs.habit_reminders) {
-                habitReminders.setAttribute('data-state', 'checked'); habitReminders.setAttribute('aria-checked', 'true');
-                const span = habitReminders.querySelector('span'); if (span) span.classList.add('translate-x-5');
-            }
-            if (progressUpdates && prefs.progress_updates) {
-                progressUpdates.setAttribute('data-state', 'checked'); progressUpdates.setAttribute('aria-checked', 'true');
-                const span = progressUpdates.querySelector('span'); if (span) span.classList.add('translate-x-5');
-            }
+            // Notification preferences: enabled by default when backend value is missing
+            const taskEnabled = prefs.task_reminders !== false;
+            const habitEnabled = prefs.habit_reminders !== false;
+            const progressEnabled = prefs.progress_updates !== false;
+            setSwitchState(taskReminders, taskEnabled);
+            setSwitchState(habitReminders, habitEnabled);
+            setSwitchState(progressUpdates, progressEnabled);
             // Set language from preferences or localStorage
             const savedLanguage = prefs.language || getCurrentLanguage();
             if (languageSelect) {
@@ -198,12 +210,35 @@ async function init() {
         el.addEventListener('click', (ev) => {
             const btn = ev.currentTarget as HTMLElement;
             const checked = btn.getAttribute('data-state') === 'checked';
-            btn.setAttribute('data-state', checked ? 'unchecked' : 'checked');
-            btn.setAttribute('aria-checked', checked ? 'false' : 'true');
-            // Move inner knob if present
-            const span = btn.querySelector('span');
-            if (span) {
-                if (checked) span.classList.remove('translate-x-5'); else span.classList.add('translate-x-5');
+            setSwitchState(btn, !checked);
+        });
+    });
+
+    // Persist notification preference toggles immediately
+    const notificationToggles: Array<{ el: HTMLElement | null; key: 'task_reminders' | 'habit_reminders' | 'progress_updates' }> = [
+        { el: taskReminders, key: 'task_reminders' },
+        { el: habitReminders, key: 'habit_reminders' },
+        { el: progressUpdates, key: 'progress_updates' },
+    ];
+    notificationToggles.forEach(({ el, key }) => {
+        if (!el) return;
+        el.addEventListener('click', async () => {
+            const nextValue = el.getAttribute('data-state') === 'checked';
+            const previousValue = !nextValue;
+            el.style.pointerEvents = 'none';
+            try {
+                const existingPrefs = (currentUser?.preferences || {}) as any;
+                const prefs: any = { ...existingPrefs, [key]: nextValue };
+                await updateCurrentUser({ preferences: prefs } as any);
+                currentUser = { ...(currentUser || {}), preferences: prefs };
+            } catch (err) {
+                console.error(`Error saving ${key}:`, err);
+                // Revert UI only when backend save fails
+                setSwitchState(el, previousValue);
+                const trans = t();
+                await showError(trans.profile.profileUpdateError);
+            } finally {
+                el.style.pointerEvents = '';
             }
         });
     });

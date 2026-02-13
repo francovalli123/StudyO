@@ -159,14 +159,9 @@
         </nav>
 
         <div class="p-4 border-t border-gray-800/50 space-y-2">
-            <div class="text-xs font-semibold text-gray-500 uppercase px-4 mb-2" data-i18n="nav.settings">Ajustes</div>
             <a href="profile.html" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-gradient-to-r from-purple-600 via-fuchsia-500 to-purple-600 text-white shadow-[0_0_15px_rgba(168,85,247,0.5)] font-medium">
                 <i data-lucide="settings" class="w-5 h-5"></i>
                 <span data-i18n="nav.settings">Ajustes</span>
-            </a>
-            <a href="#" class="flex items-center gap-3 px-4 py-2 rounded-xl hover:bg-gradient-to-r hover:from-yellow-500/10 hover:via-orange-500/10 hover:to-yellow-500/10 text-yellow-500 hover:text-yellow-400 transition-all duration-300">
-                <i data-lucide="sparkles" class="w-4 h-4"></i>
-                <span data-i18n="nav.premium">Tema Premium</span>
             </a>
             <a href="#" id="logoutBtn" class="flex items-center gap-3 px-4 py-2 rounded-xl hover:bg-gradient-to-r hover:from-red-500/10 hover:via-pink-500/10 hover:to-red-500/10 text-red-400 hover:text-red-300 transition-all duration-300">
                 <i data-lucide="log-out" class="w-4 h-4"></i>
@@ -222,21 +217,7 @@
             </div>
           </div>
 
-          <div class="rounded-lg border text-card-foreground bg-white dark:bg-gray-800/70 shadow-lg">
-            <div class="flex flex-col space-y-1.5 p-6">
-              <div class="tracking-tight text-xl font-semibold flex items-center text-studyO-warmGray-dark dark:text-white"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-palette mr-3 h-6 w-6 text-studyO-skyBlue-dark dark:text-studyO-skyBlue-light"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"></circle><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"></circle><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"></circle><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"></circle><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"></path></svg> <span data-i18n="profile.appearance">Apariencia</span></div>
-              <div class="text-sm text-muted-foreground dark:text-gray-400" data-i18n="profile.customizeAppearance">Personalizá cómo se ve StudyO.</div>
-            </div>
-            <div class="p-6 pt-0">
-              <div class="flex items-center justify-between p-4 rounded-lg bg-studyO-warmGray-light/30 dark:bg-gray-700/50">
-                <label class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex flex-col space-y-1 cursor-pointer" for="dark-mode">
-                  <span class="font-medium text-studyO-warmGray-dark dark:text-white" data-i18n="profile.darkMode">Modo Oscuro</span>
-                  <span class="text-sm text-studyO-warmGray dark:text-gray-400" data-i18n="profile.darkModeDesc">Activá el modo oscuro para una experiencia visual más relajada.</span>
-                </label>
-                <button type="button" role="switch" aria-checked="false" data-state="unchecked" value="off" class="peer inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors" id="dark-mode"><span data-state="unchecked" class="pointer-events-none block h-5 w-5 rounded-full bg-background shadow-lg ring-0 transition-transform"></span></button>
-              </div>
-            </div>
-          </div>
+
 
           <div class="rounded-lg border text-card-foreground bg-white dark:bg-gray-800/70 shadow-lg">
             <div class="flex flex-col space-y-1.5 p-6">
@@ -276,7 +257,7 @@
             </div>
             <div class="p-6 pt-0 space-y-5">
               <div class="flex items-center justify-between p-4 rounded-lg bg-studyO-warmGray-light/30 dark:bg-gray-700/50">
-                <label class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex flex-col space-y-1 cursor-pointer" for="task-reminders"><span class="font-medium text-studyO-warmGray-dark dark:text-white" data-i18n="profile.taskReminders">Recordatorios de tareas</span><span class="text-sm text-studyO-warmGray dark:text-gray-400" data-i18n="profile.taskRemindersDesc">Recibir alertas para tareas próximas o vencidas.</span></label>
+                <label class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex flex-col space-y-1 cursor-pointer" for="task-reminders"><span class="font-medium text-studyO-warmGray-dark dark:text-white" data-i18n="profile.taskReminders">Recordatorios de objetivos.</span><span class="text-sm text-studyO-warmGray dark:text-gray-400" data-i18n="profile.taskRemindersDesc">Recibir alertas para objetivos semanales.</span></label>
                 <button type="button" role="switch" aria-checked="true" data-state="checked" value="on" class="peer inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors" id="task-reminders"><span data-state="checked" class="pointer-events-none block h-5 w-5 rounded-full bg-background shadow-lg ring-0 transition-transform translate-x-5"></span></button>
               </div>
 
