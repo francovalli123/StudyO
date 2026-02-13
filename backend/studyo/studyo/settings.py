@@ -134,14 +134,16 @@ WSGI_APPLICATION = 'studyo.wsgi.application'
 #    }
 #}
 
+load_dotenv()
+
 DATABASES = {
         'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'StudyODB',
-        'USER': 'postgres',
-        'PASSWORD': 'Tenis2005!',
-        'PORT': '5432',
-        'HOST': 'localhost',
+        'NAME': os.environ.get('NAME'),
+        'USER': os.environ.get('USER'),
+        'PASSWORD': os.environ.get('PASSWORD'),
+        'PORT': os.environ.get('PORT'),
+        'HOST': os.environ.get('HOST'),
     }
 }
 
