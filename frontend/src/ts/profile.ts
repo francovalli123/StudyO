@@ -1,4 +1,4 @@
-import { getCurrentUser, updateCurrentUser, uploadUserAvatar } from "./api.js";
+import { getCurrentUser, updateCurrentUser, uploadUserAvatar, logout } from "./api.js";
 import { getCurrentLanguage, setCurrentLanguage, applyTranslations, t, getTranslations, type Language } from "./i18n.js";
 import { showConfirmModal, showAlertModal, initConfirmModal } from "./confirmModal.js";
 
@@ -78,10 +78,24 @@ async function init() {
     const habitReminders = document.getElementById('habit-reminders') as HTMLElement | null;
     const progressUpdates = document.getElementById('progress-updates') as HTMLElement | null;
     const languageSelect = document.getElementById('language-select') as HTMLSelectElement | null;
+    const logoutBtn = document.getElementById('logoutBtn') as HTMLAnchorElement | null;
 
     if (!nameInput || !emailInput || !avatarImg || !changePhotoBtn || !avatarInput || !saveBtn) {
         console.error('Profile page: missing DOM elements');
         return;
+    }
+
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            try {
+                await logout();
+                window.location.href = 'index.html';
+            } catch (error) {
+                console.error('Error al cerrar sesión:', error);
+                window.location.href = 'index.html';
+            }
+        });
     }
 
     let currentUser: any = null;

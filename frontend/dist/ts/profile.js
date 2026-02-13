@@ -7,7 +7,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { getCurrentUser, updateCurrentUser, uploadUserAvatar } from "./api.js";
+import { getCurrentUser, updateCurrentUser, uploadUserAvatar, logout } from "./api.js";
 import { getCurrentLanguage, setCurrentLanguage, applyTranslations, t, getTranslations } from "./i18n.js";
 import { showConfirmModal, showAlertModal, initConfirmModal } from "./confirmModal.js";
 function showError(msg) {
@@ -99,9 +99,23 @@ function init() {
         const habitReminders = document.getElementById('habit-reminders');
         const progressUpdates = document.getElementById('progress-updates');
         const languageSelect = document.getElementById('language-select');
+        const logoutBtn = document.getElementById('logoutBtn');
         if (!nameInput || !emailInput || !avatarImg || !changePhotoBtn || !avatarInput || !saveBtn) {
             console.error('Profile page: missing DOM elements');
             return;
+        }
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', (e) => __awaiter(this, void 0, void 0, function* () {
+                e.preventDefault();
+                try {
+                    yield logout();
+                    window.location.href = 'index.html';
+                }
+                catch (error) {
+                    console.error('Error al cerrar sesión:', error);
+                    window.location.href = 'index.html';
+                }
+            }));
         }
         let currentUser = null;
         try {
