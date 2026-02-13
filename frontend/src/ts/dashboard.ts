@@ -2060,6 +2060,9 @@ if (document.readyState === 'loading') {
     let completedCycles = 0; // kept for compatibility but MUST NOT be incremented manually
     // Latest stats received from backend - single source of truth for counters
     let latestPomodoroStats: { totalSessionsThisWeek: number; sessionsToday: number } = { totalSessionsThisWeek: 0, sessionsToday: 0 };
+    let pomodoroUserTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    let lastPomodoroDayKey: string | null = null;
+    let pomodoroDayRolloverInterval: number | null = null;
     let sessionStart: Date | null = null; // When current work session started
     let defaultSubjectId: number | null = null; // Default subject for sessions
     let beforeUnloadHandler: ((e: BeforeUnloadEvent) => void) | null = null;
@@ -2278,6 +2281,15 @@ if (document.readyState === 'loading') {
         return `${m}:${s}`;
     }
 
+    function getDateKeyInTimezone(dateInput: Date, tz: string): string {
+        return new Intl.DateTimeFormat('en-CA', {
+            timeZone: tz,
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+        }).format(dateInput);
+    }
+
     /**
      * Update timer display and progress circle
      */
@@ -2339,7 +2351,7 @@ if (document.readyState === 'loading') {
             // Counters are rendered from loadPomodoroStats(); do not derive from timer-local increments
             try {
                 const stats = latestPomodoroStats;
-                const total = stats.totalSessionsThisWeek || 0;
+                const total = stats.sessionsToday || 0;
                 if (pomodorosCountEl) pomodorosCountEl.textContent = `${pomodoroLabel[lang] || pomodoroLabel.es}: ${total}`;
                 if (pomodoroSetLabelEl) {
                     const cycles = Math.max(1, settings.cyclesBeforeLongBreak);
@@ -2365,34 +2377,39 @@ if (document.readyState === 'loading') {
     (document as any).addEventListener('pomodoro:sessionsUpdated', async (ev: any) => {
         try {
             const ce = ev as CustomEvent<any>;
-            const total = Number(ce.detail?.totalSessionsThisWeek ?? ce.detail?.totalSessionsToday) || 0;
+            const totalThisWeek = Number(ce.detail?.totalSessionsThisWeek) || 0;
+            const totalToday = Number(ce.detail?.totalSessionsToday) || 0;
 
-            // Compute current week key (YYYY-MM-DD) in user timezone
-            let userTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-            try { const u = await getCurrentUser(); userTz = u.timezone || userTz; } catch (e) {}
-            const wkStart = getStartOfWeekInUserTZ(userTz);
-            const weekKey = wkStart.toISOString().slice(0,10);
+            // Compute current day key (YYYY-MM-DD) in user timezone
+            let userTz = pomodoroUserTimezone;
+            try {
+                const u = await getCurrentUser();
+                userTz = u.timezone || userTz;
+                pomodoroUserTimezone = userTz;
+            } catch (e) {}
+            const todayKey = getDateKeyInTimezone(new Date(), userTz);
 
-            // Read stored reset offset (per-week)
+            // Read stored reset offset (per-day)
             const RESET_KEY = 'pomodoroReset';
-            let stored: { week?: string; offset?: number } = {};
+            let stored: { day?: string; offset?: number } = {};
             try { stored = JSON.parse(localStorage.getItem(RESET_KEY) || '{}'); } catch (e) { stored = {}; }
 
-            // If stored reset is for another week, clear it
-            if (stored.week !== weekKey) {
+            // If stored reset is for another day, clear it
+            if (stored.day !== todayKey) {
                 stored = {};
                 localStorage.removeItem(RESET_KEY);
             }
 
             const offset = Number(stored.offset || 0);
-            const displayed = Math.max(0, total - offset);
+            const displayedToday = Math.max(0, totalToday - offset);
 
             // Store the raw total and the displayed (offset-applied) value
-            (latestPomodoroStats as any).rawTotalSessionsThisWeek = total;
-            latestPomodoroStats.totalSessionsThisWeek = displayed; // displayed = total - offset
-            latestPomodoroStats.sessionsToday = ce.detail?.totalSessionsToday || 0;
+            (latestPomodoroStats as any).rawTotalSessionsThisWeek = totalThisWeek;
+            (latestPomodoroStats as any).rawSessionsToday = totalToday;
+            latestPomodoroStats.totalSessionsThisWeek = totalThisWeek;
+            latestPomodoroStats.sessionsToday = displayedToday;
 
-            completedCycles = displayed; // keep for compatibility
+            completedCycles = displayedToday; // keep for compatibility
             updateDisplay();
         } catch (e) { /* ignore */ }
     });
@@ -2705,6 +2722,25 @@ if (document.readyState === 'loading') {
         syncOnboardingAcrossTabs(() => applyPomodoroOnboardingStep());
         loadSettings();
         handleOnboarding(); // Onboarding StudyO
+        try {
+            const user = await getCurrentUser();
+            pomodoroUserTimezone = user.timezone || pomodoroUserTimezone;
+        } catch (e) { /* keep browser timezone fallback */ }
+        lastPomodoroDayKey = getDateKeyInTimezone(new Date(), pomodoroUserTimezone);
+        if (!pomodoroDayRolloverInterval) {
+            pomodoroDayRolloverInterval = window.setInterval(async () => {
+                try {
+                    const currentDayKey = getDateKeyInTimezone(new Date(), pomodoroUserTimezone);
+                    if (lastPomodoroDayKey !== currentDayKey) {
+                        lastPomodoroDayKey = currentDayKey;
+                        localStorage.removeItem('pomodoroReset');
+                        // @ts-ignore
+                        await loadPomodoroStats();
+                        updateDisplay();
+                    }
+                } catch (e) { /* ignore */ }
+            }, 30 * 1000);
+        }
         remainingSeconds = settings.workMinutes * 60;
         updateDisplay();
         
@@ -2717,21 +2753,26 @@ if (document.readyState === 'loading') {
                 resetTimer('work');
                 updateDisplay();
 
-                // Persist a per-week reset offset so the counter shows zero
+                // Persist a per-day reset offset so the counter shows zero
                 try {
-                    // Fetch current weekly total
+                    // Fetch current sessions
                     // @ts-ignore
                     const sessions: PomodoroSession[] = await apiGet('/pomodoro/');
-                    // Determine week start in user timezone
-                    let userTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-                    try { const u = await getCurrentUser(); userTz = u.timezone || userTz; } catch (e) {}
-                    const wkStart = getStartOfWeekInUserTZ(userTz);
-                    const weekKey = wkStart.toISOString().slice(0,10);
-
-                    const totalSessionsThisWeek = sessions.filter(s => new Date(s.start_time) >= wkStart).length;
+                    // Determine current day in user timezone
+                    let userTz = pomodoroUserTimezone;
+                    try {
+                        const u = await getCurrentUser();
+                        userTz = u.timezone || userTz;
+                        pomodoroUserTimezone = userTz;
+                    } catch (e) {}
+                    const todayKey = getDateKeyInTimezone(new Date(), userTz);
+                    const totalSessionsToday = sessions.filter(s => {
+                        const sessionDate = new Date(s.start_time);
+                        return getDateKeyInTimezone(sessionDate, userTz) === todayKey;
+                    }).length;
 
                     const RESET_KEY = 'pomodoroReset';
-                    const payload = { week: weekKey, offset: totalSessionsThisWeek };
+                    const payload = { day: todayKey, offset: totalSessionsToday };
                     localStorage.setItem(RESET_KEY, JSON.stringify(payload));
 
                     console.log('[reset] Stored reset offset', payload);

@@ -887,11 +887,7 @@ function renderWeeklyChallengeUI(challenge) {
           <span class="text-xs text-gray-500">${challenge.progress_percentage.toFixed(0)}%</span>
         </div>
       </div>
-      
-      <div class="text-xs text-gray-400 pt-2 border-t border-gray-800">
-        <span>${trans.dashboard.weeklyChallengeRewardLabel} </span>
-        <span class="text-purple-400 font-medium">+50 XP</span>
-      </div>
+
     </div>
   `;
     // Render lucide icons
@@ -1887,6 +1883,9 @@ else {
     let completedCycles = 0; // kept for compatibility but MUST NOT be incremented manually
     // Latest stats received from backend - single source of truth for counters
     let latestPomodoroStats = { totalSessionsThisWeek: 0, sessionsToday: 0 };
+    let pomodoroUserTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    let lastPomodoroDayKey = null;
+    let pomodoroDayRolloverInterval = null;
     let sessionStart = null; // When current work session started
     let defaultSubjectId = null; // Default subject for sessions
     let beforeUnloadHandler = null;
@@ -2092,6 +2091,14 @@ else {
         const s = Math.floor(seconds % 60).toString().padStart(2, '0');
         return `${m}:${s}`;
     }
+    function getDateKeyInTimezone(dateInput, tz) {
+        return new Intl.DateTimeFormat('en-CA', {
+            timeZone: tz,
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+        }).format(dateInput);
+    }
     /**
      * Update timer display and progress circle
      */
@@ -2154,7 +2161,7 @@ else {
             // Counters are rendered from loadPomodoroStats(); do not derive from timer-local increments
             try {
                 const stats = latestPomodoroStats;
-                const total = stats.totalSessionsThisWeek || 0;
+                const total = stats.sessionsToday || 0;
                 if (pomodorosCountEl)
                     pomodorosCountEl.textContent = `${pomodoroLabel[lang] || pomodoroLabel.es}: ${total}`;
                 if (pomodoroSetLabelEl) {
@@ -2181,20 +2188,21 @@ else {
     });
     // Backwards-compatible: also listen to sessionsUpdated if dispatched
     document.addEventListener('pomodoro:sessionsUpdated', (ev) => __awaiter(void 0, void 0, void 0, function* () {
-        var _a, _b, _c, _d;
+        var _a, _b;
         try {
             const ce = ev;
-            const total = Number((_b = (_a = ce.detail) === null || _a === void 0 ? void 0 : _a.totalSessionsThisWeek) !== null && _b !== void 0 ? _b : (_c = ce.detail) === null || _c === void 0 ? void 0 : _c.totalSessionsToday) || 0;
-            // Compute current week key (YYYY-MM-DD) in user timezone
-            let userTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            const totalThisWeek = Number((_a = ce.detail) === null || _a === void 0 ? void 0 : _a.totalSessionsThisWeek) || 0;
+            const totalToday = Number((_b = ce.detail) === null || _b === void 0 ? void 0 : _b.totalSessionsToday) || 0;
+            // Compute current day key (YYYY-MM-DD) in user timezone
+            let userTz = pomodoroUserTimezone;
             try {
                 const u = yield getCurrentUser();
                 userTz = u.timezone || userTz;
+                pomodoroUserTimezone = userTz;
             }
             catch (e) { }
-            const wkStart = getStartOfWeekInUserTZ(userTz);
-            const weekKey = wkStart.toISOString().slice(0, 10);
-            // Read stored reset offset (per-week)
+            const todayKey = getDateKeyInTimezone(new Date(), userTz);
+            // Read stored reset offset (per-day)
             const RESET_KEY = 'pomodoroReset';
             let stored = {};
             try {
@@ -2203,18 +2211,19 @@ else {
             catch (e) {
                 stored = {};
             }
-            // If stored reset is for another week, clear it
-            if (stored.week !== weekKey) {
+            // If stored reset is for another day, clear it
+            if (stored.day !== todayKey) {
                 stored = {};
                 localStorage.removeItem(RESET_KEY);
             }
             const offset = Number(stored.offset || 0);
-            const displayed = Math.max(0, total - offset);
+            const displayedToday = Math.max(0, totalToday - offset);
             // Store the raw total and the displayed (offset-applied) value
-            latestPomodoroStats.rawTotalSessionsThisWeek = total;
-            latestPomodoroStats.totalSessionsThisWeek = displayed; // displayed = total - offset
-            latestPomodoroStats.sessionsToday = ((_d = ce.detail) === null || _d === void 0 ? void 0 : _d.totalSessionsToday) || 0;
-            completedCycles = displayed; // keep for compatibility
+            latestPomodoroStats.rawTotalSessionsThisWeek = totalThisWeek;
+            latestPomodoroStats.rawSessionsToday = totalToday;
+            latestPomodoroStats.totalSessionsThisWeek = totalThisWeek;
+            latestPomodoroStats.sessionsToday = displayedToday;
+            completedCycles = displayedToday; // keep for compatibility
             updateDisplay();
         }
         catch (e) { /* ignore */ }
@@ -2526,6 +2535,27 @@ else {
         syncOnboardingAcrossTabs(() => applyPomodoroOnboardingStep());
         loadSettings();
         handleOnboarding(); // Onboarding StudyO
+        try {
+            const user = yield getCurrentUser();
+            pomodoroUserTimezone = user.timezone || pomodoroUserTimezone;
+        }
+        catch (e) { /* keep browser timezone fallback */ }
+        lastPomodoroDayKey = getDateKeyInTimezone(new Date(), pomodoroUserTimezone);
+        if (!pomodoroDayRolloverInterval) {
+            pomodoroDayRolloverInterval = window.setInterval(() => __awaiter(void 0, void 0, void 0, function* () {
+                try {
+                    const currentDayKey = getDateKeyInTimezone(new Date(), pomodoroUserTimezone);
+                    if (lastPomodoroDayKey !== currentDayKey) {
+                        lastPomodoroDayKey = currentDayKey;
+                        localStorage.removeItem('pomodoroReset');
+                        // @ts-ignore
+                        yield loadPomodoroStats();
+                        updateDisplay();
+                    }
+                }
+                catch (e) { /* ignore */ }
+            }), 30 * 1000);
+        }
         remainingSeconds = settings.workMinutes * 60;
         updateDisplay();
         if (playBtn)
@@ -2542,23 +2572,26 @@ else {
                     completedCycles = 0;
                     resetTimer('work');
                     updateDisplay();
-                    // Persist a per-week reset offset so the counter shows zero
+                    // Persist a per-day reset offset so the counter shows zero
                     try {
-                        // Fetch current weekly total
+                        // Fetch current sessions
                         // @ts-ignore
                         const sessions = yield apiGet('/pomodoro/');
-                        // Determine week start in user timezone
-                        let userTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+                        // Determine current day in user timezone
+                        let userTz = pomodoroUserTimezone;
                         try {
                             const u = yield getCurrentUser();
                             userTz = u.timezone || userTz;
+                            pomodoroUserTimezone = userTz;
                         }
                         catch (e) { }
-                        const wkStart = getStartOfWeekInUserTZ(userTz);
-                        const weekKey = wkStart.toISOString().slice(0, 10);
-                        const totalSessionsThisWeek = sessions.filter(s => new Date(s.start_time) >= wkStart).length;
+                        const todayKey = getDateKeyInTimezone(new Date(), userTz);
+                        const totalSessionsToday = sessions.filter(s => {
+                            const sessionDate = new Date(s.start_time);
+                            return getDateKeyInTimezone(sessionDate, userTz) === todayKey;
+                        }).length;
                         const RESET_KEY = 'pomodoroReset';
-                        const payload = { week: weekKey, offset: totalSessionsThisWeek };
+                        const payload = { day: todayKey, offset: totalSessionsToday };
                         localStorage.setItem(RESET_KEY, JSON.stringify(payload));
                         console.log('[reset] Stored reset offset', payload);
                         // Update UI
