@@ -278,7 +278,7 @@ export async function onSubjectCreated(): Promise<void> {
         title: getOnboardingText('stepCreateHabitTitle'),
         body: getOnboardingText('stepCreateHabitBody'),
         primaryText: getOnboardingText('goToHabits'),
-        primaryHref: 'habits.html',
+        primaryHref: '/habits',
         lockClose: false,
         allowSkip: true,
         onSkip: async () => {
@@ -297,7 +297,7 @@ export async function onHabitCreated(): Promise<void> {
         title: getOnboardingText('stepConfigPomodoroTitle'),
         body: getOnboardingText('stepConfigPomodoroBody'),
         primaryText: getOnboardingText('goToDashboard'),
-        primaryHref: 'dashboard.html',
+        primaryHref: '/dashboard',
         lockClose: false,
         allowSkip: true,
         onSkip: async () => {
@@ -361,3 +361,4 @@ export function hideOnboardingOverlay(): void {
     overlay.classList.remove('onboarding-visible');
     setTimeout(() => overlay.classList.add('hidden'), 160);
 }
+

@@ -26,12 +26,12 @@
         </form>
         <p class="auth-footer" style="margin-top: 12px;">
             ¿Olvidaste tu contraseña?
-            <a href="forgot-password.html">Recuperala acá</a>
+            <a href="/forgot-password">Recuperala acá</a>
         </p>
 
         <p class="auth-footer">
             ¿No tenés cuenta?
-            <a href="register.html">Registrate acá</a>
+            <a href="/register">Registrate acá</a>
         </p>
     </div>
 
@@ -60,7 +60,7 @@
 
                 const params = new URLSearchParams(window.location.search);
                 const next = params.get('next');
-                window.location.href = next || 'dashboard.html';
+                window.location.href = next || '/dashboard';
             } catch (error) {
                 errorMessage.textContent = error.message || 'Error al iniciar sesión. Verifica tus credenciales.';
                 errorMessage.style.display = 'block';
@@ -71,4 +71,5 @@
 </body>
 
 </html>
+
 

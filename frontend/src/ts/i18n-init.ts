@@ -34,3 +34,4 @@ if (document.readyState === 'loading') {
 
 // Export for manual use if needed
 export { initI18n };
+

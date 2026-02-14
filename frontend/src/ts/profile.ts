@@ -90,10 +90,10 @@ async function init() {
             e.preventDefault();
             try {
                 await logout();
-                window.location.href = 'index.html';
+                window.location.href = '/';
             } catch (error) {
                 console.error('Error al cerrar sesión:', error);
-                window.location.href = 'index.html';
+                window.location.href = '/';
             }
         });
     }
@@ -314,3 +314,4 @@ async function init() {
 }
 
 document.addEventListener('DOMContentLoaded', init);
+

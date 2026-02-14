@@ -145,7 +145,7 @@ async function loadHabits() {
     try {
         const token = getToken();
         if (!token) {
-            window.location.href = 'login.html';
+            window.location.href = '/login';
             return;
         }
         // Obtenemos timezone del usuario
@@ -583,3 +583,4 @@ function renderIconsSelection() {
         renderIconsSelection();
     };
 }
+

@@ -281,7 +281,7 @@ async function loadHabitsStats() {
             
             // Show empty state if no habits exist
             if (sortedHabits.length === 0) {
-                recentHabitsEl.innerHTML = '<p class="empty-state">No tenés hábitos aún. <a href="habits.html">Creá tu primer hábito</a></p>';
+                recentHabitsEl.innerHTML = '<p class="empty-state">No tenés hábitos aún. <a href="/habits">Creá tu primer hábito</a></p>';
             } else {
                 // Render habit items with name and current streak
                 recentHabitsEl.innerHTML = sortedHabits.map(habit => `
@@ -382,7 +382,7 @@ async function loadSubjectsStats() {
         if (allSubjectsEl) {
             // Show empty state if no subjects exist
             if (subjects.length === 0) {
-                allSubjectsEl.innerHTML = '<p class="empty-state">No tenés materias aún. <a href="subjects.html">Agregá tu primera materia</a></p>';
+                allSubjectsEl.innerHTML = '<p class="empty-state">No tenés materias aún. <a href="/subjects">Agregá tu primera materia</a></p>';
             } else {
                 // Render subject cards with progress bars and priority badges
                 allSubjectsEl.innerHTML = subjects.map(subject => {
@@ -1789,7 +1789,7 @@ async function loadNextEvent() {
                     </div>
                     <h3 class="text-lg font-bold text-white mb-2">${trans.dashboard.emptyNextEventTitle}</h3>
                     <p class="text-gray-400 text-sm mb-4 text-center">${trans.dashboard.emptyNextEventDesc}</p>
-                    <a href="planner.html" class="px-4 py-2 rounded-lg bg-gradient-to-r from-purple-500/20 via-pink-500/20 to-purple-500/20 text-purple-400 text-sm hover:from-purple-500/30 hover:via-pink-500/30 hover:to-purple-500/30 transition-all border border-purple-500/30 inline-flex items-center gap-2">
+                    <a href="/planner" class="px-4 py-2 rounded-lg bg-gradient-to-r from-purple-500/20 via-pink-500/20 to-purple-500/20 text-purple-400 text-sm hover:from-purple-500/30 hover:via-pink-500/30 hover:to-purple-500/30 transition-all border border-purple-500/30 inline-flex items-center gap-2">
                         <i data-lucide="plus" class="w-4 h-4"></i>
                         <span>${trans.dashboard.emptyNextEventAction}</span>
                     </a>
@@ -1861,7 +1861,7 @@ async function loadNextEvent() {
                     </div>
                     ${nextEvent.notes ? `<p class="text-sm text-gray-500 mt-2">${nextEvent.notes}</p>` : ''}
                 </div>
-                <a href="planner.html" class="block text-center text-sm text-purple-400 hover:text-purple-300 transition-colors">
+                <a href="/planner" class="block text-center text-sm text-purple-400 hover:text-purple-300 transition-colors">
                     ${trans.dashboard.plannerFull}
                 </a>
             </div>
@@ -1879,7 +1879,7 @@ async function loadNextEvent() {
                 </div>
                 <h3 class="text-lg font-bold text-white mb-2">${trans.dashboard.emptyNextEventTitle}</h3>
                 <p class="text-gray-400 text-sm mb-4 text-center">${trans.dashboard.emptyNextEventDesc}</p>
-                <a href="planner.html" class="px-4 py-2 rounded-lg bg-gradient-to-r from-purple-500/20 via-pink-500/20 to-purple-500/20 text-purple-400 text-sm hover:from-purple-500/30 hover:via-pink-500/30 hover:to-purple-500/30 transition-all border border-purple-500/30 inline-flex items-center gap-2">
+                <a href="/planner" class="px-4 py-2 rounded-lg bg-gradient-to-r from-purple-500/20 via-pink-500/20 to-purple-500/20 text-purple-400 text-sm hover:from-purple-500/30 hover:via-pink-500/30 hover:to-purple-500/30 transition-all border border-purple-500/30 inline-flex items-center gap-2">
                     <i data-lucide="plus" class="w-4 h-4"></i>
                     <span>${trans.dashboard.emptyNextEventAction}</span>
                 </a>
@@ -2171,7 +2171,7 @@ if (document.readyState === 'loading') {
                 title: (t() as any).onboarding?.stepCreateSubjectTitle || 'Paso 1: Creá tu primera asignatura',
                 body: (t() as any).onboarding?.stepCreateSubjectBody || 'Creá 1 asignatura para activar el tracking real de tu estudio.',
                 primaryText: (t() as any).onboarding?.createSubject || 'Crear asignatura',
-                primaryHref: 'subjects.html',
+                primaryHref: '/subjects',
                 lockClose: true,
                 allowSkip: true,
                 onSkip: async () => { try { await skipOnboarding(); } catch (_) {} hideOnboardingOverlay(); },
@@ -2184,7 +2184,7 @@ if (document.readyState === 'loading') {
                 title: (t() as any).onboarding?.stepCreateHabitTitle || 'Paso 2: Creá un hábito',
                 body: (t() as any).onboarding?.stepCreateHabitBody || 'Ahora creá un hábito y revisá “Hábito clave”.',
                 primaryText: (t() as any).onboarding?.goToHabits || 'Ir a hábitos',
-                primaryHref: 'habits.html',
+                primaryHref: '/habits',
                 lockClose: true,
                 allowSkip: true,
                 onSkip: async () => { try { await skipOnboarding(); } catch (_) {} hideOnboardingOverlay(); },
@@ -2854,4 +2854,5 @@ if (document.readyState === 'loading') {
     });
 
 })();
+
 

@@ -29,3 +29,4 @@ if (form && emailInput && statusEl) {
         }
     });
 }
+

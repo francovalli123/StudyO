@@ -40,7 +40,7 @@
             <a href="#faq">FAQ</a>
         </div>
 
-        <a href="register.html" style="text-decoration: none;" class="btn-nav shadow-purple">Empezar Gratis</a>
+        <a href="/register" style="text-decoration: none;" class="btn-nav shadow-purple">Empezar Gratis</a>
     </nav>
 
     <section class="hero">
@@ -53,8 +53,8 @@
             estratégica.</p>
 
         <div class="hero-buttons">
-            <a href="login.html" class="btn-primary shadow-purple">Ingresar</a>
-            <a href="register.html" style="text-decoration: none;" class="btn-secondary shadow-purple-low">Registrarse</a>
+            <a href="/login" class="btn-primary shadow-purple">Ingresar</a>
+            <a href="/register" style="text-decoration: none;" class="btn-secondary shadow-purple-low">Registrarse</a>
         </div>
     </section>
 
@@ -387,17 +387,17 @@
                 <div class="footer-links">
                     <h4>Producto</h4>
                     <ul>
-                        <li><a href="features.html">Características</a></li>
-                        <li><a href="studyomethod.html">Método StudyO</a></li>
-                        <li><a href="news.html">Novedades</a></li>
+                        <li><a href="/features">Características</a></li>
+                        <li><a href="/studyomethod">Método StudyO</a></li>
+                        <li><a href="/news">Novedades</a></li>
                     </ul>
                 </div>
 
                 <div class="footer-links">
                     <h4>Legal</h4>
                     <ul>
-                        <li><a href="politics.html">Políticas de Seguridad</a></li>
-                        <li><a href="terms.html">Términos</a></li>
+                        <li><a href="/politics">Políticas de Seguridad</a></li>
+                        <li><a href="/terms">Términos</a></li>
                     </ul>
                 </div>
 
@@ -451,11 +451,12 @@
     </script>
     <script type="module">
         import { initAuthGate } from './src/ts/auth-gate.ts';
-        initAuthGate({ mode: 'protected', loginPath: 'login.html' });
+        initAuthGate({ mode: 'protected', loginPath: '/login' });
     </script>
     <script type="module" src="./src/ts/responsive.ts"></script>
     <script type="module" src="./src/ts/main.ts"></script>
 </body>
 
 </html>
+
 

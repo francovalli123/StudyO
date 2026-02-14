@@ -1493,3 +1493,4 @@ export function applyTranslations(): void {
         }
     });
 }
+

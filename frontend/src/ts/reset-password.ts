@@ -50,7 +50,7 @@ if (form && emailInput && passwordInput && statusEl) {
             await confirmPasswordReset(email, tokenParam, password);
             statusEl.textContent = "Contraseña actualizada. Redirigiendo al login...";
             setTimeout(() => {
-                window.location.href = "login.html";
+                window.location.href = "/login";
             }, 1200);
         } catch (error: any) {
             statusEl.textContent = error?.message || "No se pudo restablecer la contraseña.";
@@ -60,3 +60,4 @@ if (form && emailInput && passwordInput && statusEl) {
 }
 
 validateToken();
+

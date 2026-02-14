@@ -973,3 +973,4 @@ if (document.readyState === 'loading') {
 } else {
     loadProgress();
 }
+

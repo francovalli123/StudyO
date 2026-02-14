@@ -1,4 +1,4 @@
-﻿import { ApiError, getCurrentUser, getToken, removeToken } from "./api.js";
+import { ApiError, getCurrentUser, getToken, removeToken } from "./api.js";
 
 export type AuthStatus =
     | "checking"
@@ -23,11 +23,11 @@ declare global {
 
 const PUBLIC_ROUTES = [
     "/",
-    "/index.html",
-    "/login.html",
-    "/register.html",
-    "/forgot-password.html",
-    "/reset-password.html",
+    "/index",
+    "/login",
+    "/register",
+    "/forgot-password",
+    "/reset-password",
 ];
 
 const authState: AuthState = {
@@ -45,9 +45,9 @@ const AUTH_RETRY_DELAY_MS = 1200;
 function getAuthCheckingText(): string {
     const lang = localStorage.getItem("appLanguage");
     if (lang === "en") return "Checking session...";
-    if (lang === "pt") return "Verificando sessão...";
+    if (lang === "pt") return "Verificando sess�o...";
     if (lang === "zh") return "Checking session...";
-    return "Verificando sesión...";
+    return "Verificando sesi�n...";
 }
 
 function withTimeout<T>(promise: Promise<T>, timeoutMs: number, timeoutMessage: string): Promise<T> {
@@ -139,7 +139,7 @@ function ensureAuthErrorUI(loginPath: string, detail?: string): void {
         panel.style.boxShadow = "0 8px 26px rgba(0,0,0,0.35)";
         panel.style.color = "#e5e7eb";
         panel.innerHTML = `
-            <div style="font-size:14px;font-weight:600;margin-bottom:8px">No se pudo validar tu sesiÃ³n.</div>
+            <div style="font-size:14px;font-weight:600;margin-bottom:8px">No se pudo validar tu sesión.</div>
             <div id="auth-error-detail" style="font-size:13px;opacity:.9;margin-bottom:12px"></div>
             <div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap">
                 <button id="auth-retry-btn" type="button" style="background:#1f2937;color:#fff;border:1px solid #374151;border-radius:8px;padding:7px 12px;cursor:pointer">Reintentar</button>
@@ -160,12 +160,20 @@ function ensureAuthErrorUI(loginPath: string, detail?: string): void {
 
     const detailNode = panel.querySelector<HTMLDivElement>("#auth-error-detail");
     if (detailNode) {
-        detailNode.textContent = detail || "Revisa tu conexiÃ³n o intenta nuevamente.";
+        detailNode.textContent = detail || "Revisa tu conexión o intenta nuevamente.";
     }
 }
 
+function normalizeRoutePath(pathname: string): string {
+    let normalized = pathname || "/";
+    if (!normalized.startsWith("/")) normalized = `/${normalized}`;
+    if (normalized.length > 1 && normalized.endsWith("/")) normalized = normalized.slice(0, -1);
+    if (normalized.endsWith(".html")) normalized = normalized.slice(0, -5);
+    return normalized || "/";
+}
+
 function isPublicRoute(pathname: string): boolean {
-    return PUBLIC_ROUTES.includes(pathname);
+    return PUBLIC_ROUTES.includes(normalizeRoutePath(pathname));
 }
 
 function safeGetToken(): string | null {
@@ -184,7 +192,7 @@ function getErrorStatus(err: unknown): number | undefined {
 
 function getErrorMessage(err: unknown): string {
     const message = (err as any)?.message;
-    return typeof message === "string" && message.trim().length ? message : "Error de conexiÃ³n";
+    return typeof message === "string" && message.trim().length ? message : "Error de conexión";
 }
 
 function isRetryableAuthError(statusCode: number | undefined, err: unknown): boolean {
@@ -216,11 +224,14 @@ function resolveState(status: AuthStatus, payload?: Partial<AuthState>) {
 }
 
 function redirectToLogin(loginPath: string, currentPath: string) {
+    const normalizedCurrentPath = normalizeRoutePath(currentPath);
+    const normalizedLoginPath = normalizeRoutePath(loginPath);
+
     if (isPublicRoute(currentPath)) return;
-    if (currentPath.endsWith(loginPath)) return;
+    if (normalizedCurrentPath === normalizedLoginPath) return;
 
     const next = encodeURIComponent(window.location.href);
-    window.location.href = `${loginPath}?next=${next}`;
+    window.location.href = `${normalizedLoginPath}?next=${next}`;
 }
 
 export async function initAuthGate(options?: { loginPath?: string }) {
@@ -229,7 +240,7 @@ export async function initAuthGate(options?: { loginPath?: string }) {
     clearAuthErrorUI();
     resetGlobalScaleState();
 
-    const loginPath = options?.loginPath ?? "login.html";
+    const loginPath = options?.loginPath ?? "/login";
     const currentPath = window.location.pathname;
     const isPublic = isPublicRoute(currentPath);
 
@@ -309,6 +320,7 @@ window.addEventListener("auth:expired", () => {
         user: null,
     });
 
-    redirectToLogin("login.html", currentPath);
+    redirectToLogin("/login", currentPath);
 });
+
 

@@ -1,4 +1,4 @@
-﻿(() => {
+(() => {
   const MOBILE_SIDEBAR_OPEN_CLASS = 'is-mobile-sidebar-open';
   const DESKTOP_SIDEBAR_COLLAPSED_CLASS = 'is-desktop-sidebar-collapsed';
 
@@ -365,3 +365,4 @@
     setupAppSidebar();
   });
 })();
+

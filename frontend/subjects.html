@@ -145,23 +145,23 @@
         </div>
 
         <nav class="flex-1 px-4 space-y-2 mt-2">
-            <a href="dashboard.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gradient-to-r hover:from-purple-500/10 hover:via-fuchsia-500/10 hover:to-purple-500/10 text-gray-400 hover:text-purple-300 transition-all duration-300">
+            <a href="/dashboard" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gradient-to-r hover:from-purple-500/10 hover:via-fuchsia-500/10 hover:to-purple-500/10 text-gray-400 hover:text-purple-300 transition-all duration-300">
                 <i data-lucide="home" class="w-5 h-5"></i>
                 <span data-i18n="nav.home">Inicio</span>
             </a>
-            <a href="planner.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gradient-to-r hover:from-purple-500/10 hover:via-fuchsia-500/10 hover:to-purple-500/10 text-gray-400 hover:text-purple-300 transition-all duration-300">
+            <a href="/planner" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gradient-to-r hover:from-purple-500/10 hover:via-fuchsia-500/10 hover:to-purple-500/10 text-gray-400 hover:text-purple-300 transition-all duration-300">
                 <i data-lucide="calendar" class="w-5 h-5"></i>
                 <span data-i18n="nav.planner">Planificador</span>
             </a>
-            <a href="subjects.html" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-gradient-to-r from-purple-600 via-fuchsia-500 to-purple-600 text-white shadow-[0_0_15px_rgba(168,85,247,0.5)] font-medium">
+            <a href="/subjects" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-gradient-to-r from-purple-600 via-fuchsia-500 to-purple-600 text-white shadow-[0_0_15px_rgba(168,85,247,0.5)] font-medium">
                 <i data-lucide="monitor" class="w-5 h-5"></i>
                 <span data-i18n="nav.subjects">Mi Sistema Académico</span> 
             </a>
-            <a href="habits.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gradient-to-r hover:from-purple-500/10 hover:via-fuchsia-500/10 hover:to-purple-500/10 text-gray-400 hover:text-purple-300 transition-all duration-300">
+            <a href="/habits" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gradient-to-r hover:from-purple-500/10 hover:via-fuchsia-500/10 hover:to-purple-500/10 text-gray-400 hover:text-purple-300 transition-all duration-300">
                 <i data-lucide="target" class="w-5 h-5"></i>
                 <span data-i18n="nav.habits">Hábitos</span>
             </a>
-            <a href="progress.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gradient-to-r hover:from-purple-500/10 hover:via-fuchsia-500/10 hover:to-purple-500/10 text-gray-400 hover:text-purple-300 transition-all duration-300">
+            <a href="/progress" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gradient-to-r hover:from-purple-500/10 hover:via-fuchsia-500/10 hover:to-purple-500/10 text-gray-400 hover:text-purple-300 transition-all duration-300">
                 <i data-lucide="trending-up" class="w-5 h-5"></i>
                 <span data-i18n="nav.progress">Progreso</span>
             </a>
@@ -169,7 +169,7 @@
 
         <div class="p-4 border-t border-gray-800/50 space-y-2">
             <div class="text-xs font-semibold text-gray-500 uppercase px-4 mb-2" data-i18n="nav.settings">Ajustes</div>
-            <a href="profile.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gradient-to-r hover:from-purple-500/10 hover:via-fuchsia-500/10 hover:to-purple-500/10 text-gray-400 hover:text-purple-300 transition-all duration-300">
+            <a href="/profile" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gradient-to-r hover:from-purple-500/10 hover:via-fuchsia-500/10 hover:to-purple-500/10 text-gray-400 hover:text-purple-300 transition-all duration-300">
                 <i data-lucide="settings" class="w-5 h-5"></i>
                 <span data-i18n="nav.settings">Ajustes</span>
             </a>
@@ -305,7 +305,7 @@
             } catch (error) {
                 console.error('Error al cargar información del usuario:', error);
                 if (error.message === "No autenticado" || error.message === "Sesión expirada") {
-                    window.location.href = 'login.html';
+                    window.location.href = '/login';
                 }
             }
 
@@ -315,10 +315,10 @@
                     e.preventDefault();
                     try {
                         await logout();
-                        window.location.href = 'index.html';
+                        window.location.href = '/';
                     } catch (error) {
                         console.error('Error al cerrar sesión:', error);
-                        window.location.href = 'index.html';
+                        window.location.href = '/';
                     }
                 });
             }
@@ -327,7 +327,7 @@
 
     <script type="module">
         import { initAuthGate } from './src/ts/auth-gate.ts';
-        initAuthGate({ loginPath: 'login.html' });
+        initAuthGate({ loginPath: '/login' });
     </script>
     <script type="module" src="./src/ts/subjects.ts"></script>
     <script type="module" src="./src/ts/i18n-init.ts"></script>
@@ -352,4 +352,5 @@
     <script type="module" src="./src/ts/responsive.ts?v=20260212r4"></script>
 </body>
 </html>
+
 
