@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema Académico - StudyO</title>
+    <script>
+        document.documentElement.classList.add('auth-pending');
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        dark: {
+                            bg: '#0a0a0c',
+                            card: '#11131a',
+                            sidebar: '#0a0a0c',
+                            input: '#1a1d26'
+                        },
+                        brand: {
+                            primary: '#a855f7',
+                            glow: '#d946ef',
+                            text: '#e2e8f0'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0a0a0c; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+        
+        [style*="box-shadow"] { transition: box-shadow 0.3s ease; }
+        
+        .group:hover [style*="box-shadow"] {
+            box-shadow: 0 0 0 1px rgba(168,85,247,0.3), 0 0 25px rgba(168,85,247,0.2), inset 0 0 20px rgba(168,85,247,0.05) !important;
+        }
+        
+        .bg-clip-text { -webkit-background-clip: text; background-clip: text; }
+        
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeInLeft {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .animate-on-load { opacity: 0; }
+        .animate-on-load.animated { animation: fadeInUp 0.6s ease-out forwards; }
+        
+        .animate-sidebar { opacity: 0; }
+        .animate-sidebar.animated { animation: fadeInLeft 0.5s ease-out forwards; }
+        
+        .animate-fade { opacity: 0; }
+        .animate-fade.animated { animation: fadeIn 0.4s ease-out forwards; }
+        
+        .delay-100 { animation-delay: 0.1s; }
+        .delay-200 { animation-delay: 0.2s; }
+        .delay-300 { animation-delay: 0.3s; }
+        .delay-400 { animation-delay: 0.4s; }
+        .delay-500 { animation-delay: 0.5s; }
+        .delay-600 { animation-delay: 0.6s; }
+        
+        /* Modal styles */
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.75); z-index: 1000; backdrop-filter: blur(4px);
+        }
+        .modal-overlay.active {
+            display: flex; align-items: center; justify-content: center; animation: fadeIn 0.3s ease-out;
+        }
+        .modal-content {
+            background: #11131a; border-radius: 1.5rem; padding: 2rem;
+            max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto;
+            box-shadow: 0 0 0 1px rgba(168,85,247,0.3), 0 0 50px rgba(168,85,247,0.2);
+            animation: fadeInUp 0.4s ease-out;
+        }
+        
+        /* Icon selection styles */
+        .icon-option { transition: all 0.2s ease; }
+        .icon-option:hover { transform: scale(1.1); }
+        .icon-option.selected {
+            box-shadow: 0 0 0 2px rgba(168,85,247,0.5), 0 0 20px rgba(168,85,247,0.3);
+        }
+
+        /* --- SIDEBAR COLLAPSE STYLES (CORREGIDO) --- */
+        aside { transition: width 0.22s ease; overflow: hidden; }
+        body.is-desktop-sidebar-collapsed aside { width: 80px !important; min-width: 80px !important; }
+        
+        /* 1. Ocultar textos y títulos */
+        body.is-desktop-sidebar-collapsed aside .logo-text,
+        body.is-desktop-sidebar-collapsed aside nav a span,
+        body.is-desktop-sidebar-collapsed aside .border-t a span, /* Texto footer */
+        body.is-desktop-sidebar-collapsed aside .border-t .text-xs /* Título AJUSTES */
+        { display: none; }
+
+        /* 2. Centrar elementos */
+        body.is-desktop-sidebar-collapsed aside nav a,
+        body.is-desktop-sidebar-collapsed aside .border-t a /* Items footer */
+        { justify-content: center; padding-left: 0.75rem; padding-right: 0.75rem; }
+
+        /* 3. Ajustar tamaño de iconos */
+        body.is-desktop-sidebar-collapsed aside nav a i,
+        body.is-desktop-sidebar-collapsed aside nav a [data-lucide],
+        body.is-desktop-sidebar-collapsed aside .border-t a i, /* Iconos footer */
+        body.is-desktop-sidebar-collapsed aside .border-t a [data-lucide]
+        { width: 28px !important; height: 28px !important; }
+
+        /* Otros ajustes */
+        [data-sidebar-toggle] { transition: transform 0.2s ease; }
+        body.is-desktop-sidebar-collapsed [data-sidebar-toggle] { transform: rotate(180deg); }
+        body.is-desktop-sidebar-collapsed #sidebarToggleBtn i { width: 20px !important; height: 20px !important; }
+        body.is-desktop-sidebar-collapsed aside .w-1.h-1,
+        body.is-desktop-sidebar-collapsed aside .w-1.h-1.rounded-full { display: none !important; }
+    </style> <!-- responsive-last -->
+  <script type="module" crossorigin src="/assets/subjects-CCvBCipO.js"></script>
+  <link rel="modulepreload" crossorigin href="/assets/modulepreload-polyfill-B5Qt9EMX.js">
+  <link rel="modulepreload" crossorigin href="/assets/auth-gate-CYQPWai6.js">
+  <link rel="modulepreload" crossorigin href="/assets/responsive-BEQ_P_Nu.js">
+  <link rel="modulepreload" crossorigin href="/assets/confirmModal-r5-RcnPR.js">
+  <link rel="modulepreload" crossorigin href="/assets/onboarding-B6DVBAO8.js">
+  <link rel="stylesheet" crossorigin href="/assets/auth-gate-Dn5R9NA5.css">
+</head>
+<body class="bg-dark-bg text-gray-300 h-screen flex overflow-hidden selection:bg-purple-500 selection:text-white">
+
+    <aside id="sidebar" class="w-64 bg-dark-sidebar flex flex-col border-r border-gray-800/50 h-full flex-shrink-0 animate-sidebar">
+        <div class="p-6 flex items-center gap-3">
+            <i data-lucide="book-open" class="text-white w-6 h-6"></i>
+            <span class="text-xl font-bold text-white tracking-wide logo-text">StudyO</span>
+            <button id="sidebarToggleBtn" data-sidebar-toggle class="ml-auto text-gray-500 w-8 h-8 flex items-center justify-center rounded hover:bg-white/5" aria-label="Toggle sidebar">
+                <i data-lucide="chevron-left" class="w-4 h-4"></i>
+            </button>
+        </div>
+
+        <nav class="flex-1 px-4 space-y-2 mt-2">
+            <a href="dashboard.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gradient-to-r hover:from-purple-500/10 hover:via-fuchsia-500/10 hover:to-purple-500/10 text-gray-400 hover:text-purple-300 transition-all duration-300">
+                <i data-lucide="home" class="w-5 h-5"></i>
+                <span data-i18n="nav.home">Inicio</span>
+            </a>
+            <a href="planner.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gradient-to-r hover:from-purple-500/10 hover:via-fuchsia-500/10 hover:to-purple-500/10 text-gray-400 hover:text-purple-300 transition-all duration-300">
+                <i data-lucide="calendar" class="w-5 h-5"></i>
+                <span data-i18n="nav.planner">Planificador</span>
+            </a>
+            <a href="subjects.html" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-gradient-to-r from-purple-600 via-fuchsia-500 to-purple-600 text-white shadow-[0_0_15px_rgba(168,85,247,0.5)] font-medium">
+                <i data-lucide="monitor" class="w-5 h-5"></i>
+                <span data-i18n="nav.subjects">Mi Sistema Académico</span> 
+            </a>
+            <a href="habits.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gradient-to-r hover:from-purple-500/10 hover:via-fuchsia-500/10 hover:to-purple-500/10 text-gray-400 hover:text-purple-300 transition-all duration-300">
+                <i data-lucide="target" class="w-5 h-5"></i>
+                <span data-i18n="nav.habits">Hábitos</span>
+            </a>
+            <a href="progress.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gradient-to-r hover:from-purple-500/10 hover:via-fuchsia-500/10 hover:to-purple-500/10 text-gray-400 hover:text-purple-300 transition-all duration-300">
+                <i data-lucide="trending-up" class="w-5 h-5"></i>
+                <span data-i18n="nav.progress">Progreso</span>
+            </a>
+        </nav>
+
+        <div class="p-4 border-t border-gray-800/50 space-y-2">
+            <div class="text-xs font-semibold text-gray-500 uppercase px-4 mb-2" data-i18n="nav.settings">Ajustes</div>
+            <a href="profile.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gradient-to-r hover:from-purple-500/10 hover:via-fuchsia-500/10 hover:to-purple-500/10 text-gray-400 hover:text-purple-300 transition-all duration-300">
+                <i data-lucide="settings" class="w-5 h-5"></i>
+                <span data-i18n="nav.settings">Ajustes</span>
+            </a>
+
+            <a href="#" id="logoutBtn" class="flex items-center gap-3 px-4 py-2 rounded-xl hover:bg-gradient-to-r hover:from-red-500/10 hover:via-pink-500/10 hover:to-red-500/10 text-red-400 hover:text-red-300 transition-all duration-300">
+                <i data-lucide="log-out" class="w-4 h-4"></i>
+                <span data-i18n="nav.logout">Cerrar Sesión</span>
+            </a>
+        </div>
+    </aside>
+
+<main class="flex-1 overflow-y-auto relative">
+        <div class="p-8 max-w-7xl mx-auto space-y-8">
+            
+            <header class="flex justify-between items-start animate-on-load delay-200">
+                <div>
+                    <h1 class="text-4xl font-bold text-white mb-2" data-i18n="subjects.title">
+                        Mi Sistema Académico
+                    </h1>
+                    <p class="text-gray-400 text-lg" data-i18n="subjects.subtitle">Gestioná todas tus asignaturas y tu progreso estratégico.</p>
+                </div>
+                <button id="addSubjectBtn" class="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-purple-600 via-fuchsia-500 to-purple-600 text-white font-medium hover:from-purple-500 hover:via-fuchsia-400 hover:to-purple-500 transition-all duration-300 shadow-[0_0_15px_rgba(168,85,247,0.5)]">
+                    <i data-lucide="plus-circle" class="w-5 h-5"></i>
+                    <span data-i18n="subjects.addSubject">Agregar Asignatura</span>
+                </button>
+            </header>
+
+            <section id="subjects-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-on-load delay-300">
+                <p class="text-gray-400 col-span-full">Cargando materias...</p>
+            </section>
+
+            <div id="emptyState" class="hidden bg-dark-card rounded-3xl p-12 flex flex-col items-center justify-center text-center animate-on-load delay-400" style="box-shadow: 0 0 0 1px rgba(168,85,247,0.2), 0 0 30px rgba(168,85,247,0.15), inset 0 0 20px rgba(168,85,247,0.03);">
+                <div class="w-24 h-24 rounded-full bg-gradient-to-br from-purple-500/20 via-fuchsia-500/20 to-purple-500/20 flex items-center justify-center mb-6" style="box-shadow: 0 0 0 1px rgba(168,85,247,0.3);">
+                    <i data-lucide="book-open" class="w-12 h-12 text-purple-400"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-white mb-3" data-i18n="subjects.emptyTitle">¡Comienza tu jornada académica!</h3>
+                <p class="text-gray-400 mb-6 max-w-md" data-i18n="subjects.emptyDesc">Aún no has registrado ninguna materia. Organiza tus asignaturas y mantén un seguimiento de tu progreso académico.</p>
+                <button id="emptyStateSubjectBtn" class="px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 via-fuchsia-500 to-purple-600 text-white font-medium hover:from-purple-500 hover:via-fuchsia-400 hover:to-purple-500 transition-all duration-300 shadow-[0_0_15px_rgba(168,85,247,0.5)]">
+                    <i data-lucide="plus-circle" class="w-5 h-5 inline mr-2"></i>
+                    <span data-i18n="subjects.createFirst">Crear mi primera materia</span>
+                </button>
+            </div>
+
+        </div>
+    </main>
+        
+
+    <div id="subjectModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="flex justify-between items-center mb-6">
+                <h2 id="modalTitle" class="text-2xl font-bold text-white" data-i18n="subjects.newSubject">Agregar Nueva Materia</h2>
+                <button id="closeSubjectModalBtn" class="text-gray-400 hover:text-white transition-colors">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+
+            <form id="subjectForm" class="space-y-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2" data-i18n="subjects.subjectName">Nombre de la Materia *</label>
+                    <input type="text" name="name" required
+                           class="w-full bg-dark-input border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all"
+                            data-i18n="[placeholder]subjects.namePlaceholder"                           
+                            placeholder="Ej: Cálculo I, Historia del Arte, etc.">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2" data-i18n="subjects.professor">Profesor</label>
+                    <input type="text" name="professor_name"
+                           class="w-full bg-dark-input border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all"
+                           placeholder="Ej: Juan Pérez">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2" data-i18n="subjects.priority">Prioridad</label>
+                    <select name="priority"
+                            class="w-full bg-dark-input border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all">
+                        <option value="" data-i18n="subjects.notSpecified">Sin especificar</option>
+                        <option value="1" data-i18n="subjects.high">Alta</option>
+                        <option value="2" data-i18n="subjects.medium">Media</option>
+                        <option value="3" data-i18n="subjects.low">Baja</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2" data-i18n="subjects.nextExam">Próximo Examen (Opcional)</label>
+                    <input type="date" name="next_exam_date"
+                           class="w-full bg-dark-input border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2" data-i18n="subjects.weeklyTarget">Objetivo semanal
+                        (min)</label>
+                    <input type="number" name="weekly_target_minutes" min="0" step="10"
+                        class="w-full bg-dark-input border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all"
+                        data-i18n="[placeholder]subjects.timePlaceholder" placeholder="Ej: 300 (minutos por semana)">
+                </div>
+
+                <div class="flex gap-3 pt-4">
+                    <button type="submit" class="flex-1 px-4 py-3 rounded-lg bg-gradient-to-r from-purple-600 via-fuchsia-500 to-purple-600 text-white font-medium hover:from-purple-500 hover:via-fuchsia-400 hover:to-purple-500 transition-all duration-300 shadow-[0_0_15px_rgba(168,85,247,0.5)]">
+                        <span id="submitBtnText" data-i18n="subjects.createSubject">Crear Materia</span>
+                    </button>
+                    <button type="button" id="cancelSubjectBtn" class="px-4 py-3 rounded-lg bg-dark-input border border-gray-700 text-gray-300 font-medium hover:bg-gray-800 transition-all duration-300" data-i18n="common.cancel">
+                        Cancelar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebar = document.querySelector('.animate-sidebar');
+            if (sidebar) {
+                setTimeout(() => {
+                    sidebar.classList.add('animated');
+                }, 50);
+            }
+            const animatedElements = document.querySelectorAll('.animate-on-load');
+            animatedElements.forEach((element, index) => {
+                setTimeout(() => { element.classList.add('animated'); }, 100 + (index * 50));
+            });
+        });
+    </script>
+
+
+
+
+    <div id="onboardingOverlay" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-[1200] flex items-center justify-center p-4">
+        <div class="bg-[#161a22] border border-purple-500/40 rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto p-5 shadow-2xl">
+            <div class="flex items-start justify-between gap-3">
+                <div>
+                    <h3 id="onboardingTitle" class="text-white text-lg font-bold"></h3>
+                    <p id="onboardingBody" class="text-gray-300 text-sm mt-2"></p>
+                </div>
+                <button id="onboardingCloseBtn" class="text-gray-400 hover:text-white">✕</button>
+            </div>
+            <div class="mt-5 flex items-center justify-between">
+                <button id="onboardingSkipBtn" type="button" class="text-xs text-gray-400 hover:text-gray-200 underline-offset-2 hover:underline">Saltar por ahora</button>
+                <a id="onboardingPrimaryBtn" href="#" class="px-4 py-2 rounded-lg bg-gradient-to-r from-purple-600 to-fuchsia-500 text-white text-sm font-medium shadow-[0_8px_24px_rgba(168,85,247,0.35)]"></a>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
+

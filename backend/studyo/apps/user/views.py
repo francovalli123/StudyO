@@ -285,7 +285,7 @@ class PasswordResetRequestView(APIView):
                 reset_token, raw_token = PasswordResetToken.issue_for_user(user)
                 logger.info("Password reset token created for user_id=%s", user.id)
                 query = urlencode({"token": raw_token, "email": user.email})
-                FRONTEND_URL = "http://127.0.0.1:5500"
+                FRONTEND_URL = getattr(settings, "FRONTEND_URL", "https://study-o.vercel.app")
                 reset_link = f"{FRONTEND_URL}/reset-password.html?{query}"
 
                 try:
@@ -376,3 +376,4 @@ class PasswordResetConfirmView(APIView):
         AuthToken.objects.filter(user=user, is_active=True).update(is_active=False, expires_at=timezone.now())
 
         return Response({"detail": "Password updated."}, status=status.HTTP_200_OK)
+

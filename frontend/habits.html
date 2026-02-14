@@ -308,7 +308,7 @@
     </script>
 
     <script type="module">
-        import { logout, getCurrentUser } from './dist/ts/api.js';
+        import { logout, getCurrentUser } from './src/ts/api.ts';
 
         document.addEventListener('DOMContentLoaded', async function() {
             try {
@@ -336,11 +336,11 @@
         });
     </script>
     <script type="module">
-        import { initAuthGate } from './dist/ts/auth-gate.js';
+        import { initAuthGate } from './src/ts/auth-gate.ts';
         initAuthGate({ loginPath: 'login.html' });
     </script>
-    <script type="module" src="dist/ts/habits.js"></script>
-    <script type="module" src="dist/ts/i18n-init.js"></script>
+    <script type="module" src="./src/ts/habits.ts"></script>
+    <script type="module" src="./src/ts/i18n-init.ts"></script>
 
     <div id="onboardingOverlay" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-[1200] flex items-center justify-center p-4">
         <div class="bg-[#161a22] border border-purple-500/40 rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto p-5 shadow-2xl">
@@ -358,6 +358,7 @@
         </div>
     </div>
 
-    <script type="module" src="dist/ts/responsive.js?v=20260212r4"></script>
+    <script type="module" src="./src/ts/responsive.ts?v=20260212r4"></script>
 </body>
 </html>
+

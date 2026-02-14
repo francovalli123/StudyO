@@ -50,7 +50,9 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 DEBUG = os.getenv("DEBUG", "False") == "True"
 
 ALLOWED_HOSTS = [
-    "studyo.onrender.com"
+    "studyo.onrender.com",
+    "localhost",
+    "127.0.0.1",
 ]
 
 
@@ -94,7 +96,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
-    "https://studyo.vercel.app",
+    "https://study-o.vercel.app",
     "http://localhost:3000",
     "http://localhost:5500",  # Live Server
     "http://localhost:8080",  # Otros servidores comunes
@@ -198,6 +200,7 @@ REST_FRAMEWORK = {
 
 # CSRF settings for API (disable for token auth)
 CSRF_TRUSTED_ORIGINS = [
+    "https://study-o.vercel.app",
     "http://localhost:3000",
     "http://localhost:5500",
     "http://localhost:8080",
@@ -208,9 +211,12 @@ CSRF_TRUSTED_ORIGINS = [
 # Site and email defaults
 SITE_NAME = 'StudyO'
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
-SITE_URL = os.environ.get('SITE_URL', 'http://127.0.0.1:8000')
+FRONTEND_URL = os.environ.get('FRONTEND_URL', 'https://study-o.vercel.app')
+SITE_URL = os.environ.get('SITE_URL', 'https://studyo.onrender.com')
 
 # Token/session security configuration
 AUTH_TOKEN_TTL_MINUTES = int(os.environ.get('AUTH_TOKEN_TTL_MINUTES', 60))
 AUTH_TOKEN_REFRESH_WINDOW_MINUTES = int(os.environ.get('AUTH_TOKEN_REFRESH_WINDOW_MINUTES', 10))
 PASSWORD_RESET_TOKEN_TTL_MINUTES = int(os.environ.get('PASSWORD_RESET_TOKEN_TTL_MINUTES', 30))
+
+

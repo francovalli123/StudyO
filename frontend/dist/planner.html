@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Planificador - StudyO</title>
+    <script>
+        document.documentElement.classList.add('auth-pending');
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        dark: {
+                            bg: '#0a0a0c',
+                            card: '#11131a',
+                            sidebar: '#0a0a0c',
+                            input: '#1a1d26'
+                        },
+                        brand: {
+                            primary: '#a855f7',
+                            glow: '#d946ef',
+                            text: '#e2e8f0'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0a0a0c; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+        
+        /* Animaciones de entrada suaves */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes fadeInLeft {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        /* Clases de animación inicial - elementos ocultos */
+        .animate-on-load { opacity: 0; }
+        .animate-on-load.animated { animation: fadeInUp 0.6s ease-out forwards; }
+        
+        .animate-sidebar { opacity: 0; }
+        .animate-sidebar.animated { animation: fadeInLeft 0.5s ease-out forwards; }
+        
+        .animate-fade { opacity: 0; }
+        .animate-fade.animated { animation: fadeIn 0.4s ease-out forwards; }
+        
+        /* Delays escalonados */
+        .delay-100 { animation-delay: 0.1s; }
+        .delay-200 { animation-delay: 0.2s; }
+        .delay-300 { animation-delay: 0.3s; }
+        .delay-400 { animation-delay: 0.4s; }
+        .delay-500 { animation-delay: 0.5s; }
+        .delay-600 { animation-delay: 0.6s; }
+        
+        .calendar-day { position: relative; transition: all 0.2s ease; }
+        .calendar-day:hover { background-color: rgba(168, 85, 247, 0.1); }
+        .calendar-day:hover .add-event-btn { opacity: 1; visibility: visible; }
+        
+        .add-event-btn { opacity: 0; visibility: hidden; transition: all 0.2s ease; }
+        
+        .event-item {
+            background: rgba(168, 85, 247, 0.15);
+            border-left: 3px solid #a855f7;
+            padding: 4px 8px;
+            margin: 0;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .event-item.exam { background: rgba(239, 68, 68, 0.15); border-left-color: #ef4444; }
+        .event-item.task { background: rgba(251, 191, 36, 0.15); border-left-color: #fbbf24; }
+        .event-item.personal { background: rgba(34, 197, 94, 0.15); border-left-color: #22c55e; }
+        
+        /* Remove shadows from icons in event modal */
+        #eventModal [data-lucide], #eventModal svg, #eventModal [data-lucide] * {
+            filter: none !important; text-shadow: none !important; box-shadow: none !important;
+            -webkit-filter: none !important; drop-shadow: none !important;
+        }
+        
+        /* Ocultar los íconos nativos de fecha y hora */
+        input[type="date"]::-webkit-calendar-picker-indicator,
+        input[type="time"]::-webkit-calendar-picker-indicator {
+            background: transparent; bottom: 0; color: transparent; cursor: pointer;
+            height: auto; left: 0; position: absolute; right: 0; top: 0; width: auto; opacity: 0; z-index: 1;
+        }
+        .relative input[type="date"], .relative input[type="time"] { position: relative; z-index: 2; }
+        .relative [data-lucide] { z-index: 0; }
+
+        /* Sidebar collapse styles */
+        aside { transition: width 0.22s ease; overflow: hidden; }
+        body.is-desktop-sidebar-collapsed aside { width: 80px !important; min-width: 80px !important; }
+        
+        /* Ocultar textos principales */
+        body.is-desktop-sidebar-collapsed aside .logo-text { display: none; }
+        
+        /* MODIFICADO: Aplicar estilos a AMBOS grupos de navegación (nav y footer settings) */
+        
+        /* 1. Ocultar texto de los links en nav y en el footer */
+        body.is-desktop-sidebar-collapsed aside nav a span,
+        body.is-desktop-sidebar-collapsed aside .border-t a span { display: none; }
+        
+        /* 2. Ocultar el título pequeño "AJUSTES" */
+        body.is-desktop-sidebar-collapsed aside .border-t .text-xs { display: none; }
+        
+        /* 3. Centrar los items en nav y en el footer */
+        body.is-desktop-sidebar-collapsed aside nav a,
+        body.is-desktop-sidebar-collapsed aside .border-t a { 
+            justify-content: center; 
+            padding-left: 0.75rem; 
+            padding-right: 0.75rem; 
+        }
+
+        /* Rotar botón de toggle */
+        [data-sidebar-toggle] { transition: transform 0.2s ease; }
+        body.is-desktop-sidebar-collapsed [data-sidebar-toggle] { transform: rotate(180deg); }
+        
+        /* Agrandar íconos cuando está colapsado (en nav y footer) */
+        body.is-desktop-sidebar-collapsed aside nav a i,
+        body.is-desktop-sidebar-collapsed aside nav a [data-lucide],
+        body.is-desktop-sidebar-collapsed aside .border-t a i,
+        body.is-desktop-sidebar-collapsed aside .border-t a [data-lucide] {
+            width: 28px !important;
+            height: 28px !important;
+        }
+        
+        body.is-desktop-sidebar-collapsed #sidebarToggleBtn i { width: 20px !important; height: 20px !important; }
+        
+        /* Hide tiny indicators */
+        body.is-desktop-sidebar-collapsed aside .w-1.h-1,
+        body.is-desktop-sidebar-collapsed aside .w-1.h-1.rounded-full { display: none !important; }
+        
+    </style> <!-- responsive-last -->
+  <script type="module" crossorigin src="/assets/planner-CRz3J9rl.js"></script>
+  <link rel="modulepreload" crossorigin href="/assets/modulepreload-polyfill-B5Qt9EMX.js">
+  <link rel="modulepreload" crossorigin href="/assets/auth-gate-CYQPWai6.js">
+  <link rel="modulepreload" crossorigin href="/assets/responsive-BEQ_P_Nu.js">
+  <link rel="modulepreload" crossorigin href="/assets/confirmModal-r5-RcnPR.js">
+  <link rel="stylesheet" crossorigin href="/assets/auth-gate-Dn5R9NA5.css">
+</head>
+<body class="bg-dark-bg text-gray-300 h-screen flex overflow-hidden selection:bg-purple-500 selection:text-white">
+
+    <aside id="sidebar" class="w-64 bg-dark-sidebar flex flex-col border-r border-gray-800/50 h-full flex-shrink-0 animate-sidebar">
+        <div class="p-6 flex items-center gap-3">
+            <i data-lucide="book-open" class="text-white w-6 h-6"></i>
+            <span class="text-xl font-bold text-white tracking-wide logo-text">StudyO</span>
+            <button id="sidebarToggleBtn" data-sidebar-toggle class="ml-auto text-gray-500 w-8 h-8 flex items-center justify-center rounded hover:bg-white/5" aria-label="Toggle sidebar">
+                <i data-lucide="chevron-left" class="w-4 h-4"></i>
+            </button>
+        </div>
+
+        <nav class="flex-1 px-4 space-y-2 mt-2">
+            <a href="dashboard.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gradient-to-r hover:from-purple-500/10 hover:via-fuchsia-500/10 hover:to-purple-500/10 text-gray-400 hover:text-purple-300 transition-all duration-300">
+                <i data-lucide="home" class="w-5 h-5"></i>
+                <span data-i18n="nav.home">Inicio</span>
+            </a>
+            <a href="planner.html" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-gradient-to-r from-purple-600 via-fuchsia-500 to-purple-600 text-white shadow-[0_0_15px_rgba(168,85,247,0.5)] font-medium">
+                <i data-lucide="calendar" class="w-5 h-5"></i>
+                <span data-i18n="nav.planner">Planificador</span>
+            </a>
+            <a href="subjects.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gradient-to-r hover:from-purple-500/10 hover:via-fuchsia-500/10 hover:to-purple-500/10 text-gray-400 hover:text-purple-300 transition-all duration-300">
+                <i data-lucide="monitor" class="w-5 h-5"></i>
+                <span data-i18n="nav.subjects">Mi Sistema Académico</span>
+            </a>
+            <a href="habits.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gradient-to-r hover:from-purple-500/10 hover:via-fuchsia-500/10 hover:to-purple-500/10 text-gray-400 hover:text-purple-300 transition-all duration-300">
+                <i data-lucide="target" class="w-5 h-5"></i>
+                <span data-i18n="nav.habits">Hábitos</span>
+            </a>
+            <a href="progress.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gradient-to-r hover:from-purple-500/10 hover:via-fuchsia-500/10 hover:to-purple-500/10 text-gray-400 hover:text-purple-300 transition-all duration-300">
+                <i data-lucide="trending-up" class="w-5 h-5"></i>
+                <span data-i18n="nav.progress">Progreso</span>
+            </a>
+        </nav>
+
+        <div class="p-4 border-t border-gray-800/50 space-y-2">
+            <a href="profile.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gradient-to-r hover:from-purple-500/10 hover:via-fuchsia-500/10 hover:to-purple-500/10 text-gray-400 hover:text-purple-300 transition-all duration-300">
+                <i data-lucide="settings" class="w-5 h-5"></i>
+                <span data-i18n="nav.settings">Ajustes</span>
+            </a>
+            <a href="#" id="logoutBtn" class="flex items-center gap-3 px-4 py-2 rounded-xl hover:bg-gradient-to-r hover:from-red-500/10 hover:via-pink-500/10 hover:to-red-500/10 text-red-400 hover:text-red-300 transition-all duration-300">
+                <i data-lucide="log-out" class="w-4 h-4"></i>
+                <span data-i18n="nav.logout">Cerrar Sesión</span>
+            </a>
+        </div>
+    </aside>
+
+    <main class="flex-1 overflow-y-auto relative">
+        <div class="p-8 h-full flex gap-6">
+            <div class="w-80 bg-dark-card rounded-3xl p-6 flex-shrink-0 animate-on-load delay-200" style="box-shadow: 0 0 0 1px rgba(168,85,247,0.2), 0 0 30px rgba(168,85,247,0.15), inset 0 0 20px rgba(168,85,247,0.03);">
+                <h1 class="text-3xl font-bold text-white mb-2" data-i18n="planner.title">Planificador</h1>
+                <p class="text-gray-400 mb-6" data-i18n="planner.subtitle">Organizá tu tiempo de estudio y eventos importantes.</p>
+                
+                <div class="flex items-center justify-between mb-4">
+                    <button id="prevMonthBtn" class="p-2 rounded-lg hover:bg-gray-800 transition-colors">
+                        <i data-lucide="chevron-left" class="w-4 h-4 text-gray-400"></i>
+                    </button>
+                    <h2 id="currentMonthYear" class="text-lg font-bold text-white">diciembre 2025</h2>
+                    <button id="nextMonthBtn" class="p-2 rounded-lg hover:bg-gray-800 transition-colors">
+                        <i data-lucide="chevron-right" class="w-4 h-4 text-gray-400"></i>
+                    </button>
+                </div>
+                
+            <div class="grid grid-cols-7 gap-1 mb-2">
+                <div class="text-center text-xs font-semibold text-gray-500 py-1" data-i18n="dashboard.weekDaysAbbrebiation.0">lu</div>
+                <div class="text-center text-xs font-semibold text-gray-500 py-1" data-i18n="dashboard.weekDaysAbbrebiation.1">ma</div>
+                <div class="text-center text-xs font-semibold text-gray-500 py-1" data-i18n="dashboard.weekDaysAbbrebiation.2">mi</div>
+                <div class="text-center text-xs font-semibold text-gray-500 py-1" data-i18n="dashboard.weekDaysAbbrebiation.3">ju</div>
+                <div class="text-center text-xs font-semibold text-gray-500 py-1" data-i18n="dashboard.weekDaysAbbrebiation.4">vi</div>
+                <div class="text-center text-xs font-semibold text-gray-500 py-1" data-i18n="dashboard.weekDaysAbbrebiation.5">sá</div>
+                <div class="text-center text-xs font-semibold text-gray-500 py-1" data-i18n="dashboard.weekDaysAbbrebiation.6">do</div>
+            </div>
+                    
+                <div id="calendarGrid" class="grid grid-cols-7 gap-1 mb-4">
+                    </div>
+                
+                <button id="addEventBtn" class="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-gradient-to-r from-purple-500/20 via-pink-500/20 to-purple-500/20 text-purple-400 text-sm hover:from-purple-500/30 hover:via-pink-500/30 hover:to-purple-500/30 transition-all border border-purple-500/30">
+                    <i data-lucide="plus" class="w-4 h-4"></i>
+                    <span data-i18n="planner.addEvent">Añadir Nuevo Evento</span>
+                </button>
+            </div>
+            
+            <div class="flex-1 bg-dark-card rounded-3xl p-6 overflow-hidden flex flex-col animate-on-load delay-300" style="box-shadow: 0 0 0 1px rgba(168,85,247,0.2), 0 0 30px rgba(168,85,247,0.15), inset 0 0 20px rgba(168,85,247,0.03);">
+                <div class="flex items-center justify-between mb-6">
+                    <button id="todayBtn" class="px-4 py-2 rounded-lg bg-gray-800 text-white text-sm hover:bg-gray-700 transition-colors" data-i18n="planner.today">Hoy</button>
+                    <div class="flex items-center gap-2">
+                        <button id="prevWeekBtn" class="p-2 rounded-lg hover:bg-gray-800 transition-colors">
+                            <i data-lucide="chevron-left" class="w-4 h-4 text-gray-400"></i>
+                        </button>
+                        <span id="weekRange" class="text-white font-medium">diciembre 2025</span>
+                        <button id="nextWeekBtn" class="p-2 rounded-lg hover:bg-gray-800 transition-colors">
+                            <i data-lucide="chevron-right" class="w-4 h-4 text-gray-400"></i>
+                        </button>
+                    </div>
+                    <span id="weekNumber" class="text-gray-400 text-sm"><span data-i18n="planner.week">Semana</span> 50</span>
+                </div>
+                
+                <div class="flex-1 overflow-y-auto">
+                    <div class="grid grid-cols-8 gap-2 mb-2 sticky top-0 bg-dark-card z-10 pb-2 border-b border-gray-800">
+                        <div class="text-xs font-semibold text-gray-500"></div>
+                        <div class="text-center">
+                            <div class="text-xs font-semibold text-gray-500 mb-1" data-i18n="dashboard.weekDaysAbbrebiation.0">LUN</div>
+                            <div id="day-0-date" class="text-sm font-bold text-white">8</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-xs font-semibold text-gray-500 mb-1" data-i18n="dashboard.weekDaysAbbrebiation.1">MAR</div>
+                            <div id="day-1-date" class="text-sm font-bold text-white">9</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-xs font-semibold text-gray-500 mb-1" data-i18n="dashboard.weekDaysAbbrebiation.2">MIÉ</div>
+                            <div id="day-2-date" class="text-sm font-bold text-white">10</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-xs font-semibold text-gray-500 mb-1" data-i18n="dashboard.weekDaysAbbrebiation.3">JUE</div>
+                            <div id="day-3-date" class="text-sm font-bold text-white">11</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-xs font-semibold text-gray-500 mb-1" data-i18n="dashboard.weekDaysAbbrebiation.4">VIE</div>
+                            <div id="day-4-date" class="text-sm font-bold text-white">12</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-xs font-semibold text-gray-500 mb-1" data-i18n="dashboard.weekDaysAbbrebiation.5">SÁB</div>
+                            <div id="day-5-date" class="text-sm font-bold text-white">13</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-xs font-semibold text-gray-500 mb-1" data-i18n="dashboard.weekDaysAbbrebiation.6">DOM</div>
+                            <div id="day-6-date" class="text-sm font-bold text-white">14</div>
+                        </div>
+                    </div>
+                    
+                    <div id="weeklySchedule" class="space-y-0">
+                        </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+        
+
+    <div id="eventModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50" style="display: none;">
+        <div class="bg-dark-card border border-gray-800 rounded-2xl p-6 w-full max-w-md mx-4 shadow-2xl shadow-purple-900/20 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-5">
+                <h2 id="modalTitle" class="text-xl font-bold text-white tracking-tight" data-i18n="planner.newEvent">Nuevo Evento</h2>
+                <button id="closeEventModalBtn" class="text-gray-500 hover:text-white transition-colors p-1 rounded-md hover:bg-white/5">
+                    <i data-lucide="x" class="w-5 h-5" style="filter: none !important; text-shadow: none !important; box-shadow: none !important;"></i>
+                </button>
+            </div>
+            
+            <form id="eventForm" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wider" data-i18n="planner.eventTitle">Título</label>
+                    <input type="text" id="eventTitle" name="title" required
+                           class="w-full bg-dark-input border border-gray-700 rounded-xl px-4 py-2.5 text-white text-sm focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all placeholder-gray-600"
+                           data-i18n-placeholder="planner.eventTitlePlaceholder"
+                           placeholder="Nombre del evento">
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wider" data-i18n="planner.date">Fecha</label>
+                        <div class="relative">
+                            <input type="date" id="eventDate" name="date" required
+                                   class="w-full bg-dark-input border border-gray-700 rounded-xl px-4 py-2.5 text-white text-sm focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all">
+                            <i data-lucide="calendar" class="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" style="filter: none !important; text-shadow: none !important; box-shadow: none !important;"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wider" data-i18n="planner.type">Tipo</label>
+                        <select id="eventType" name="type" required
+                                class="w-full bg-dark-input border border-gray-700 rounded-xl px-4 py-2.5 text-white text-sm focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all appearance-none cursor-pointer">
+                            <option value="1" data-i18n="planner.studyBlock">Bloque de Estudio</option>
+                            <option value="2" data-i18n="planner.exam">Examen</option>
+                            <option value="3" data-i18n="planner.importantTask">Tarea Importante</option>
+                            <option value="4" data-i18n="planner.personal">Personal</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wider" data-i18n="planner.startTime">Hora Inicio</label>
+                        <div class="relative">
+                            <input type="time" id="eventStartTime" name="start_time" required
+                                   class="w-full bg-dark-input border border-gray-700 rounded-xl px-4 py-2.5 text-white text-sm focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all">
+                            <i data-lucide="clock" class="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" style="filter: none !important; text-shadow: none !important; box-shadow: none !important;"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wider" data-i18n="planner.endTime">Hora Fin</label>
+                        <div class="relative">
+                            <input type="time" id="eventEndTime" name="end_time" required
+                                   class="w-full bg-dark-input border border-gray-700 rounded-xl px-4 py-2.5 text-white text-sm focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all">
+                            <i data-lucide="clock" class="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" style="filter: none !important; text-shadow: none !important; box-shadow: none !important;"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wider" data-i18n="planner.subject">Materia (opcional)</label>
+                    <select id="eventSubject" name="subject"
+                            class="w-full bg-dark-input border border-gray-700 rounded-xl px-4 py-2.5 text-white text-sm focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all appearance-none cursor-pointer">
+                        <option value="" data-i18n="subjects.notSpecified">-- Ninguna --</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wider" data-i18n="planner.notes">Notas (opcional)</label>
+                    <textarea id="eventNotes" name="notes" rows="3"
+                              class="w-full bg-dark-input border border-gray-700 rounded-xl px-4 py-2.5 text-white text-sm focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none resize-none transition-all placeholder-gray-600"
+                              data-i18n-placeholder="planner.notesPlaceholder"
+                              placeholder="Notas adicionales"></textarea>
+                </div>
+                
+                <div class="flex gap-3 pt-4 border-t border-gray-800/50 mt-2">
+                    <button type="button" id="deleteEventBtn" style="display: none;"
+                            class="px-4 py-2.5 rounded-xl bg-red-500/20 border border-red-500/30 text-red-400 text-sm font-medium hover:bg-red-500/30 transition-all">
+                        <i data-lucide="trash-2" class="w-4 h-4 inline mr-1" style="filter: none !important; text-shadow: none !important; box-shadow: none !important;"></i>
+                        <span data-i18n="planner.delete">Eliminar</span>
+                    </button>
+                    <button type="button" id="cancelEventBtn"
+                            class="flex-1 px-4 py-2.5 rounded-xl bg-transparent border border-gray-700 text-gray-300 text-sm font-medium hover:bg-gray-800 transition-all" data-i18n="common.cancel">
+                        Cancelar
+                    </button>
+                    <button type="submit"
+                            class="flex-1 px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-fuchsia-600 text-white text-sm font-bold hover:shadow-[0_0_20px_rgba(168,85,247,0.4)] transition-all transform hover:scale-[1.02]" data-i18n="planner.save">
+                        Guardar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+        
+        // Activar animaciones al cargar la página
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animar sidebar
+            const sidebar = document.querySelector('.animate-sidebar');
+            if (sidebar) {
+                setTimeout(() => {
+                    sidebar.classList.add('animated');
+                }, 50);
+            }
+            
+            // Animar elementos principales con delays escalonados
+            const animatedElements = document.querySelectorAll('.animate-on-load');
+            animatedElements.forEach((element, index) => {
+                setTimeout(() => {
+                    element.classList.add('animated');
+                }, 100 + (index * 50));
+            });
+        });
+    </script>
+</body>
+</html>
+

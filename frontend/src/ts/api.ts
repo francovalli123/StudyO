@@ -1,9 +1,9 @@
+import { API_URL } from "./config.js";
 /**
  * API CONFIGURATION
- * We are using a hardcoded URL to avoid 'import.meta' errors with your current TS config.
- * Ideally, this should come from environment variables in the future.
+ * Uses production backend by default and localhost when running locally.
  */
-const BASE_URL = "http://127.0.0.1:8000/api";
+export const BASE_URL = `${API_URL}/api`;
 
 /**
  * ==========================================
@@ -476,3 +476,6 @@ export async function updateEvent(id: number, event: Partial<Event>): Promise<Ev
 export async function deleteEvent(id: number): Promise<void> {
     await apiDelete(`/events/${id}/`);
 }
+
+
+

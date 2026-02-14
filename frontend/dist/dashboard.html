@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StudyO Main Page</title>
+    <script>
+        document.documentElement.classList.add('auth-pending');
+    </script>
+    <script>
+        (function(){
+            const orig = console.warn;
+            console.warn = function(...args){
+                try{ if (args && args[0] && typeof args[0] === 'string' && args[0].includes('cdn.tailwindcss.com should not be used in production')) return; }catch(e){}
+                orig.apply(console,args);
+            }
+        })();
+        window.tailwind = window.tailwind || {};
+        window.tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        dark: { bg: '#0a0a0c', card: '#11131a', sidebar: '#0a0a0c', input: '#1a1d26' },
+                        brand: { primary: '#a855f7', glow: '#d946ef', text: '#e2e8f0' }
+                    },
+                    fontFamily: { sans: ['Inter', 'sans-serif'] }
+                }
+            }
+        };
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        /* Scrollbar personalizada sutil */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0a0a0c; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+        
+        /* Mejora de efectos de glow para elementos con box-shadow */
+        [style*="box-shadow"] {
+            transition: box-shadow 0.3s ease;
+        }
+        
+        /* Efecto hover mejorado para elementos interactivos */
+        .group:hover [style*="box-shadow"] {
+            box-shadow: 0 0 0 1px rgba(168,85,247,0.3), 0 0 25px rgba(168,85,247,0.2), inset 0 0 20px rgba(168,85,247,0.05) !important;
+        }
+        
+        /* Asegurar que los gradientes de texto funcionen correctamente */
+        .bg-clip-text {
+            -webkit-background-clip: text;
+            background-clip: text;
+        }
+        
+        /* Animaciones de entrada suaves */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes fadeInLeft {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        /* Clases de animación inicial - elementos ocultos */
+        .animate-on-load { opacity: 0; }
+        .animate-on-load.animated { animation: fadeInUp 0.6s ease-out forwards; }
+        
+        .animate-sidebar { opacity: 0; }
+        .animate-sidebar.animated { animation: fadeInLeft 0.5s ease-out forwards; }
+        
+        .animate-fade { opacity: 0; }
+        .animate-fade.animated { animation: fadeIn 0.4s ease-out forwards; }
+        
+        /* Delays escalonados para efecto cascada */
+        .delay-100 { animation-delay: 0.1s; }
+        .delay-200 { animation-delay: 0.2s; }
+        .delay-300 { animation-delay: 0.3s; }
+        .delay-400 { animation-delay: 0.4s; }
+        .delay-500 { animation-delay: 0.5s; }
+        .delay-600 { animation-delay: 0.6s; }
+
+        /* --- SIDEBAR COLLAPSE STYLES (CORREGIDO) --- */
+        aside { transition: width 0.22s ease; overflow: hidden; }
+        body.is-desktop-sidebar-collapsed aside { width: 80px !important; min-width: 80px !important; }
+        
+        /* 1. Ocultar textos y títulos */
+        body.is-desktop-sidebar-collapsed aside .logo-text,
+        body.is-desktop-sidebar-collapsed aside nav a span,
+        body.is-desktop-sidebar-collapsed aside .border-t a span, /* Texto footer */
+        body.is-desktop-sidebar-collapsed aside .border-t .text-xs /* Título AJUSTES */
+        { display: none; }
+
+        /* 2. Centrar elementos */
+        body.is-desktop-sidebar-collapsed aside nav a,
+        body.is-desktop-sidebar-collapsed aside .border-t a /* Items footer */
+        { justify-content: center; padding-left: 0.75rem; padding-right: 0.75rem; }
+
+        /* 3. Ajustar tamaño de iconos */
+        body.is-desktop-sidebar-collapsed aside nav a i,
+        body.is-desktop-sidebar-collapsed aside nav a [data-lucide],
+        body.is-desktop-sidebar-collapsed aside .border-t a i, /* Iconos footer */
+        body.is-desktop-sidebar-collapsed aside .border-t a [data-lucide]
+        { width: 28px !important; height: 28px !important; }
+
+        /* Otros ajustes */
+        [data-sidebar-toggle] { transition: transform 0.2s ease; }
+        body.is-desktop-sidebar-collapsed [data-sidebar-toggle] { transform: rotate(180deg); }
+        body.is-desktop-sidebar-collapsed #sidebarToggleBtn i { width: 20px !important; height: 20px !important; }
+        body.is-desktop-sidebar-collapsed aside .w-1.h-1,
+        body.is-desktop-sidebar-collapsed aside .w-1.h-1.rounded-full { display: none !important; }
+    </style> <!-- responsive-last -->
+  <script type="module" crossorigin src="/assets/dashboard-CJ4X8qHG.js"></script>
+  <link rel="modulepreload" crossorigin href="/assets/modulepreload-polyfill-B5Qt9EMX.js">
+  <link rel="modulepreload" crossorigin href="/assets/auth-gate-CYQPWai6.js">
+  <link rel="modulepreload" crossorigin href="/assets/responsive-BEQ_P_Nu.js">
+  <link rel="modulepreload" crossorigin href="/assets/confirmModal-r5-RcnPR.js">
+  <link rel="modulepreload" crossorigin href="/assets/onboarding-B6DVBAO8.js">
+  <link rel="stylesheet" crossorigin href="/assets/auth-gate-Dn5R9NA5.css">
+</head>
+<body class="bg-dark-bg text-gray-300 h-screen flex overflow-hidden selection:bg-purple-500 selection:text-white">
+
+    <aside id="sidebar" class="w-64 bg-dark-sidebar flex flex-col border-r border-gray-800/50 h-full flex-shrink-0 animate-sidebar">
+        <div class="p-6 flex items-center gap-3">
+            <i data-lucide="book-open" class="text-white w-6 h-6"></i>
+            <span class="text-xl font-bold text-white tracking-wide logo-text">StudyO</span>
+            <button id="sidebarToggleBtn" data-sidebar-toggle class="ml-auto text-gray-500 w-8 h-8 flex items-center justify-center rounded hover:bg-white/5" aria-label="Toggle sidebar">
+                <i data-lucide="chevron-left" class="w-4 h-4"></i>
+            </button>
+        </div>
+
+        <nav class="flex-1 px-4 space-y-2 mt-2">
+            <a href="dashboard.html" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-gradient-to-r from-purple-600 via-fuchsia-500 to-purple-600 text-white shadow-[0_0_15px_rgba(168,85,247,0.5)] font-medium">
+                <i data-lucide="home" class="w-5 h-5"></i>
+                <span data-i18n="nav.home">Inicio</span>
+            </a>
+
+            <a href="planner.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gradient-to-r hover:from-purple-500/10 hover:via-fuchsia-500/10 hover:to-purple-500/10 text-gray-400 hover:text-purple-300 transition-all duration-300">
+                <i data-lucide="calendar" class="w-5 h-5"></i>
+                <span data-i18n="nav.planner">Planificador</span>
+            </a>
+            <a href="subjects.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gradient-to-r hover:from-purple-500/10 hover:via-fuchsia-500/10 hover:to-purple-500/10 text-gray-400 hover:text-purple-300 transition-all duration-300">
+                <i data-lucide="monitor" class="w-5 h-5"></i>
+                <span data-i18n="nav.subjects">Mi Sistema Académico</span>
+            </a>
+            <a href="habits.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gradient-to-r hover:from-purple-500/10 hover:via-fuchsia-500/10 hover:to-purple-500/10 text-gray-400 hover:text-purple-300 transition-all duration-300">
+                <i data-lucide="target" class="w-5 h-5"></i>
+                <span data-i18n="nav.habits">Hábitos</span>
+            </a>
+            <a href="progress.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gradient-to-r hover:from-purple-500/10 hover:via-fuchsia-500/10 hover:to-purple-500/10 text-gray-400 hover:text-purple-300 transition-all duration-300">
+                <i data-lucide="trending-up" class="w-5 h-5"></i>
+                <span data-i18n="nav.progress">Progreso</span>
+            </a>
+        </nav>
+
+        <div class="p-4 border-t border-gray-800/50 space-y-2">
+            <a href="profile.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gradient-to-r hover:from-purple-500/10 hover:via-fuchsia-500/10 hover:to-purple-500/10 text-gray-400 hover:text-purple-300 transition-all duration-300">
+                <i data-lucide="settings" class="w-5 h-5"></i>
+                <span data-i18n="nav.settings">Ajustes</span>
+            </a>
+
+            <a href="#" id="logoutBtn" class="flex items-center gap-3 px-4 py-2 rounded-xl hover:bg-gradient-to-r hover:from-red-500/10 hover:via-pink-500/10 hover:to-red-500/10 text-red-400 hover:text-red-300 transition-all duration-300">
+                <i data-lucide="log-out" class="w-4 h-4"></i>
+                <span data-i18n="nav.logout">Cerrar Sesión</span>
+            </a>
+        </div>
+    </aside>
+
+    <main class="flex-1 overflow-y-auto relative">
+        <div class="p-8 max-w-7xl mx-auto space-y-8">
+            
+            <header class="flex justify-between items-start animate-on-load delay-200">
+                <div>
+                    <h1 class="text-4xl font-bold text-white mb-2">
+                        <span data-i18n="dashboard.greeting">Hola</span> <span class="text-purple-400" id="firstName">Usuario</span>,
+                    </h1>
+                    <p class="text-gray-400 text-lg" data-i18n="dashboard.greetingSubtitle">es hora de diseñar tu <span class="text-purple-400 font-medium">obra maestra de estudio</span>.</p>
+                </div>
+                <div class="flex gap-3">
+                        <button id="concentrationToggleBtn" class="w-10 h-10 rounded-full bg-dark-card border border-gray-700 flex items-center justify-center text-gray-400 hover:text-white" title="Modo Concentración">
+                            <i data-lucide="maximize" class="w-4 h-4"></i>
+                        </button>
+                        <button id="profileAvatarBtn" class="w-10 h-10 rounded-full overflow-hidden border border-gray-700 bg-dark-card flex items-center justify-center" title="Ver perfil">
+                            <img id="dashAvatarImg" src="data:image/svg+xml,%3csvg%20xmlns='http://www.w3.org/2000/svg'%20width='96'%20height='96'%20viewBox='0%200%2096%2096'%20role='img'%20aria-label='avatar%20placeholder'%3e%3crect%20width='100%25'%20height='100%25'%20fill='%2394a3b8'/%3e%3cg%20transform='translate(16,12)'%20fill='%23cbd5e1'%3e%3ccircle%20cx='32'%20cy='24'%20r='16'%20/%3e%3cpath%20d='M8%2072c0-13.255%2010.745-24%2024-24s24%2010.745%2024%2024v4H8v-4z'/%3e%3c/g%3e%3c/svg%3e" alt="avatar" class="w-10 h-10 object-cover">
+                        </button>
+                    </div>
+            </header>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                
+            <div class="lg:col-span-2 bg-dark-card rounded-3xl p-6 relative animate-on-load delay-300" style="box-shadow: 0 0 0 1px rgba(168,85,247,0.2), 0 0 30px rgba(168,85,247,0.15), inset 0 0 20px rgba(168,85,247,0.03);">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-bold text-white" data-i18n="dashboard.weeklyObjectives">Plan de Dominación Semanal</h2>
+                    <i data-lucide="check-square" class="w-5 h-5 text-purple-400"></i>
+                </div>
+                <p class="text-gray-500 text-sm mb-4" data-i18n="dashboard.weeklyObjectivesDesc">Definí tus objetivos cruciales por área. Claridad es poder.</p>
+
+                <!-- FILTROS -->
+                <div class="flex gap-3 mb-6" id="weeklyObjectivesFilters">
+                    <button class="filter-btn px-4 py-2 rounded-lg bg-gray-700 text-white font-semibold transition-all" data-filter="all" data-i18n="dashboard.filterAll">Todo</button>
+                    <button class="filter-btn px-4 py-2 rounded-lg bg-gray-700 text-white font-semibold transition-all" data-filter="completed" data-i18n="dashboard.filterComplete">Completado</button>
+                    <button class="filter-btn px-4 py-2 rounded-lg bg-gray-700 text-white font-semibold transition-all" data-filter="incomplete" data-i18n="dashboard.filterIncomplete">No completado</button>
+                </div>
+
+                <div id="weeklyObjectivesContainer" class="space-y-3 mb-6"></div>
+
+                <button id="addObjectiveBtn" class="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-gradient-to-r from-purple-500/20 via-pink-500/20 to-purple-500/20 text-purple-400 text-sm hover:from-purple-500/30 hover:via-pink-500/30 hover:to-purple-500/30 transition-all border border-purple-500/30" style="box-shadow: 0 0 0 1px rgba(168,85,247,0.3);">
+                    <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                    <span data-i18n="dashboard.addObjective">Añadir Objetivo Estratégico</span>
+                </button>
+            </div>
+
+
+                <div id="pomodoroCard" class="bg-dark-card rounded-3xl p-6 flex flex-col items-center justify-between relative overflow-hidden animate-on-load delay-400 h-fit" style="box-shadow: 0 0 0 1px rgba(168,85,247,0.2), 0 0 30px rgba(168,85,247,0.15), inset 0 0 30px rgba(168,85,247,0.03);">
+                    <div class="w-full flex justify-between items-start z-10">
+                        <h2 class="text-lg font-bold text-white w-2/3" data-i18n="dashboard.pomodoroZone">Zona de Enfoque Pomodoro</h2>
+                        <button id="pomodoroSettingsBtn" class="p-2 rounded-lg bg-white/5 text-gray-400"><i data-lucide="sliders-horizontal" class="w-4 h-4"></i></button>
+                    </div>
+
+                    <div class="relative w-48 h-48 flex items-center justify-center my-6">
+                        <svg class="absolute inset-0 w-full h-full transform -rotate-90">
+                            <circle cx="96" cy="96" r="88" stroke="#1e212b" stroke-width="8" fill="transparent" />
+                            <circle id="pomodoroProgressCircle" cx="96" cy="96" r="88" stroke="url(#paint0_linear)" stroke-width="8" stroke-linecap="round" fill="transparent" stroke-dasharray="552" stroke-dashoffset="552" />
+                            <defs>
+                                <linearGradient id="paint0_linear" x1="0" y1="0" x2="1" y2="1">
+                                    <stop offset="0%" stop-color="#a855f7"/>
+                                    <stop offset="100%" stop-color="#ec4899"/>
+                                </linearGradient>
+                            </defs>
+                        </svg>
+                        
+                        <div class="text-center z-10">
+                            <div class="mb-1"><i data-lucide="briefcase" class="w-6 h-6 text-purple-400 mx-auto"></i></div>
+                            <div id="pomodoroTimerDisplay" class="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400 tracking-tighter">25:00</div>
+                            <div id="pomodoroStageLabel" class="text-sm text-purple-400 font-medium mt-1" data-i18n="dashboard.focus">Enfoque Total</div>
+                        </div>
+                    </div>
+
+                    <div class="text-center mb-6">
+                        <div id="pomodorosCount" class="text-gray-400 text-sm">Pomodoros: 0</div>
+                        <div id="pomodoroSetLabel" class="text-gray-600 text-xs">Set: 0 / 4</div>
+                    </div>
+
+                    <div class="flex gap-4 mb-4">
+                        <button id="pomodoroPlayBtn" class="w-12 h-12 rounded-2xl bg-white/5 hover:bg-white/10 flex items-center justify-center text-white border border-gray-700"><i data-lucide="play" class="w-5 h-5 ml-1"></i></button>
+                        <button id="pomodoroSkipBtn" class="w-12 h-12 rounded-2xl bg-white/5 hover:bg-white/10 flex items-center justify-center text-white border border-gray-700"><i data-lucide="skip-forward" class="w-5 h-5"></i></button>
+                        <button id="pomodoroResetBtn" class="w-12 h-12 rounded-2xl bg-white/5 hover:bg-white/10 flex items-center justify-center text-white border border-gray-700"><i data-lucide="rotate-ccw" class="w-5 h-5"></i></button>
+                    </div>
+
+                    <div class="w-full flex justify-between items-center mt-auto pt-4 border-t border-gray-800">
+                        <span id="pomodoroTagline" class="text-xs text-gray-500">Define tu ritmo. Domina tu tiempo.</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="lg:col-span-2 bg-dark-card rounded-3xl p-6 relative animate-on-load delay-500" style="box-shadow: 0 0 0 1px rgba(168,85,247,0.2), 0 0 30px rgba(168,85,247,0.15), inset 0 0 20px rgba(168,85,247,0.02);">
+                    <div class="flex justify-between items-start mb-6">
+                        <div>
+                            <h2 class="text-xl font-bold text-white" data-i18n="dashboard.weeklyRhythm">Ritmo de Estudio Semanal</h2>
+                            <p class="text-gray-500 text-sm mt-1" data-i18n="dashboard.weeklyRhythmDesc">Horas de estudio profundo registradas.</p>
+                        </div>
+                        <i data-lucide="bar-chart-2" class="w-5 h-5 text-purple-400"></i>
+                    </div>
+
+                    <div class="h-48 w-full relative">
+                        <div class="absolute left-0 top-0 bottom-6 w-px bg-gray-800"></div>
+                        <div class="absolute left-0 bottom-0 right-0 h-px bg-gray-800"></div>
+                        
+                        <svg id="weekly-rhythm-chart" class="w-full h-full overflow-visible">
+                            <path d="M0,100 C50,90 100,50 150,80 C200,110 250,60 300,40 C350,20 400,90 450,130" 
+                                  fill="none" stroke="#c084fc" stroke-width="3" />
+                            <circle cx="0" cy="100" r="4" fill="#1e212b" stroke="#c084fc" stroke-width="2"/>
+                            <circle cx="150" cy="80" r="4" fill="#1e212b" stroke="#c084fc" stroke-width="2"/>
+                            <circle cx="300" cy="40" r="4" fill="#1e212b" stroke="#c084fc" stroke-width="2"/>
+                            <circle cx="450" cy="130" r="4" fill="#1e212b" stroke="#c084fc" stroke-width="2"/>
+                        </svg>
+
+                        <div class="absolute bottom-0 left-0 right-0 flex justify-between text-xs text-gray-600 pt-2 px-2">
+                            <span>Lu</span><span>Ma</span><span>Mi</span><span>Ju</span><span>Vi</span><span>Sá</span><span>Do</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-dark-card rounded-3xl p-6 flex flex-col relative animate-on-load delay-600" style="box-shadow: 0 0 0 1px rgba(168,85,247,0.2), 0 0 30px rgba(168,85,247,0.15), inset 0 0 20px rgba(168,85,247,0.02);">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <h2 class="text-lg font-bold text-white" data-i18n="dashboard.focusDistribution">Distribución de Enfoque</h2>
+                            <p class="text-gray-500 text-xs mt-1" data-i18n="dashboard.focusDistributionDesc">Tiempo dedicado por área de estudio.</p>
+                        </div>
+                        <button class="p-2 rounded-lg bg-white/5 text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400" style="color: #a855f7;"><i data-lucide="pie-chart" class="w-4 h-4"></i></button>
+                    </div>
+
+                    <div class="flex-1 flex flex-col items-center justify-center relative">
+                        <div id="focus-distribution-chart" class="w-40 h-40 rounded-full relative flex items-center justify-center"
+                             style="background: conic-gradient(#a855f7 0% 35%, #60a5fa 35% 60%, #34d399 60% 85%, #fbbf24 85% 100%);">
+                            <div class="w-28 h-28 bg-dark-card rounded-full flex items-center justify-center z-10">
+                                <span id="focus-total-hours" class="text-2xl font-bold text-white">0h</span>
+                            </div>
+                        </div>
+                        
+                        <div id="focus-legend" class="mt-6 flex flex-wrap justify-center gap-x-4 gap-y-2 text-[10px] text-gray-400">
+                            <div class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-purple-500"></span> Cargando...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-dark-card rounded-3xl p-6 relative animate-on-load delay-100" style="box-shadow: 0 0 0 1px rgba(168,85,247,0.25), 0 0 35px rgba(168,85,247,0.2), inset 0 0 20px rgba(168,85,247,0.03);">
+                    <div class="flex justify-between items-start mb-4">
+                        <h2 class="text-xl font-bold text-white" data-i18n="dashboard.nextEvent">Próximo Evento</h2>
+                        <i data-lucide="calendar" class="text-purple-400 w-6 h-6"></i>
+                    </div>
+                    
+                    <div id="nextEventContainer">
+                        <div class="flex items-center justify-center py-8">
+                            <div class="text-center">
+                                <i data-lucide="calendar-x" class="w-12 h-12 text-gray-600 mx-auto mb-3"></i>
+                                <p class="text-gray-500 text-sm">No hay eventos próximos</p>
+                                <a href="planner.html" class="mt-4 inline-block px-4 py-2 rounded-lg bg-gradient-to-r from-purple-500/20 via-pink-500/20 to-purple-500/20 text-purple-400 text-sm hover:from-purple-500/30 hover:via-pink-500/30 hover:to-purple-500/30 transition-all border border-purple-500/30">
+                                    Crear Evento
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-dark-card rounded-3xl p-6 relative animate-on-load delay-100" style="box-shadow: 0 0 0 1px rgba(168,85,247,0.25), 0 0 35px rgba(168,85,247,0.2), inset 0 0 20px rgba(168,85,247,0.03);">
+                    <div class="flex justify-between items-start mb-4">
+                        <h2 class="text-xl font-bold text-white" data-i18n="dashboard.weeklyChallenge">Desafío Semanal Activo</h2>
+                        <i data-lucide="award" class="text-purple-400 w-6 h-6"></i>
+                    </div>
+                    
+                    <!-- Dynamic challenge content container -->
+                    <div data-challenge-container class="animate-fade">
+                        <div class="flex items-center justify-center py-8">
+                            <div class="text-center">
+                                <div class="inline-block px-3 py-2 rounded-lg bg-purple-500/10 text-purple-400 text-xs font-medium mb-2">Cargando...</div>
+                                <p class="text-gray-400 text-sm">Obteniendo desafío semanal</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                </div>
+
+                <div class="bg-dark-card rounded-3xl p-6 relative animate-on-load delay-200" style="box-shadow: 0 0 0 1px rgba(168,85,247,0.25), 0 0 35px rgba(168,85,247,0.2), inset 0 0 20px rgba(168,85,247,0.03);">
+                     <div class="flex justify-between items-start mb-4">
+                        <h2 class="text-xl font-bold text-white w-2/3" data-i18n="dashboard.peakProductivity">Tu Momento Peak de Productividad</h2>
+                         <div class="p-2 rounded-full bg-gradient-to-br from-purple-500/20 via-pink-500/20 to-purple-500/20 text-purple-400" style="box-shadow: 0 0 0 1px rgba(168,85,247,0.3);"><i data-lucide="trending-up" class="w-5 h-5"></i></div>
+                    </div>
+                    
+                    <div id="peak-productivity-time" class="text-3xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent mb-2">Cargando...</div>
+                    <p id="peak-productivity-desc" class="text-gray-500 text-sm leading-relaxed">
+                        Analizando tus sesiones de Pomodoro para encontrar tu momento peak...
+                    </p>
+                </div>
+            </div>
+
+            
+                <div class="lg:col-span-2 bg-dark-card rounded-3xl p-6 relative animate-on-load delay-400" style="box-shadow: 0 0 0 1px rgba(168,85,247,0.2), 0 0 30px rgba(168,85,247,0.15), inset 0 0 20px rgba(168,85,247,0.02);">
+                    <div class="flex justify-between items-start mb-6">
+                        <div>
+                            <h2 class="text-xl font-bold text-white" data-i18n="dashboard.keyHabits">Impulso de Hábitos Clave</h2>
+                            <p class="text-gray-500 text-sm mt-1" data-i18n="dashboard.keyHabitsDesc">Pequeñas victorias diarias, grandes resultados.</p>
+                        </div>
+                        <div class="p-2 rounded-full bg-gradient-to-br from-purple-500/20 via-pink-500/20 to-purple-500/20 text-purple-400" style="box-shadow: 0 0 0 1px rgba(168,85,247,0.3);"><i data-lucide="activity" class="w-5 h-5"></i></div>
+                    </div>
+
+                    <div class="space-y-4" id="key-habits-container">
+                        </div>
+                    
+                    <div class="mt-6">
+                        <div class="flex justify-between text-xs text-gray-500 mb-2">
+                            <span data-i18n="dashboard.dailyProgress">Progreso Diario General</span>
+                            <span id="daily-progress-text" class="text-white font-bold">0%</span>
+                        </div>
+                        <div class="w-full bg-gray-800 h-1.5 rounded-full">
+                            <div id="daily-progress-bar" class="bg-gradient-to-r from-purple-500 via-pink-500 to-purple-500 h-1.5 rounded-full w-0 shadow-[0_0_8px_rgba(168,85,247,0.4)]"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+        </div>
+    </main>
+
+    <div id="objectiveModal"
+        class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center transition-all duration-300"
+        style="display:none; z-index: 1000;">
+        <div
+            class="bg-dark-card border border-gray-800 rounded-2xl p-6 w-full max-w-md mx-4 shadow-2xl shadow-purple-900/20 transform transition-all scale-100">
+    
+            <div class="flex justify-between items-center mb-5">
+                <h2 class="text-xl font-bold text-white tracking-tight" data-i18n="dashboard.newObjective">Nuevo Objetivo
+                </h2>
+                <button id="closeObjectiveModalBtn"
+                    class="text-gray-500 hover:text-black transition-colors p-1 rounded-md hover:bg-white/5">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+    
+            <form id="objectiveForm" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wider"
+                        data-i18n="dashboard.objectiveTitle">Título de la Misión</label>
+                    <input type="text" id="objectiveTitle" name="title" required
+                        class="w-full bg-dark-input border border-gray-700 rounded-xl px-4 py-2.5 text-black text-sm focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all placeholder-gray-600"
+                        data-i18n-placeholder="dashboard.objectiveTitlePlaceholder"
+                        placeholder="Ej: Finalizar Módulo de Redes">
+                </div>
+    
+                <div class="grid grid-cols-3 gap-3">
+                    <div class="col-span-2">
+                        <label class="block text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wider"
+                            data-i18n="dashboard.objectiveArea">Área / Etiqueta</label>
+                        <input type="text" id="objectiveArea" name="area"
+                            class="w-full bg-dark-input border border-gray-700 rounded-xl px-4 py-2.5 text-black text-sm focus:border-purple-500 outline-none transition-all placeholder-gray-600"
+                            data-i18n-placeholder="dashboard.objectiveAreaPlaceholder" placeholder="Ej: Ciberseguridad">
+                    </div>
+                    <div class="col-span-1">
+                        <label class="block text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wider"
+                            data-i18n="dashboard.objectiveIcon">Icono</label>
+                        <select id="objectiveIcon" name="icon"
+                            class="w-full bg-dark-input border border-gray-700 rounded-xl px-2 py-2.5 text-black text-sm focus:border-purple-500 outline-none transition-all cursor-pointer appearance-none text-center">
+                            <option value="⚡">⚡</option>
+                            <option value="🧠">🧠</option>
+                            <option value="🛡️">🛡️</option>
+                            <option value="💻">💻</option>
+                            <option value="🤖">🤖</option>
+                            <option value="📚">📚</option>
+                            <option value="🎯">🎯</option>
+                            <option value="🔥">🔥</option>
+                        </select>
+                    </div>
+                </div>
+    
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wider"
+                        data-i18n="dashboard.objectiveDetails">Detalles Tácticos</label>
+                    <textarea id="objectiveDetail" name="detail" rows="3"
+                        class="w-full bg-dark-input border border-gray-700 rounded-xl px-4 py-2.5 text-black text-sm focus:border-purple-500 outline-none resize-none transition-all placeholder-gray-600"
+                        data-i18n-placeholder="dashboard.objectiveDetailsPlaceholder"
+                        placeholder="¿Qué pasos específicos vas a tomar?"></textarea>
+                </div>
+    
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wider"
+                            data-i18n="dashboard.objectivePriority">Prioridad</label>
+                        <select id="objectivePriority" name="priority"
+                            class="w-full bg-dark-input border border-gray-700 rounded-xl px-4 py-2.5 text-black text-sm focus:border-purple-500 outline-none transition-all appearance-none">
+                            <option value="1" data-i18n="dashboard.highPriority">Prioridad Alta 🔥</option>
+                            <option value="2" data-i18n="dashboard.keyExploration">Exploración Clave ✨</option>
+                            <option value="3" data-i18n="dashboard.complementary">Complementario 🍃</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wider"
+                            data-i18n="dashboard.objectivePomodoroGoal">Meta Pomodoro</label>
+                        <input type="text" id="objectiveNotes" name="notes"
+                            class="w-full bg-dark-input border border-gray-700 rounded-xl px-4 py-2.5 text-black text-sm focus:border-purple-500 outline-none transition-all placeholder-gray-600"
+                            data-i18n-placeholder="dashboard.objectivePomodoroGoalPlaceholder" placeholder="Ej: 3 bloques">
+                    </div>
+                </div>
+    
+                <div class="flex gap-3 pt-4 border-t border-gray-800/50 mt-2">
+                    <button type="button" id="cancelObjectiveBtn"
+                        class="flex-1 px-4 py-2.5 rounded-xl bg-transparent border border-gray-700 text-gray-300 text-sm font-medium hover:bg-gray-800 transition-all"
+                        data-i18n="common.cancel">
+                        Cancelar
+                    </button>
+                    <button type="submit" id="submitObjectiveBtn"
+                        class="flex-1 px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-fuchsia-600 text-black text-sm font-bold hover:shadow-[0_0_20px_rgba(168,85,247,0.4)] transition-all transform hover:scale-[1.02]"
+                        data-i18n="dashboard.createObjective">
+                        Crear Objetivo
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="pomodoroSettingsModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center transition-all duration-300" style="display:none; z-index: 1000;">
+        <div class="bg-dark-card border border-gray-800 rounded-2xl p-6 w-full max-w-lg mx-4 shadow-2xl shadow-purple-900/20 transform transition-all scale-100">
+            <div class="flex justify-between items-center mb-5">
+                <h2 class="text-xl font-bold text-white tracking-tight" data-i18n="dashboard.pomodoroSettings">Ajustes Pomodoro</h2>
+                <button id="pomodoroSettingsCloseBtn" class="text-gray-500 hover:text-white transition-colors p-1 rounded-md hover:bg-white/5">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            
+            <form id="pomodoroSettingsForm" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wider" data-i18n="dashboard.pomodoroFocusLength">Duración Enfoque (min)</label>
+                    <input type="number" name="workMinutes" id="workMinutes" min="1" 
+                        class="w-full bg-dark-input border border-gray-700 rounded-xl px-4 py-2.5 text-sm focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all placeholder-gray-600"
+                        style="color: #000000 !important; background-color: #ffffff !important;"
+                        placeholder="Ej: 25">
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wider" data-i18n="dashboard.pomodoroShortBreak">Descanso Corto (min)</label>
+                        <input type="number" name="shortBreakMinutes" id="shortBreakMinutes" min="1" 
+                            class="w-full bg-dark-input border border-gray-700 rounded-xl px-4 py-2.5 text-sm focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all placeholder-gray-600"
+                            style="color: #000000 !important; background-color: #ffffff !important;"
+                            placeholder="Ej: 5">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wider" data-i18n="dashboard.pomodoroLongBreak">Descanso Largo (min)</label>
+                        <input type="number" name="longBreakMinutes" id="longBreakMinutes" min="1" 
+                            class="w-full bg-dark-input border border-gray-700 rounded-xl px-4 py-2.5 text-sm focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all placeholder-gray-600"
+                            style="color: #000000 !important; background-color: #ffffff !important;"
+                            placeholder="Ej: 15">
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wider" data-i18n="dashboard.cyclesBeforeLongBreak">Ciclos Antes de Descanso Largo</label>
+                    <input type="number" name="cyclesBeforeLongBreak" id="cyclesBeforeLongBreak" min="1" 
+                        class="w-full bg-dark-input border border-gray-700 rounded-xl px-4 py-2.5 text-sm focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all placeholder-gray-600"
+                        style="color: #000000 !important; background-color: #ffffff !important;"
+                        placeholder="Ej: 4">
+                </div>
+                
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wider" data-i18n="dashboard.pomodoroOptionalDefaultSubject">Materia (opcional)</label>
+                    <select id="pomodoroDefaultSubjectSelect" 
+                        class="w-full bg-dark-input border border-gray-700 rounded-xl px-4 py-2.5 text-sm focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all appearance-none cursor-pointer"
+                        style="color: #000000 !important; background-color: #ffffff !important;">
+                        <option value="" style="color: #000000; background-color: #ffffff;" data-i18n="dashboard.noPomodoroSubject">-- Ninguna --</option>
+                    </select>
+                </div>
+
+                <div class="flex gap-3 pt-4 border-t border-gray-800/50 mt-2">
+                    <button type="button" id="pomodoroSettingsCancel" class="flex-1 px-4 py-2.5 rounded-xl bg-transparent border border-gray-700 text-gray-300 text-sm font-medium hover:bg-gray-800 transition-all" data-i18n="dashboard.pomodoroSettingsCancel"> Cancelar </button>
+                    <button type="submit" id="pomodoroSettingsSave" class="flex-1 px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-fuchsia-600 text-white text-sm font-bold hover:shadow-[0_0_20px_rgba(168,85,247,0.4)] transition-all transform hover:scale-[1.02]" data-i18n="dashboard.pomodoroSettingsSave">
+                        Guardar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="dashboard-stats" style="display: none;">
+        <div id="habits-stats">
+            <span id="total-habits">0</span>
+            <span id="max-streak">0</span>
+            <span id="avg-streak">0</span>
+        </div>
+        <div id="subjects-stats">
+            <span id="total-subjects">0</span>
+            <span id="avg-progress">0</span>
+        </div>
+        <div id="pomodoro-stats">
+            <span id="sessions-today">0</span>
+            <span id="minutes-today">0</span>
+        </div>
+    </div>
+
+    <script>
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+        // Concentration mode styles + toasts
+        (function(){
+            const style = document.createElement('style');
+            style.textContent = `
+            body.concentration-mode { background: #0b0b0d !important; overflow: hidden; }
+            body.concentration-mode aside, body.concentration-mode header, body.concentration-mode nav, body.concentration-mode .top-nav { display: none !important; }
+            body.concentration-mode main { position: fixed !important; top: 0 !important; left: 0 !important; width: 100vw !important; height: 100vh !important; margin: 0 !important; z-index: 9998 !important; padding:0 !important; }
+            body.concentration-mode main > div { width: 100% !important; max-width: 100% !important; margin: 0 !important; padding: 0 !important; position: relative !important; height: 100vh !important; }
+            body.concentration-mode main > div > header { display: none !important; }
+            body.concentration-mode main > div > div.grid > div:not(#pomodoroCard) { display: none !important; }
+            body.concentration-mode main > div > div.grid { 
+                display: grid !important; 
+                grid-template-columns: 1fr !important; 
+                justify-items: center !important; 
+                align-items: center !important; 
+                height: 100vh !important; 
+                margin: 0 !important; 
+                padding: 0 !important; 
+            }
+            body.concentration-mode #pomodoroCard { 
+                display: flex !important;
+                width: 560px !important; 
+                max-width:96vw; 
+                height: auto !important; 
+                border-radius:18px !important; 
+                box-shadow: 0 20px 60px rgba(3,6,12,0.8), inset 0 1px 0 rgba(255,255,255,0.02) !important; 
+                background: linear-gradient(180deg, rgba(11,12,14,0.95), rgba(8,9,11,0.92)) !important; 
+                padding:36px !important; 
+                margin: 0 !important; 
+                position: relative !important; 
+                left: auto !important; 
+                top: auto !important; 
+                transform: none !important; 
+                z-index: 9999 !important;
+            }
+            body.concentration-mode #pomodoroSettingsModal { display: none !important; }
+            body.concentration-mode #pomodoroCard .text-5xl { font-size:72px !important; line-height:1 !important; }
+            body.concentration-mode #pomodoroCard .text-sm { color: #c7ccd6 !important; }
+            body.concentration-mode #pomodoroCard .text-purple-400 { color: #b76cf0 !important; }
+            body.concentration-mode #pomodoroCard #pomodoroSettingsBtn { display: none !important; }
+            body.concentration-mode #concentrationExitBtn { display:flex !important; }
+            #concentrationExitBtn { display:none; position:fixed; right:18px; top:18px; z-index:9999; background:transparent; color:white; border:none; padding:6px 8px; border-radius:10px; cursor:pointer; align-items:center; gap:8px; font-weight:600; }
+
+            /* Toast styles with animations */
+            .focus-toast { 
+                position:fixed; 
+                top:18px; 
+                right:18px; 
+                z-index:10000; 
+                min-width:320px; 
+                max-width:clamp(260px,36vw,420px); 
+                border-radius:10px; 
+                padding:14px 16px; 
+                display:flex; 
+                gap:12px; 
+                align-items:flex-start; 
+                box-shadow:0 6px 30px rgba(0,0,0,0.6);
+                opacity: 0;
+                transform: translateX(400px) scale(0.9);
+                transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+            .focus-toast.show {
+                opacity: 1;
+                transform: translateX(0) scale(1);
+            }
+            .focus-toast.hide {
+                opacity: 0;
+                transform: translateX(400px) scale(0.9);
+                transition: opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1), transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+            .focus-toast .close-x { margin-left:auto; cursor:pointer; opacity:0.9; transition: opacity 0.2s; }
+            .focus-toast .close-x:hover { opacity:1; }
+            .focus-toast.green { background: #052e17; border:1px solid rgba(34,197,94,0.22); color:#c9f7d0; }
+            .focus-toast.green .title { font-weight:700; color:#a7f3bf; }
+            .focus-toast.blue { background: #082034; border:1px solid rgba(59,130,246,0.13); color:#cfe9ff; }
+            .focus-toast.blue .title { font-weight:700; color:#93c5fd; }
+            `;
+            document.head.appendChild(style);
+        })();
+
+        // Exit button and toasts for concentration mode
+        (function(){
+            // Exit button
+            const btn = document.createElement('button');
+            btn.id = 'concentrationExitBtn';
+            btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>';
+            btn.title = 'Salir Modo Concentración';
+            btn.addEventListener('click', () => {
+                document.body.classList.remove('concentration-mode');
+                try { if (document.fullscreenElement) document.exitFullscreen(); } catch(e){}
+                // Hide enter toast first
+                hideEnterToast();
+                // Close pomodoro settings modal if it's open
+                const settingsModal = document.getElementById('pomodoroSettingsModal');
+                if (settingsModal) {
+                    settingsModal.style.display = 'none';
+                }
+                // Show exit toast after a short delay
+                setTimeout(() => { window.showExitToast?.(); }, 120);
+            });
+            document.body.appendChild(btn);
+
+            // Helper function to show toast with animation
+            function showToast(toast) {
+                toast.style.display = 'flex';
+                // Force reflow to ensure display change is applied
+                toast.offsetHeight;
+                requestAnimationFrame(() => {
+                    toast.classList.add('show');
+                    toast.classList.remove('hide');
+                });
+            }
+
+            // Helper function to hide toast with animation
+            function hideToast(toast) {
+                toast.classList.add('hide');
+                toast.classList.remove('show');
+                setTimeout(() => {
+                    toast.style.display = 'none';
+                }, 250); // Match animation duration
+            }
+
+            // Enter toast (green)
+            const enter = document.createElement('div');
+            enter.id = 'concentrationEnterToast';
+            enter.className = 'focus-toast green';
+            enter.style.display = 'none';
+            enter.innerHTML = '<div style="width:28px;height:28px;border-radius:6px;background:linear-gradient(90deg,#A770EF,#CF8BF3);display:flex;align-items:center;justify-content:center;color:#051025;font-weight:700">⚡</div><div><div class="title">Modo Enfoque Absoluto Activado.</div><div style="font-size:13px;margin-top:4px">Tu espacio de concentración. Sin distracciones.</div></div><div class="close-x" title="Cerrar">✕</div>';
+            document.body.appendChild(enter);
+            enter.querySelector('.close-x')?.addEventListener('click', ()=>{ hideToast(enter); });
+
+            // Exit toast (blue) appended but hidden; will be shown on exit
+            const exit = document.createElement('div');
+            exit.id = 'concentrationExitToast';
+            exit.className = 'focus-toast blue';
+            exit.style.display = 'none';
+            exit.innerHTML = '<div style="width:28px;height:28px;border-radius:6px;background:#0b2b4a;display:flex;align-items:center;justify-content:center;color:#93c5fd;font-weight:700">i</div><div><div class="title">Modo Enfoque Desactivado.</div><div style="font-size:13px;margin-top:4px">Bienvenido de nuevo a tu centro de mando.</div></div><div class="close-x" title="Cerrar">✕</div>';
+            document.body.appendChild(exit);
+            exit.querySelector('.close-x')?.addEventListener('click', ()=>{ hideToast(exit); });
+
+            // Helper functions exposed on window for dashboard.ts to call
+            window.showEnterToast = function(){ showToast(enter); };
+            window.hideEnterToast = function(){ hideToast(enter); };
+            window.showExitToast = function(){ 
+                showToast(exit); 
+                setTimeout(()=>{ 
+                    try{ hideToast(exit); }catch(e){} 
+                }, 5000); 
+            };
+        })();
+        
+        // Activar animaciones al cargar la página
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animar sidebar
+            const sidebar = document.querySelector('.animate-sidebar');
+            if (sidebar) {
+                setTimeout(() => {
+                    sidebar.classList.add('animated');
+                }, 50);
+            }
+            
+            // Animar elementos principales con delays escalonados
+            const animatedElements = document.querySelectorAll('.animate-on-load');
+            animatedElements.forEach((element, index) => {
+                setTimeout(() => {
+                    element.classList.add('animated');
+                }, 100 + (index * 50));
+            });
+        });
+    </script>
+    
+    
+    <div id="onboardingOverlay" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-[1200] flex items-center justify-center p-4">
+        <div class="bg-[#161a22] border border-purple-500/40 rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto p-5 shadow-2xl">
+            <div class="flex items-start justify-between gap-3">
+                <div>
+                    <h3 id="onboardingTitle" class="text-white text-lg font-bold"></h3>
+                    <p id="onboardingBody" class="text-gray-300 text-sm mt-2"></p>
+                </div>
+                <button id="onboardingCloseBtn" class="text-gray-400 hover:text-white">✕</button>
+            </div>
+            <div class="mt-5 flex items-center justify-between">
+                <button id="onboardingSkipBtn" type="button" class="text-xs text-gray-400 hover:text-gray-200 underline-offset-2 hover:underline">Saltar por ahora</button>
+                <a id="onboardingPrimaryBtn" href="#" class="px-4 py-2 rounded-lg bg-gradient-to-r from-purple-600 to-fuchsia-500 text-white text-sm font-medium shadow-[0_8px_24px_rgba(168,85,247,0.35)]"></a>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
+

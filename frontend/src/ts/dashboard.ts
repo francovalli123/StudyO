@@ -1,5 +1,6 @@
 // Import API functions for making HTTP requests and token management
-import { apiGet, apiPost, apiDelete, apiPut, apiPatch, getToken, getEvents, Event, getCurrentUser } from "./api.js";
+import { apiGet, apiPost, apiDelete, apiPut, apiPatch, getToken, getEvents, getCurrentUser, BASE_URL } from "./api.js";
+import type { Event } from "./api.js";
 import { initConfirmModal, showConfirmModal, showAlertModal } from "./confirmModal.js";
 import { t, getCurrentLanguage, setCurrentLanguage, applyTranslations } from "./i18n.js";
 import { getOnboardingContext, persistOnboardingStep, showOnboardingOverlay, hideOnboardingOverlay, completeOnboarding, skipOnboarding, hydrateOnboardingContext, syncOnboardingAcrossTabs } from "./onboarding.js";
@@ -1606,7 +1607,7 @@ async function toggleHabitCompletion(habitId: number, complete: boolean) {
 
         // Call API to persist change
         const response = await fetch(
-            `http://127.0.0.1:8000/api/habits/${habitId}/complete/`,
+            `${BASE_URL}/habits/${habitId}/complete/`,
             {
                 method: complete ? "POST" : "DELETE",
                 headers: {
@@ -2853,3 +2854,4 @@ if (document.readyState === 'loading') {
     });
 
 })();
+

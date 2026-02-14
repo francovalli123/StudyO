@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crear Cuenta | Studyo</title>
+    <script>
+        document.documentElement.classList.add('auth-pending');
+    </script>
+  <script type="module" crossorigin src="/assets/register-Cvo7a6jl.js"></script>
+  <link rel="modulepreload" crossorigin href="/assets/modulepreload-polyfill-B5Qt9EMX.js">
+  <link rel="modulepreload" crossorigin href="/assets/auth-gate-CYQPWai6.js">
+  <link rel="modulepreload" crossorigin href="/assets/responsive-ovXux56E.js">
+  <link rel="stylesheet" crossorigin href="/assets/auth-gate-Dn5R9NA5.css">
+</head>
+
+<body class="auth-body">
+    <div class="auth-container">
+        <h1>Crear Cuenta</h1>
+        <p class="auth-subtitle">Unite y empezá a dominar tu estudio 🚀</p>
+
+        <form class="auth-form" id="registerForm">
+            <input type="text" id="username" placeholder="Nombre de usuario" required>
+            <input type="text" id="firstName" placeholder="Nombre" required>
+            <input type="text" id="lastName" placeholder="Apellido" required>
+            <input type="email" id="email" placeholder="Email" required>
+
+            <input type="password" id="password" placeholder="Contraseña" required>
+            <input type="password" id="passwordConfirm" placeholder="Confirmar contraseña" required>
+
+            <!-- Password rules -->
+            <ul id="passwordRules" style="font-size: 13px; margin-bottom: 15px;">
+                <li id="rule-length">❌ Mínimo 8 caracteres</li>
+                <li id="rule-uppercase">❌ Al menos una mayúscula</li>
+                <li id="rule-number">❌ Al menos un número</li>
+                <li id="rule-match">❌ Las contraseñas coinciden</li>
+            </ul>
+
+            <select id="country" required style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; margin-bottom: 15px;">
+                <option value="">Selecciona tu país</option> 
+                <option value="AR">🇦🇷 Argentina</option> 
+                <option value="BO">🇧🇴 Bolivia</option> 
+                <option value="BR">🇧🇷 Brasil</option> 
+                <option value="CL">🇨🇱 Chile</option> 
+                <option value="CO">🇨🇴 Colombia</option> 
+                <option value="CR">🇨🇷 Costa Rica</option> 
+                <option value="CU">🇨🇺 Cuba</option> 
+                <option value="DO">🇩🇴 República Dominicana</option> 
+                <option value="EC">🇪🇨 Ecuador</option> 
+                <option value="SV">🇸🇻 El Salvador</option> 
+                <option value="GT">🇬🇹 Guatemala</option> 
+                <option value="HN">🇭🇳 Honduras</option> 
+                <option value="MX">🇲🇽 México</option> 
+                <option value="NI">🇳🇮 Nicaragua</option> 
+                <option value="PA">🇵🇦 Panamá</option> 
+                <option value="PY">🇵🇾 Paraguay</option> 
+                <option value="PE">🇵🇪 Perú</option> 
+                <option value="PR">🇵🇷 Puerto Rico</option> 
+                <option value="UY">🇺🇾 Uruguay</option> 
+                <option value="VE">🇻🇪 Venezuela</option> 
+                <option value="US">🇺🇸 Estados Unidos</option> 
+                <option value="CA">🇨🇦 Canadá</option> 
+                <option value="ES">🇪🇸 España</option> 
+                <option value="FR">🇫🇷 Francia</option> 
+                <option value="IT">🇮🇹 Italia</option> 
+                <option value="DE">🇩🇪 Alemania</option> 
+                <option value="GB">🇬🇧 Reino Unido</option>
+                <option value="PT">🇵🇹 Portugal</option> 
+                <option value="OTHER">🌍 Otro</option>
+            </select>
+
+            <div id="errorMessage" style="color: red; display: none; margin-bottom: 10px;"></div>
+            <div id="successMessage" style="color: green; display: none; margin-bottom: 10px;"></div>
+
+            <button type="submit" class="btn-primary" style="width: 100%; border-radius: 10px;">
+                Crear cuenta
+            </button>
+        </form>
+
+        <p class="auth-footer">
+            ¿Ya tenés cuenta?
+            <a href="login.html">Iniciar Sesión</a>
+        </p>
+    </div>
+
+
+</body>
+</html>
+

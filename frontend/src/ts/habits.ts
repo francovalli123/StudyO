@@ -1,4 +1,4 @@
-import { apiGet, apiPost, apiPut, apiDelete, getToken, getCurrentUser } from './api.js';
+import { apiGet, apiPost, apiPut, apiDelete, getToken, getCurrentUser, BASE_URL } from './api.js';
 import { initConfirmModal, showConfirmModal } from "./confirmModal.js";
 import { translations, getCurrentLanguage } from './i18n.js';
 import { getOnboardingContext, showOnboardingOverlay, hideOnboardingOverlay, skipOnboarding, hydrateOnboardingContext, syncOnboardingAcrossTabs, onHabitCreated } from './onboarding.js';
@@ -433,7 +433,7 @@ async function toggleHabitCompletion(habitId: number, complete: boolean) {
         renderHabits();
 
         const response = await fetch(
-            `http://127.0.0.1:8000/api/habits/${habitId}/complete/`,
+            `${BASE_URL}/habits/${habitId}/complete/`,
             {
                 method: complete ? "POST" : "DELETE",
                 headers: {

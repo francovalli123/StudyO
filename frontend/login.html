@@ -36,11 +36,11 @@
     </div>
 
     <script type="module">
-        import { initAuthGate } from './dist/ts/auth-gate.js';
+        import { initAuthGate } from './src/ts/auth-gate.ts';
         initAuthGate();
     </script>
     <script type="module">
-        import { login } from './dist/ts/api.js';
+        import { login } from './src/ts/api.ts';
 
         const form = document.getElementById('loginForm');
         const errorMessage = document.getElementById('errorMessage');
@@ -67,7 +67,8 @@
             }
         });
     </script>
-    <script type="module" src="dist/ts/responsive.js?v=20260212"></script>
+    <script type="module" src="./src/ts/responsive.ts?v=20260212"></script>
 </body>
 
 </html>
+
