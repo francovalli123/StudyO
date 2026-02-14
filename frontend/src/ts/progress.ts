@@ -7,6 +7,10 @@ import { t, translations, getCurrentLanguage } from "./i18n.js";
 declare const lucide: {
     createIcons: () => void;
 };
+const IS_TOUCH_DEVICE =
+    typeof window !== 'undefined' &&
+    (window.matchMedia?.('(hover: none), (pointer: coarse)').matches ||
+        navigator.maxTouchPoints > 0);
 
 /**
  * ==========================================
@@ -281,39 +285,40 @@ async function loadMonthlyRhythm() {
             }).join('')}
         `;
         
-        // Add interactive tooltips
-        const circles = chartSvg.querySelectorAll('circle');
-        circles.forEach((circle, index) => {
-            const hours = monthValues[index];
-            const month = monthLabels[index];
+        if (!IS_TOUCH_DEVICE) {
+            const circles = chartSvg.querySelectorAll('circle');
+            circles.forEach((circle, index) => {
+                const hours = monthValues[index];
+                const month = monthLabels[index];
 
-            circle.addEventListener('mouseenter', (e: Event) => {
-                const mouseEvent = e as MouseEvent;
-                const tooltip = document.createElement('div');
-                tooltip.id = 'rhythm-tooltip';
-                tooltip.className = 'fixed bg-dark-card border border-purple-500/30 rounded-lg px-3 py-2 text-sm text-white shadow-lg z-50 pointer-events-none';
-                tooltip.innerHTML = `
-                    <div class="font-bold text-purple-400">${month}</div>
-                    <div class="text-gray-300">${hours.toFixed(1)} ${trans.progress.hours}</div>
-                `;
-                document.body.appendChild(tooltip);
-                
-                updateTooltipPosition(tooltip, mouseEvent.clientX, mouseEvent.clientY);
-            });
-            
-            circle.addEventListener('mouseleave', () => {
-                const tooltip = document.getElementById('rhythm-tooltip');
-                if (tooltip) tooltip.remove();
-            });
-            
-            circle.addEventListener('mousemove', (e: Event) => {
-                const mouseEvent = e as MouseEvent;
-                const tooltip = document.getElementById('rhythm-tooltip');
-                if (tooltip) {
+                circle.addEventListener('mouseenter', (e: Event) => {
+                    const mouseEvent = e as MouseEvent;
+                    const tooltip = document.createElement('div');
+                    tooltip.id = 'rhythm-tooltip';
+                    tooltip.className = 'fixed bg-dark-card border border-purple-500/30 rounded-lg px-3 py-2 text-sm text-white shadow-lg z-50 pointer-events-none';
+                    tooltip.innerHTML = `
+                        <div class="font-bold text-purple-400">${month}</div>
+                        <div class="text-gray-300">${hours.toFixed(1)} ${trans.progress.hours}</div>
+                    `;
+                    document.body.appendChild(tooltip);
+
                     updateTooltipPosition(tooltip, mouseEvent.clientX, mouseEvent.clientY);
-                }
+                });
+
+                circle.addEventListener('mouseleave', () => {
+                    const tooltip = document.getElementById('rhythm-tooltip');
+                    if (tooltip) tooltip.remove();
+                });
+
+                circle.addEventListener('mousemove', (e: Event) => {
+                    const mouseEvent = e as MouseEvent;
+                    const tooltip = document.getElementById('rhythm-tooltip');
+                    if (tooltip) {
+                        updateTooltipPosition(tooltip, mouseEvent.clientX, mouseEvent.clientY);
+                    }
+                });
             });
-        });
+        }
     } catch (error) {
         console.error("Error loading monthly rhythm:", error);
     }
@@ -742,6 +747,7 @@ async function loadStudyHeatmap() {
         render(currentYear);
 
         function attachTooltips(container: HTMLElement, lang: string) {
+             if (IS_TOUCH_DEVICE) return;
              const heatmapCells = container.querySelectorAll('.heatmap-cell');
              heatmapCells.forEach(cell => {
                 cell.addEventListener('mouseenter', (e: Event) => {

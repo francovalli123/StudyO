@@ -121,6 +121,7 @@ let editingHabitId: number | null = null;
 let selectedIcon = 'zap';
 let selectedColor = 'orange';
 let userTimezone = 'UTC';
+let habitsGridDelegationBound = false;
 let todayCompletions: Set<number> = new Set(); // inicial vacío
 
 
@@ -285,7 +286,6 @@ function renderHabits() {
     }).join("");
 
     if (typeof lucide !== 'undefined') lucide.createIcons();
-    attachHabitEventListeners();
 }
 
 /**
@@ -386,31 +386,38 @@ async function handleSaveHabit(e: Event) {
     }
 }
 
-function attachHabitEventListeners() {
-    document.querySelectorAll('.habit-complete-btn').forEach(button => {
-        button.addEventListener('click', async (e) => {
-            const btn = e.currentTarget as HTMLButtonElement;
-            const id = Number(btn.dataset.habitId);
-            const completed = btn.dataset.completed === "true";
+function initHabitsGridDelegation() {
+    if (habitsGridDelegationBound) return;
+    const grid = document.getElementById("habitsGrid");
+    if (!grid) return;
+
+    grid.addEventListener('click', async (event) => {
+        const target = event.target as HTMLElement | null;
+        if (!target) return;
+
+        const completeBtn = target.closest('.habit-complete-btn') as HTMLButtonElement | null;
+        if (completeBtn) {
+            const id = Number(completeBtn.dataset.habitId);
+            const completed = completeBtn.dataset.completed === "true";
             await toggleHabitCompletion(id, !completed);
-        });
-    });
+            return;
+        }
 
-    document.querySelectorAll('.edit-habit-btn').forEach(button => {
-        button.addEventListener('click', (e) => {
-            const btn = e.currentTarget as HTMLButtonElement;
-            const id = Number(btn.dataset.habitId);
+        const editBtn = target.closest('.edit-habit-btn') as HTMLButtonElement | null;
+        if (editBtn) {
+            const id = Number(editBtn.dataset.habitId);
             openEditModal(id);
-        });
+            return;
+        }
+
+        const deleteBtn = target.closest('.delete-habit-btn') as HTMLButtonElement | null;
+        if (deleteBtn) {
+            const id = Number(deleteBtn.dataset.habitId);
+            deleteHabit(id);
+        }
     });
 
-    document.querySelectorAll('.delete-habit-btn').forEach(button => {
-        button.addEventListener('click', (e) => {
-            const btn = e.currentTarget as HTMLButtonElement;
-            const id = Number(btn.dataset.habitId);
-            deleteHabit(id);
-        });
-    });
+    habitsGridDelegationBound = true;
 }
 
 async function toggleHabitCompletion(habitId: number, complete: boolean) {
@@ -446,8 +453,10 @@ async function toggleHabitCompletion(habitId: number, complete: boolean) {
         if (!response.ok) throw new Error("Error API");
         const data = await response.json();
         if (data.streak !== undefined) {
-            habits[index].streak = data.streak;
-            renderHabits();
+            if (habits[index].streak !== data.streak) {
+                habits[index].streak = data.streak;
+                renderHabits();
+            }
             // Notify dashboard to reload weekly challenge (debounced listener will handle duplicate calls)
             try { document.dispatchEvent(new CustomEvent('weeklyChallenge:update')); } catch (e) {}
         }
@@ -528,6 +537,8 @@ function attachGlobalListeners(): void {
         habitForm.removeEventListener('submit', handleSaveHabit);
         habitForm.addEventListener('submit', handleSaveHabit);
     }
+
+    initHabitsGridDelegation();
 }
 
 function prepareCreateModal() {

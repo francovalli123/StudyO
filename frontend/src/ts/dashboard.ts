@@ -8,6 +8,30 @@ import { getOnboardingContext, persistOnboardingStep, showOnboardingOverlay, hid
 
 // Declare lucide icons library for dynamic icon rendering
 declare const lucide: any;
+let lucideRefreshQueued = false;
+const IS_TOUCH_DEVICE =
+    typeof window !== 'undefined' &&
+    (window.matchMedia?.('(hover: none), (pointer: coarse)').matches ||
+        navigator.maxTouchPoints > 0);
+
+function refreshLucideIcons(): void {
+    if (typeof lucide === 'undefined') return;
+    if (lucideRefreshQueued) return;
+    lucideRefreshQueued = true;
+    window.requestAnimationFrame(() => {
+        lucideRefreshQueued = false;
+        lucide.createIcons();
+    });
+}
+
+function scheduleNonCriticalTask(task: () => void): void {
+    const w = window as any;
+    if (typeof w.requestIdleCallback === 'function') {
+        w.requestIdleCallback(task, { timeout: 1200 });
+        return;
+    }
+    window.setTimeout(task, 0);
+}
 
 /**
  * ==========================================
@@ -646,7 +670,7 @@ async function loadWeeklyObjectives() {
             });
         }
 
-        if (typeof lucide !== 'undefined') lucide.createIcons();
+        refreshLucideIcons();
 
     } catch (error) {
         console.error("Error loading weekly objectives:", error);
@@ -975,7 +999,7 @@ function renderWeeklyChallengeUI(challenge: WeeklyChallengeDTO): void {
   
   // Render lucide icons
   if (typeof lucide !== 'undefined' && lucide.createIcons) {
-    lucide.createIcons();
+    refreshLucideIcons();
   }
     // Ensure the container is visible in case an entrance animation left it at opacity:0
     try {
@@ -1007,7 +1031,7 @@ function renderEmptyChallengeState(): void {
   `;
   
   if (typeof lucide !== 'undefined' && lucide.createIcons) {
-    lucide.createIcons();
+    refreshLucideIcons();
   }
 }
 
@@ -1218,7 +1242,7 @@ async function loadWeeklyStudyRhythm() {
                         </div>
                     </foreignObject>
                 `;
-                if (typeof lucide !== 'undefined') lucide.createIcons();
+                refreshLucideIcons();
                 return;
             }
             
@@ -1276,38 +1300,40 @@ async function loadWeeklyStudyRhythm() {
             `;
             
             // Add interactive tooltips
-            const circles = svg.querySelectorAll('circle');
-            circles.forEach((circle, index) => {
-                const minutes = dataPoints[index];
-                const hours = (minutes / 60).toFixed(1);
-                const day = weekDays[index];
-                
-                circle.addEventListener('mouseenter', (e: MouseEvent) => {
-                    const tooltip = document.createElement('div');
-                    tooltip.id = 'rhythm-tooltip';
-                    tooltip.className = 'fixed bg-dark-card border border-purple-500/30 rounded-lg px-3 py-2 text-sm text-white shadow-lg z-50 pointer-events-none';
-                    tooltip.innerHTML = `
-                        <div class="font-bold text-purple-400">${day}</div>
-                        <div class="text-gray-300">${hours}h (${minutes} min)</div>
-                    `;
-                    document.body.appendChild(tooltip);
-                    
-                    // Position near cursor
-                    updateTooltipPosition(tooltip, e.clientX, e.clientY);
-                });
-                
-                circle.addEventListener('mouseleave', () => {
-                    const tooltip = document.getElementById('rhythm-tooltip');
-                    if (tooltip) tooltip.remove();
-                });
-                
-                circle.addEventListener('mousemove', (e: MouseEvent) => {
-                    const tooltip = document.getElementById('rhythm-tooltip');
-                    if (tooltip) {
+            if (!IS_TOUCH_DEVICE) {
+                const circles = svg.querySelectorAll('circle');
+                circles.forEach((circle, index) => {
+                    const minutes = dataPoints[index];
+                    const hours = (minutes / 60).toFixed(1);
+                    const day = weekDays[index];
+
+                    circle.addEventListener('mouseenter', (e: MouseEvent) => {
+                        const tooltip = document.createElement('div');
+                        tooltip.id = 'rhythm-tooltip';
+                        tooltip.className = 'fixed bg-dark-card border border-purple-500/30 rounded-lg px-3 py-2 text-sm text-white shadow-lg z-50 pointer-events-none';
+                        tooltip.innerHTML = `
+                            <div class="font-bold text-purple-400">${day}</div>
+                            <div class="text-gray-300">${hours}h (${minutes} min)</div>
+                        `;
+                        document.body.appendChild(tooltip);
+
+                        // Position near cursor
                         updateTooltipPosition(tooltip, e.clientX, e.clientY);
-                    }
+                    });
+
+                    circle.addEventListener('mouseleave', () => {
+                        const tooltip = document.getElementById('rhythm-tooltip');
+                        if (tooltip) tooltip.remove();
+                    });
+
+                    circle.addEventListener('mousemove', (e: MouseEvent) => {
+                        const tooltip = document.getElementById('rhythm-tooltip');
+                        if (tooltip) {
+                            updateTooltipPosition(tooltip, e.clientX, e.clientY);
+                        }
+                    });
                 });
-            });
+            }
         }
     } catch (error) {
         console.error("Error loading weekly study rhythm:", error);
@@ -1398,7 +1424,7 @@ async function loadFocusDistribution() {
                         <p class="text-gray-600 text-xs text-center mt-1">${trans.dashboard.emptyDistributionDesc}</p>
                     </div>
                 `;
-                if (typeof lucide !== 'undefined') lucide.createIcons();
+                refreshLucideIcons();
                 return;
             }
 
@@ -1601,7 +1627,7 @@ async function toggleHabitCompletion(habitId: number, complete: boolean) {
                     checkbox.innerHTML = '';
                     textElement.className = 'flex items-center gap-2 text-gray-300 font-medium';
                 }
-                if (typeof lucide !== 'undefined') lucide.createIcons();
+                refreshLucideIcons();
             }
         }
 
@@ -1629,7 +1655,7 @@ async function toggleHabitCompletion(habitId: number, complete: boolean) {
                     const streakEl = habitElement.querySelector('.text-xs');
                     if (streakEl) {
                         streakEl.innerHTML = `<i data-lucide="trending-up" class="w-3 h-3"></i> ${data.streak}`;
-                        if (typeof lucide !== 'undefined') lucide.createIcons();
+                        refreshLucideIcons();
                     }
                 }
             }
@@ -1673,7 +1699,7 @@ async function loadKeyHabits() {
                     <p class="text-xs mt-1">${trans.dashboard.emptyKeyHabitsDesc}</p>
                 </div>
             `;
-            if (typeof lucide !== 'undefined') lucide.createIcons();
+            refreshLucideIcons();
             return;
         }
         
@@ -1740,7 +1766,7 @@ async function loadKeyHabits() {
             progressText.textContent = `${dailyProgress}%`;
         }
         
-        if (typeof lucide !== 'undefined') lucide.createIcons();
+        refreshLucideIcons();
     } catch (error) {
         console.error("Error loading key habits:", error);
     }
@@ -1795,7 +1821,7 @@ async function loadNextEvent() {
                     </a>
                 </div>
             `;
-            if (typeof lucide !== 'undefined') lucide.createIcons();
+            refreshLucideIcons();
             return;
         }
         
@@ -1867,7 +1893,7 @@ async function loadNextEvent() {
             </div>
         `;
         
-        if (typeof lucide !== 'undefined') lucide.createIcons();
+        refreshLucideIcons();
     } catch (error) {
         console.error("Error loading next event:", error);
         // Show empty state on error too
@@ -1885,7 +1911,7 @@ async function loadNextEvent() {
                 </a>
             </div>
         `;
-        if (typeof lucide !== 'undefined') lucide.createIcons();
+        refreshLucideIcons();
     }
 }
 /**
@@ -1921,19 +1947,24 @@ async function loadDashboard() {
             };
             tagline.textContent = map[lang] || map.es;
         }
-        // Load all data in parallel
+        // Load critical data first, then defer non-critical widgets.
         await Promise.all([
             loadHabitsStats(),
             loadSubjectsStats(),
             loadPomodoroStats(),
             loadWeeklyObjectives(),
             loadWeeklyChallenge(),
-            loadWeeklyStudyRhythm(),
-            loadFocusDistribution(),
-            loadPeakProductivity(),
             loadKeyHabits(),
             loadNextEvent()
         ]);
+
+        scheduleNonCriticalTask(() => {
+            void Promise.all([
+            loadWeeklyStudyRhythm(),
+            loadFocusDistribution(),
+                loadPeakProductivity()
+            ]);
+        });
         
         // Hide loading state on success
         if (loadingEl) {
@@ -1951,82 +1982,40 @@ async function loadDashboard() {
  * Initialize dashboard when DOM is ready
  * Loads initial data and binds event listeners for all UI interactions
  */
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-        // Initialize confirmation modal
-        initConfirmModal();
-        // Load dashboard data
-        loadDashboard();
-        
-        // Bind add objective button
-        const addBtn = document.getElementById('addObjectiveBtn');
-        if (addBtn) {
-            addBtn.addEventListener('click', addObjective);
-        }
-        
-        // Bind objective modal close buttons
-        const closeModalBtn = document.getElementById('closeObjectiveModalBtn');
-        if (closeModalBtn) {
-            closeModalBtn.addEventListener('click', closeObjectiveModal);
-        }
-        
-        const cancelBtn = document.getElementById('cancelObjectiveBtn');
-        if (cancelBtn) {
-            cancelBtn.addEventListener('click', closeObjectiveModal);
-        }
-        
-        // Bind objective form submit
-        const objectiveForm = document.getElementById('objectiveForm') as HTMLFormElement | null;
-        if (objectiveForm) {
-            objectiveForm.addEventListener('submit', submitObjectiveForm);
-        }
-        
-        // Close modal on background click
-        const modal = document.getElementById('objectiveModal');
-        if (modal) {
-            modal.addEventListener('click', (e) => {
-                if (e.target === modal) {
-                    closeObjectiveModal();
-                }
-            });
-        }
-    });
-} else {
-    // DOM already loaded, execute immediately
-    loadDashboard();
-    loadWeeklyChallenge();
-    // --- Llamar al inicializar ---
+let dashboardInitDone = false;
+
+function initDashboardPage(): void {
+    if (dashboardInitDone) return;
+    dashboardInitDone = true;
+
+    initConfirmModal();
     initWeeklyObjectivesFilters();
-    loadWeeklyObjectives();
+    loadDashboard();
 
     const addBtn = document.getElementById('addObjectiveBtn');
-    if (addBtn) {
-        addBtn.addEventListener('click', addObjective);
-    }
-    
+    if (addBtn) addBtn.addEventListener('click', addObjective);
+
     const closeModalBtn = document.getElementById('closeObjectiveModalBtn');
-    if (closeModalBtn) {
-        closeModalBtn.addEventListener('click', closeObjectiveModal);
-    }
-    
+    if (closeModalBtn) closeModalBtn.addEventListener('click', closeObjectiveModal);
+
     const cancelBtn = document.getElementById('cancelObjectiveBtn');
-    if (cancelBtn) {
-        cancelBtn.addEventListener('click', closeObjectiveModal);
-    }
-    
+    if (cancelBtn) cancelBtn.addEventListener('click', closeObjectiveModal);
+
     const objectiveForm = document.getElementById('objectiveForm') as HTMLFormElement | null;
-    if (objectiveForm) {
-        objectiveForm.addEventListener('submit', submitObjectiveForm);
-    }
-    
+    if (objectiveForm) objectiveForm.addEventListener('submit', submitObjectiveForm);
+
     const modal = document.getElementById('objectiveModal');
     if (modal) {
         modal.addEventListener('click', (e) => {
-            if (e.target === modal) {
-                closeObjectiveModal();
-            }
+            if (e.target === modal) closeObjectiveModal();
         });
     }
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initDashboardPage, { once: true });
+} else {
+    initDashboardPage();
 }
 
 /**
@@ -2715,7 +2704,7 @@ if (document.readyState === 'loading') {
         if (!playBtn) return;
         playBtn.innerHTML = isRunning ? '<i data-lucide="pause" class="w-5 h-5"></i>' : '<i data-lucide="play" class="w-5 h-5 ml-1"></i>';
         // @ts-ignore
-        if (typeof lucide !== 'undefined') lucide.createIcons();
+        refreshLucideIcons();
     }
 
     document.addEventListener('DOMContentLoaded', async () => {
@@ -2805,7 +2794,7 @@ if (document.readyState === 'loading') {
                 await loadSubjectsToSelect();
                 modal.style.display = 'flex';
                 // @ts-ignore
-                if (typeof lucide !== 'undefined') setTimeout(() => lucide.createIcons(), 10);
+                refreshLucideIcons();
             });
         }
 
@@ -2854,5 +2843,6 @@ if (document.readyState === 'loading') {
     });
 
 })();
+
 
 

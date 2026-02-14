@@ -168,6 +168,16 @@
       }
     };
 
+    let modalSyncScheduled = false;
+    const scheduleSyncModalOpenState = (): void => {
+      if (modalSyncScheduled) return;
+      modalSyncScheduled = true;
+      window.requestAnimationFrame(() => {
+        modalSyncScheduled = false;
+        syncModalOpenState();
+      });
+    };
+
     const syncSidebarLayout = (): void => {
       const mobile = window.innerWidth < 768;
       const expanded = isMobileExpanded();
@@ -321,14 +331,14 @@
     bodyClassObserver.observe(document.body, { attributes: true, attributeFilter: ['class'] });
 
     const modalObserver = new MutationObserver(() => {
-      syncModalOpenState();
+      scheduleSyncModalOpenState();
     });
     modalObserver.observe(document.body, { subtree: true, attributes: true, attributeFilter: ['class', 'style'] });
 
     document.addEventListener(
       'click',
       () => {
-        window.setTimeout(syncModalOpenState, 0);
+        scheduleSyncModalOpenState();
       },
       true
     );
