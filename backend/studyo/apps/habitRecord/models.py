@@ -18,6 +18,9 @@ class HabitRecord(models.Model):
     class Meta:
         unique_together = ('habit', 'date') # No pueden haber dos registros para el mismo habito el mismo dia
         ordering = ['-date'] # Los mas recientes primeros 
+        indexes = [
+            models.Index(fields=['habit', 'date', 'completed'], name='hrec_habit_date_done_idx'),
+        ]
 
     def __str__(self):
         estado = "✔️" if self.completed else "❌"

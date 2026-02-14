@@ -9,7 +9,17 @@ class EventListCreateView(ListCreateAPIView):
 
     def get_queryset(self):
         # Devuelve solo los eventos del usuario autenticado
-        return Event.objects.filter(user=self.request.user)
+        return (
+            Event.objects
+            .filter(user=self.request.user)
+            .select_related("subject")
+            .only(
+                "id", "user_id", "title", "date", "type", "start_time", "end_time",
+                "subject_id", "notes", "created_at", "updated_at",
+                "subject__id", "subject__name",
+            )
+            .order_by("date", "start_time")
+        )
 
     def perform_create(self, serializer):
         # Asigna el usuario automáticamente
@@ -20,4 +30,14 @@ class EventDetailView(RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return Event.objects.filter(user=self.request.user)
+        return (
+            Event.objects
+            .filter(user=self.request.user)
+            .select_related("subject")
+            .only(
+                "id", "user_id", "title", "date", "type", "start_time", "end_time",
+                "subject_id", "notes", "created_at", "updated_at",
+                "subject__id", "subject__name",
+            )
+            .order_by("date", "start_time")
+        )

@@ -2103,8 +2103,7 @@ if (document.readyState === 'loading') {
     const onboardingTooltip = document.getElementById('pomodoroTooltip');
     const closeTooltipBtn = document.getElementById('closePomodoroTooltip');
     let onboardingStep: 'CREATE_SUBJECT' | 'CREATE_HABIT' | 'CONFIG_POMODORO' | 'START_SESSION' | 'DONE' | 'SKIPPED' | null = null;
-    let onboardingSessionStarted = false;
-
+    
     const modal = document.getElementById('pomodoroSettingsModal') as HTMLDivElement | null;
     const settingsForm = document.getElementById('pomodoroSettingsForm') as HTMLFormElement | null;
     const workInput = document.getElementById('workMinutes') as HTMLInputElement | null;
@@ -2194,26 +2193,34 @@ if (document.readyState === 'loading') {
             });
             return;
         }
-
         if (onboardingStep === 'START_SESSION') {
             if (!defaultSubjectId) {
                 showOnboardingOverlay({
-                    title: 'Seleccioná una asignatura',
-                    body: 'Antes de iniciar tu primera sesión, elegí una materia en los ajustes de Pomodoro.',
+                    title: 'SeleccionÃ¡ una asignatura',
+                    body: 'Antes de iniciar tu primera sesiÃ³n, elegÃ­ una materia en los ajustes de Pomodoro.',
                     primaryText: 'Ir a ajustes',
                     lockClose: true,
                     onPrimary: () => {
-                    hideOnboardingOverlay();
-                    settingsBtn?.dispatchEvent(new Event('click'));
-                },
+                        hideOnboardingOverlay();
+                        settingsBtn?.dispatchEvent(new Event('click'));
+                    },
                 });
             } else {
                 showOnboardingOverlay({
-                    title: 'Paso 4: Iniciá tu primera sesión',
-                    body: '¡Todo listo! Iniciá tu primer pomodoro para cerrar el onboarding.',
+                    title: 'Paso 4: IniciÃ¡ tu primera sesiÃ³n',
+                    body: 'Â¡Todo listo! PresionÃ¡ "Empezar ahora" para terminar el onboarding y continuar libremente.',
                     primaryText: 'Empezar ahora',
                     lockClose: true,
-                    onPrimary: () => playBtn?.dispatchEvent(new Event('click')),
+                    onPrimary: async () => {
+                        try {
+                            await completeOnboarding();
+                            onboardingStep = 'DONE';
+                            hideOnboardingOverlay();
+                            try { showAlertModal('Onboarding completado. Ya podes explorar StudyO libremente.'); } catch (e) {}
+                        } catch (e) {
+                            console.warn('onboarding completion failed', e);
+                        }
+                    },
                 });
             }
             return;
@@ -2520,17 +2527,6 @@ if (document.readyState === 'loading') {
 
         if (!sessionStart && currentStage === 'work') {
             sessionStart = new Date();
-            if (onboardingStep === 'START_SESSION') {
-                onboardingSessionStarted = true;
-                // Requirement: mark onboarding done when first session starts.
-                completeOnboarding()
-                    .then(() => {
-                        onboardingStep = 'DONE';
-                        hideOnboardingOverlay();
-                        try { showAlertModal('¡Onboarding completado! Ya estás listo para usar StudyO.'); } catch (e) {}
-                    })
-                    .catch((e) => { console.warn('onboarding completion failed', e); });
-            }
         }
         
         timerStartTime = Date.now();
@@ -2843,6 +2839,7 @@ if (document.readyState === 'loading') {
     });
 
 })();
+
 
 
 

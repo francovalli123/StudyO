@@ -67,6 +67,12 @@ class WeeklyObjective(models.Model):
     def __str__(self):
         return f"{self.title}"
 
+    class Meta:
+        indexes = [
+            models.Index(fields=["user", "is_active", "created_at"], name="wobj_user_active_created_idx"),
+            models.Index(fields=["user", "is_completed", "archived_at"], name="weekly_obj_user_done_arch_idx"),
+        ]
+
 
 class WeeklyObjectiveHistory(models.Model):
     """Historial de objetivos semanales para estadísticas.
@@ -88,3 +94,9 @@ class WeeklyObjectiveHistory(models.Model):
 
     def __str__(self):
         return f"{self.title} - {self.week_start_date} to {self.week_end_date}"
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["user", "week_start_date"], name="whist_user_week_start_idx"),
+            models.Index(fields=["user", "is_completed", "week_start_date"], name="weekly_hist_user_done_week_idx"),
+        ]

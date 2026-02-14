@@ -179,12 +179,22 @@ class AuthToken(models.Model):
 
         ttl_minutes = getattr(settings, "AUTH_TOKEN_TTL_MINUTES", 60)
         refresh_window = getattr(settings, "AUTH_TOKEN_REFRESH_WINDOW_MINUTES", 10)
+        # Avoid a DB write on every authenticated request.
+        # Persist last activity at most every 5 minutes unless token refresh is needed.
+        activity_write_interval = timedelta(minutes=5)
+
+        should_refresh_expiry = self.expires_at - now <= timedelta(minutes=refresh_window)
+        should_persist_activity = (
+            self.last_activity_at is None
+            or (now - self.last_activity_at) >= activity_write_interval
+        )
 
         self.last_activity_at = now
-        if self.expires_at - now <= timedelta(minutes=refresh_window):
+
+        if should_refresh_expiry:
             self.expires_at = now + timedelta(minutes=ttl_minutes)
             self.save(update_fields=["last_activity_at", "expires_at"])
-        else:
+        elif should_persist_activity:
             self.save(update_fields=["last_activity_at"])
         return True
 

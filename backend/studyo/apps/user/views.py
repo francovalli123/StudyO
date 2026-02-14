@@ -16,7 +16,6 @@ from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 import base64
 import hashlib
 from django.core.files.base import ContentFile
-from apps.pomodoroSession.models import PomodoroSession
 from django.conf import settings
 from django.utils import timezone
 from django.utils.http import urlencode
@@ -201,16 +200,6 @@ class CurrentUserView(APIView):
                     return Response({'detail': 'onboarding_completed cannot be reverted.'}, status=status.HTTP_400_BAD_REQUEST)
 
                 if completed_value:
-                    valid_pomodoro_exists = PomodoroSession.objects.filter(
-                        user=user,
-                        subject__isnull=False,
-                        duration__gt=0,
-                    ).exists()
-                    if not valid_pomodoro_exists:
-                        return Response(
-                            {'detail': 'Complete at least one valid pomodoro session before finishing onboarding.'},
-                            status=status.HTTP_400_BAD_REQUEST,
-                        )
                     user.onboarding_completed = True
                     user.onboarding_step = User.OnboardingStep.DONE
                     fields_updated = True

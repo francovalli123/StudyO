@@ -13,6 +13,11 @@ class RoutineConfig(AppConfig):
     def ready(self):
         global _scheduler_started
 
+        # On production, run scheduler only when explicitly enabled.
+        # This avoids heavy startup work and DB access on web dynos.
+        if os.environ.get("ENABLE_SCHEDULER", "false").lower() != "true":
+            return
+
         # Avoid scheduler during commands that should be short-lived.
         blocked_commands = {
             'migrate',

@@ -2,6 +2,7 @@ from datetime import timedelta, time
 
 from django.utils import timezone
 from django.db import transaction
+from django.db.models import Prefetch
 
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.permissions import IsAuthenticated
@@ -41,7 +42,17 @@ class RoutineListCreateView(ListCreateAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return Routine.objects.filter(user=self.request.user)
+        blocks_qs = RoutineBlock.objects.select_related("subject").only(
+            "id", "routine_id", "subject_id", "day_of_week", "start_time", "end_time", "description",
+            "subject__id", "subject__name",
+        )
+        return (
+            Routine.objects
+            .filter(user=self.request.user)
+            .select_related("user")
+            .prefetch_related(Prefetch("blocks", queryset=blocks_qs))
+            .only("id", "user_id", "name", "start_date", "end_date", "created_at", "updated_at", "user__email")
+        )
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
@@ -52,7 +63,17 @@ class RoutineDetailView(RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return Routine.objects.filter(user=self.request.user)
+        blocks_qs = RoutineBlock.objects.select_related("subject").only(
+            "id", "routine_id", "subject_id", "day_of_week", "start_time", "end_time", "description",
+            "subject__id", "subject__name",
+        )
+        return (
+            Routine.objects
+            .filter(user=self.request.user)
+            .select_related("user")
+            .prefetch_related(Prefetch("blocks", queryset=blocks_qs))
+            .only("id", "user_id", "name", "start_date", "end_date", "created_at", "updated_at", "user__email")
+        )
 
     def perform_update(self, serializer):
         serializer.save(user=self.request.user)
@@ -179,6 +200,10 @@ class WeeklyObjectiveListCreateView(ListCreateAPIView):
         return WeeklyObjective.objects.filter(
             user=self.request.user,
             is_active=True
+        ).select_related("subject").only(
+            "id", "user_id", "title", "detail", "priority", "notes", "is_completed",
+            "subject_id", "area", "icon", "created_at", "updated_at",
+            "subject__id", "subject__name",
         )
 
     def perform_create(self, serializer):
@@ -194,6 +219,10 @@ class WeeklyObjectiveDetailView(RetrieveUpdateDestroyAPIView):
         return WeeklyObjective.objects.filter(
             user=self.request.user,
             is_active=True
+        ).select_related("subject").only(
+            "id", "user_id", "title", "detail", "priority", "notes", "is_completed",
+            "subject_id", "area", "icon", "created_at", "updated_at",
+            "subject__id", "subject__name",
         )
 
     def perform_update(self, serializer):
@@ -247,18 +276,21 @@ def weekly_objectives_stats(request):
     current_week_end = week_range["week_end_utc"]
 
     # PASO 3: Obtener objetivos actuales (SOLO ACTIVOS) y del historial
-    current_objectives = WeeklyObjective.objects.filter(
+    current_objectives = list(WeeklyObjective.objects.filter(
         user=user,
         is_active=True,  # SOLO objetivos activos (no archivados)
         created_at__gte=current_week_start,
         created_at__lte=current_week_end,
+    ).values("title", "is_completed", "created_at"))
+    history = list(
+        WeeklyObjectiveHistory.objects.filter(user=user).values(
+            "title", "is_completed", "week_start_date", "week_end_date"
+        )
     )
-    history = WeeklyObjectiveHistory.objects.filter(user=user)
 
-    total_objectives = history.count() + current_objectives.count()
-    completed_objectives = (
-        history.filter(is_completed=True).count()
-        + current_objectives.filter(is_completed=True).count()
+    total_objectives = len(history) + len(current_objectives)
+    completed_objectives = sum(1 for obj in history if obj["is_completed"]) + sum(
+        1 for obj in current_objectives if obj["is_completed"]
     )
     completion_rate = (completed_objectives / total_objectives) * 100 if total_objectives else 0
 
@@ -273,8 +305,8 @@ def weekly_objectives_stats(request):
 
     # Procesar historial
     for obj in history:
-        week_start = obj.week_start_date
-        week_end = obj.week_end_date
+        week_start = obj["week_start_date"]
+        week_end = obj["week_end_date"]
         week_key = week_start.isoformat()
 
         weekly_stats.setdefault(week_key, {
@@ -288,14 +320,14 @@ def weekly_objectives_stats(request):
         })
 
         weekly_stats[week_key]["total"] += 1
-        if obj.is_completed:
+        if obj["is_completed"]:
             weekly_stats[week_key]["completed"] += 1
         else:
-            weekly_stats[week_key]["pending_objectives"].append(obj.title or "Sin título")
+            weekly_stats[week_key]["pending_objectives"].append(obj["title"] or "Sin título")
 
     # Procesar objetivos actuales
     for obj in current_objectives:
-        week_start, week_end = get_week_range_from_datetime(obj.created_at)
+        week_start, week_end = get_week_range_from_datetime(obj["created_at"])
         week_key = week_start.isoformat()
 
         weekly_stats.setdefault(week_key, {
@@ -309,10 +341,10 @@ def weekly_objectives_stats(request):
         })
 
         weekly_stats[week_key]["total"] += 1
-        if obj.is_completed:
+        if obj["is_completed"]:
             weekly_stats[week_key]["completed"] += 1
         else:
-            weekly_stats[week_key]["pending_objectives"].append(obj.title or "Sin título")
+            weekly_stats[week_key]["pending_objectives"].append(obj["title"] or "Sin título")
 
     # Calcular completion rate y promedio diario
     for week in weekly_stats.values():

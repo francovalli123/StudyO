@@ -39,6 +39,12 @@ class Habit(models.Model):
     def __str__(self):
         return f"{self.name} ({self.get_frequency_display()})" # Esto sirve para debuggear
 
+    class Meta:
+        indexes = [
+            models.Index(fields=["user", "is_key"], name="habits_habit_user_is_key_idx"),
+            models.Index(fields=["user", "created_at"], name="habits_habit_user_created_idx"),
+        ]
+
     # Propiedad para saber si se completó hoy
     @property
     def is_completed_today(self):
@@ -49,13 +55,18 @@ class Habit(models.Model):
     # Lógica de Racha que se resetea a 0 si fallas
     def calculate_streak(self):
         # Obtenemos solo registros completados, ordenados del más nuevo al más viejo
-        records = self.records.filter(completed=True).order_by('-date')
-        
-        if not records.exists():
+        record_dates = list(
+            self.records
+            .filter(completed=True)
+            .order_by('-date')
+            .values_list('date', flat=True)
+        )
+
+        if not record_dates:
             return 0
 
         today = get_user_local_date(self.user, timezone.now())
-        last_record_date = records[0].date
+        last_record_date = record_dates[0]
         streak = 0
         
         # LÓGICA DE CORTE (RESET A CERO)
@@ -81,9 +92,9 @@ class Habit(models.Model):
             check_date = last_record_date
 
         # BUCLE DE CONTEO
-        for record in records:
+        for record_date in record_dates:
             # Si la fecha coincide con la esperada, sumamos
-            if record.date == check_date:
+            if record_date == check_date:
                 streak += 1
                 
                 # Preparamos la siguiente fecha esperada hacia el pasado
@@ -97,7 +108,7 @@ class Habit(models.Model):
                     check_date -= timedelta(weeks=1)
             
             # Si encontramos un registro MÁS VIEJO que la fecha esperada, hay un hueco
-            elif record.date < check_date:
+            elif record_date < check_date:
                 break 
                 # Ejemplo: Esperaba el 20/10, encontré el 18/10. Faltó el 19. Fin.
             

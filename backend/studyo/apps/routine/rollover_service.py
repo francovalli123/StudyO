@@ -181,7 +181,7 @@ def perform_weekly_rollover(user, reference_dt=None):
     
     # PROTECCIÓN 1: Obtener solo objetivos ACTIVOS (no archivados)
     # Esto previene doble archivado si se llama múltiples veces
-    active_objectives = WeeklyObjective.objects.filter(
+    active_objectives_qs = WeeklyObjective.objects.filter(
         user=user,
         is_active=True,
         archived_at__isnull=True
@@ -195,7 +195,7 @@ def perform_weekly_rollover(user, reference_dt=None):
         week_end_date=week_info["week_end_date"]
     ).exists()
     
-    if existing_history_for_week and not active_objectives.exists():
+    if existing_history_for_week and not active_objectives_qs.exists():
         # Ya se archivó esta semana, no hay nada que hacer
         return {
             "performed": False,
@@ -203,30 +203,43 @@ def perform_weekly_rollover(user, reference_dt=None):
             "reason": "History for this week already exists, no active objectives",
         }
     
-    for objective in active_objectives:
-        try:
-            # 1. Crear registro en historial ANTES de archivar
-            WeeklyObjectiveHistory.objects.create(
-                user=objective.user,
-                title=objective.title,
-                area=objective.area or "General",
-                priority=objective.priority,
-                is_completed=objective.is_completed,
-                week_start_date=week_info["week_start_date"],
-                week_end_date=week_info["week_end_date"],
-                created_at=objective.created_at,
-                completed_at=now if objective.is_completed else None,
-            )
-            
-            # 2. ARCHIVAR objetivo: marcar como inactivo (NO BORRAR)
-            objective.is_active = False
-            objective.archived_at = now
-            objective.save(update_fields=['is_active', 'archived_at', 'updated_at'])
-            
-            archived_count += 1
-            
-        except Exception as e:
-            errors.append(str(e))
+    active_objectives = list(
+        active_objectives_qs.only(
+            "id", "user_id", "title", "area", "priority", "is_completed", "created_at"
+        )
+    )
+    if not active_objectives:
+        return {
+            "performed": False,
+            "archived_count": 0,
+            "reason": "No active objectives to archive",
+        }
+
+    try:
+        WeeklyObjectiveHistory.objects.bulk_create(
+            [
+                WeeklyObjectiveHistory(
+                    user_id=objective.user_id,
+                    title=objective.title,
+                    area=objective.area or "General",
+                    priority=objective.priority,
+                    is_completed=objective.is_completed,
+                    week_start_date=week_info["week_start_date"],
+                    week_end_date=week_info["week_end_date"],
+                    created_at=objective.created_at,
+                    completed_at=now if objective.is_completed else None,
+                )
+                for objective in active_objectives
+            ],
+            batch_size=200,
+        )
+        archived_count = active_objectives_qs.update(
+            is_active=False,
+            archived_at=now,
+            updated_at=now,
+        )
+    except Exception as e:
+        errors.append(str(e))
     
     return {
         "performed": True,

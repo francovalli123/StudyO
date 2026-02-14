@@ -4,9 +4,8 @@ Deep Work Challenge Evaluator
 Challenge: 2 sessions >= 50 min per day for 4 days
 """
 from typing import Tuple, Dict
-from datetime import datetime, time
 from apps.pomodoroSession.models import PomodoroSession
-from utils.datetime import get_user_tz, get_day_range
+from utils.datetime import get_day_range, to_user_local_dt
 from .base import BaseEvaluator
 
 
@@ -20,30 +19,24 @@ class DeepWorkEvaluator(BaseEvaluator):
         Returns:
             Tuple of (qualified_days, 4, is_completed)
         """
-        tz = get_user_tz(self.user)
-        qualified_days = 0
+        start_dt, _ = get_day_range(self.user, self.week_start)
+        _, end_dt = get_day_range(self.user, self.week_end)
 
-        # Iterate through each day of the week
-        current_date = self.week_start
-        while current_date <= self.week_end:
-            # Get all pomodoro sessions for this day
-            start_dt, end_dt = get_day_range(self.user, current_date)
+        # Single query for the whole week; group per local day in Python.
+        sessions = PomodoroSession.objects.filter(
+            user=self.user,
+            start_time__gte=start_dt,
+            start_time__lte=end_dt
+        ).only("start_time", "duration")
 
-            sessions = PomodoroSession.objects.filter(
-                user=self.user,
-                start_time__gte=start_dt,
-                start_time__lte=end_dt
-            ).values_list('duration', flat=True)
+        per_day_long_sessions = {}
+        for session in sessions:
+            if session.duration < 50:
+                continue
+            local_day = to_user_local_dt(self.user, session.start_time).date()
+            per_day_long_sessions[local_day] = per_day_long_sessions.get(local_day, 0) + 1
 
-            # Count sessions with duration >= 50 minutes
-            long_sessions = sum(1 for duration in sessions if duration >= 50)
-
-            if long_sessions >= 2:
-                qualified_days += 1
-
-            # Move to next day
-            current_date = datetime.combine(current_date, time.min).astimezone(tz).date()
-            current_date = (datetime.combine(current_date, time.min) + __import__('datetime').timedelta(days=1)).date()
+        qualified_days = sum(1 for count in per_day_long_sessions.values() if count >= 2)
 
         target = 4.0
         is_completed = qualified_days >= target

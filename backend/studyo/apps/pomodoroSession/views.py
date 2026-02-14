@@ -14,23 +14,29 @@ class PomodoroSessionCreateView(ListCreateAPIView):
 
     def get_queryset(self):
         """Return pomodoro sessions for the authenticated user"""
-        return PomodoroSession.objects.filter(user=self.request.user)
+        return (
+            PomodoroSession.objects
+            .filter(user=self.request.user)
+            .select_related("subject")
+            .only(
+                "id", "user_id", "subject_id", "start_time", "end_time", "duration", "notes",
+                "subject__id", "subject__name",
+            )
+            .order_by("-start_time")
+        )
 
     def perform_create(self, serializer):
         """Save pomodoro and evaluate weekly challenge"""
-        # Wrap all writes (session creation + weekly challenge evaluation) in a
-        # single atomic transaction. This enforces idempotency under double
-        # POSTs and reduces SQLite "database is locked" errors by keeping a
-        # single write lock for the entire flow.
         with transaction.atomic():
             pomodoro = serializer.save(user=self.request.user)
 
-            # Only evaluate weekly challenges for newly created sessions.
-            # Serializer sets `_created` when the unique constraint returns an
-            # existing session, so we skip duplicate increments.
-            created = getattr(pomodoro, '_created', True)
+            # Run challenge evaluation after commit to keep the transaction
+            # short and reduce lock time on write-heavy endpoints.
+            created = getattr(pomodoro, "_created", True)
             if created:
-                evaluate_weekly_challenge_for_pomodoro(self.request.user, pomodoro)
+                transaction.on_commit(
+                    lambda: evaluate_weekly_challenge_for_pomodoro(self.request.user, pomodoro)
+                )
 
 
 class PomodoroSessionDetailView(RetrieveUpdateDestroyAPIView):
@@ -40,5 +46,13 @@ class PomodoroSessionDetailView(RetrieveUpdateDestroyAPIView):
 
     def get_queryset(self):
         """Return pomodoro sessions for the authenticated user"""
-        return PomodoroSession.objects.filter(user=self.request.user)
+        return (
+            PomodoroSession.objects
+            .filter(user=self.request.user)
+            .select_related("subject")
+            .only(
+                "id", "user_id", "subject_id", "start_time", "end_time", "duration", "notes",
+                "subject__id", "subject__name",
+            )
+        )
     

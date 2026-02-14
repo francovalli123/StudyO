@@ -6,6 +6,7 @@ This module provides:
 - Core functions for creating and evaluating weekly challenges
 """
 import random
+from django.db import IntegrityError
 from datetime import datetime, timedelta, date
 from django.db import transaction
 from django.utils import timezone
@@ -138,7 +139,7 @@ def create_weekly_challenge_if_needed(user: User, reference_dt: datetime) -> Wee
         user=user,
         week_start=week_start,
         week_end=week_end
-    ).select_for_update().first()
+    ).first()
 
     if existing_challenge:
         return existing_challenge
@@ -149,18 +150,20 @@ def create_weekly_challenge_if_needed(user: User, reference_dt: datetime) -> Wee
     # Create the evaluator to get metadata
     evaluator = get_evaluator_for_type(challenge_type, user, week_start, week_end)
     current_value, target_value, is_completed = evaluator.evaluate()
-    metadata = evaluator.get_metadata()
-
-    # Create the challenge
-    challenge = WeeklyChallenge.objects.create(
-        user=user,
-        challenge_type=challenge_type,
-        week_start=week_start,
-        week_end=week_end,
-        current_value=current_value,
-        target_value=target_value,
-        status=WeeklyChallengeStatus.COMPLETED if is_completed else WeeklyChallengeStatus.ACTIVE
-    )
+    try:
+        # Create the challenge
+        challenge = WeeklyChallenge.objects.create(
+            user=user,
+            challenge_type=challenge_type,
+            week_start=week_start,
+            week_end=week_end,
+            current_value=current_value,
+            target_value=target_value,
+            status=WeeklyChallengeStatus.COMPLETED if is_completed else WeeklyChallengeStatus.ACTIVE
+        )
+    except IntegrityError:
+        # Another concurrent request created the same (user, week_start) row.
+        challenge = WeeklyChallenge.objects.get(user=user, week_start=week_start)
 
     return challenge
 
@@ -189,7 +192,7 @@ def evaluate_weekly_challenge(user: User, reference_dt: datetime) -> Optional[We
         user=user,
         week_start=week_start,
         week_end=week_end
-    ).select_for_update().first()
+    ).first()
 
     if not challenge:
         return None
@@ -205,13 +208,19 @@ def evaluate_weekly_challenge(user: User, reference_dt: datetime) -> Optional[We
     # Evaluate
     current_value, target_value, is_completed = evaluator.evaluate()
 
-    # Update challenge
-    challenge.current_value = current_value
-    challenge.target_value = target_value
-
+    # Update only changed fields to avoid unnecessary writes.
+    updated_fields = []
+    if challenge.current_value != current_value:
+        challenge.current_value = current_value
+        updated_fields.append("current_value")
+    if challenge.target_value != target_value:
+        challenge.target_value = target_value
+        updated_fields.append("target_value")
     if is_completed and challenge.status != WeeklyChallengeStatus.COMPLETED:
         challenge.status = WeeklyChallengeStatus.COMPLETED
+        updated_fields.append("status")
 
-    challenge.save()
+    if updated_fields:
+        challenge.save(update_fields=updated_fields)
 
     return challenge

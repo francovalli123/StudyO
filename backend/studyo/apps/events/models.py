@@ -41,6 +41,10 @@ class Event(models.Model):
 
     class Meta:
         ordering = ['date', 'start_time']  # Ordenar por fecha y hora
+        indexes = [
+            models.Index(fields=["user", "date", "start_time"], name="events_user_date_time_idx"),
+            models.Index(fields=["user", "type"], name="events_user_type_idx"),
+        ]
 
     def __str__(self):
         return f"{self.title} - {self.date} ({self.get_type_display()})"

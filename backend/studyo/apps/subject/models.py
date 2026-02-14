@@ -31,3 +31,9 @@ class Subject (models.Model):
 
     def __str__(self):
         return self.name
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["user", "next_exam_date"], name="subject_user_exam_date_idx"),
+            models.Index(fields=["user", "priority"], name="subject_user_priority_idx"),
+        ]

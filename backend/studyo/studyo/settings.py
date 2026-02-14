@@ -48,6 +48,8 @@ if not EMAIL_HOST or not EMAIL_HOST_USER or not EMAIL_HOST_PASSWORD:
 
 SECRET_KEY = os.getenv("SECRET_KEY")
 DEBUG = os.getenv("DEBUG", "False") == "True"
+if os.getenv("RENDER", "").lower() == "true":
+    DEBUG = False
 
 ALLOWED_HOSTS = [
     "studyo.onrender.com",
@@ -137,11 +139,14 @@ load_dotenv()
 DATABASES = {
     "default": dj_database_url.config(
         default=os.getenv("DATABASE_URL"),
-        conn_max_age=600,
+        conn_max_age=int(os.getenv("DB_CONN_MAX_AGE", 120)),
         ssl_require= True
     )    
     
 }
+DATABASES["default"]["CONN_HEALTH_CHECKS"] = True
+DATABASES["default"].setdefault("OPTIONS", {})
+DATABASES["default"]["OPTIONS"].setdefault("connect_timeout", int(os.getenv("DB_CONNECT_TIMEOUT", 10)))
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators

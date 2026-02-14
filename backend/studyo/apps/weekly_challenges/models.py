@@ -60,6 +60,10 @@ class WeeklyChallenge(models.Model):
     class Meta:
         unique_together = ('user', 'week_start')
         ordering = ['-week_start']
+        indexes = [
+            models.Index(fields=["user", "week_start", "week_end"], name="wch_user_week_range_idx"),
+            models.Index(fields=["user", "status", "week_end"], name="wch_user_status_week_end_idx"),
+        ]
 
     def __str__(self):
         return f"{self.user} - {self.challenge_type} ({self.week_start})"

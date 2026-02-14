@@ -23,6 +23,10 @@ class PomodoroSession(models.Model):
                 name='unique_pomodoro_session_per_user_time_window',
             )
         ]
+        indexes = [
+            models.Index(fields=["user", "start_time"], name="pomodoro_user_start_time_idx"),
+            models.Index(fields=["user", "subject", "start_time"], name="pom_user_subj_start_idx"),
+        ]
 
     def __str__(self):
         return f"Pomodoro de {self.user.username} desde {self.start_time} hasta {self.end_time}" # Para debuggear

@@ -25,16 +25,14 @@ class SubjectFocusEvaluator(BaseEvaluator):
         _, end_dt = get_day_range(self.user, self.week_end)
 
         # Get count of pomodoros per subject
-        subject_counts = PomodoroSession.objects.filter(
+        top_subject = PomodoroSession.objects.filter(
             user=self.user,
             start_time__gte=start_dt,
             start_time__lte=end_dt,
             subject__isnull=False
-        ).values('subject').annotate(count=Count('id')).order_by('-count')
+        ).values('subject').annotate(count=Count('id')).order_by('-count').first()
 
-        max_pomodoros = 0
-        if subject_counts.exists():
-            max_pomodoros = subject_counts.first()['count']
+        max_pomodoros = top_subject["count"] if top_subject else 0
 
         target = 10.0
         is_completed = max_pomodoros >= target

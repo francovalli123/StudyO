@@ -43,6 +43,22 @@ class WeeklyChallengeSerializer(serializers.ModelSerializer):
             'status'
         )
 
+    def _metadata(self, obj):
+        cache = getattr(self, "_metadata_cache", None)
+        if cache is None:
+            cache = {}
+            self._metadata_cache = cache
+        key = (obj.challenge_type, obj.user_id, obj.week_start, obj.week_end)
+        if key not in cache:
+            evaluator = get_evaluator_for_type(
+                obj.challenge_type,
+                obj.user,
+                obj.week_start,
+                obj.week_end
+            )
+            cache[key] = evaluator.get_metadata()
+        return cache[key]
+
     def get_progress_percentage(self, obj):
         """
         Calculate progress as percentage (0-100).
@@ -58,20 +74,8 @@ class WeeklyChallengeSerializer(serializers.ModelSerializer):
 
     def get_title(self, obj):
         """Get title from evaluator"""
-        evaluator = get_evaluator_for_type(
-            obj.challenge_type,
-            obj.user,
-            obj.week_start,
-            obj.week_end
-        )
-        return evaluator.get_metadata()['title']
+        return self._metadata(obj)['title']
 
     def get_description(self, obj):
         """Get description from evaluator"""
-        evaluator = get_evaluator_for_type(
-            obj.challenge_type,
-            obj.user,
-            obj.week_start,
-            obj.week_end
-        )
-        return evaluator.get_metadata()['description']
+        return self._metadata(obj)['description']
