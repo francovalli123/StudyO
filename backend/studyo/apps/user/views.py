@@ -163,6 +163,14 @@ class CurrentUserView(APIView):
             terminal_steps = {User.OnboardingStep.DONE, User.OnboardingStep.SKIPPED}
 
             requested_step = request.data.get('onboarding_step', current_step)
+            completed_value = None
+            if 'onboarding_completed' in request.data:
+                completed = request.data.get('onboarding_completed')
+                if isinstance(completed, str):
+                    completed_value = completed.strip().lower() in ('1', 'true', 'yes', 'on')
+                else:
+                    completed_value = bool(completed)
+
             if requested_step not in {choice[0] for choice in User.OnboardingStep.choices}:
                 return Response({'detail': 'Invalid onboarding_step.'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -174,28 +182,26 @@ class CurrentUserView(APIView):
                 user.onboarding_step = User.OnboardingStep.SKIPPED
                 fields_updated = True
             elif requested_step != current_step:
-                if requested_step == User.OnboardingStep.DONE:
+                allow_direct_done = requested_step == User.OnboardingStep.DONE and (
+                    completed_value is True or user.onboarding_completed
+                )
+                if requested_step == User.OnboardingStep.DONE and not allow_direct_done:
                     return Response({'detail': 'Direct transition to DONE is not allowed.'}, status=status.HTTP_400_BAD_REQUEST)
 
-                try:
-                    current_index = transition_order.index(current_step)
-                    requested_index = transition_order.index(requested_step)
-                except ValueError:
-                    return Response({'detail': 'Invalid onboarding transition.'}, status=status.HTTP_400_BAD_REQUEST)
+                if not allow_direct_done:
+                    try:
+                        current_index = transition_order.index(current_step)
+                        requested_index = transition_order.index(requested_step)
+                    except ValueError:
+                        return Response({'detail': 'Invalid onboarding transition.'}, status=status.HTTP_400_BAD_REQUEST)
 
-                if requested_index != current_index + 1:
-                    return Response({'detail': 'Invalid onboarding step transition.'}, status=status.HTTP_400_BAD_REQUEST)
+                    if requested_index != current_index + 1:
+                        return Response({'detail': 'Invalid onboarding step transition.'}, status=status.HTTP_400_BAD_REQUEST)
 
                 user.onboarding_step = requested_step
                 fields_updated = True
 
-            if 'onboarding_completed' in request.data:
-                completed = request.data.get('onboarding_completed')
-                if isinstance(completed, str):
-                    completed_value = completed.strip().lower() in ('1', 'true', 'yes', 'on')
-                else:
-                    completed_value = bool(completed)
-
+            if completed_value is not None:
                 if completed_value is False and user.onboarding_completed:
                     return Response({'detail': 'onboarding_completed cannot be reverted.'}, status=status.HTTP_400_BAD_REQUEST)
 
