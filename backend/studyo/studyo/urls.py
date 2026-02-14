@@ -26,6 +26,7 @@ from apps.subject.views import *
 from apps.routine.views import *
 from apps.pomodoroSession.views import *
 from apps.events.views import *
+from django.http import HttpResponse
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -53,7 +54,7 @@ urlpatterns = [
     path('api/events/', EventListCreateView.as_view(), name='event_list_create'),
     path('api/events/<int:pk>/', EventDetailView.as_view(), name='event_detail'),
     path('api/weekly-challenge/active/', ActiveWeeklyChallengeView.as_view(), name='active_weekly_challenge'),
-
+    path('health/', lambda r: HttpResponse("OK")),
 ]
 
 # Serve user uploaded media files during development
