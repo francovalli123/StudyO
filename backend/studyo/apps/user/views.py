@@ -236,6 +236,35 @@ class CurrentUserView(APIView):
         return self.patch(request)
 
 
+class CurrentUserAvatarView(APIView):
+    permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
+
+    def post(self, request):
+        user = request.user
+
+        if 'avatar' in request.FILES:
+            user.avatar = request.FILES['avatar']
+            user.save(update_fields=['avatar', 'updated_at'])
+            serializer = UserSerializer(user, context={'request': request})
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        avatar_data = request.data.get('avatar')
+        if avatar_data and isinstance(avatar_data, str) and avatar_data.startswith('data:'):
+            try:
+                header, encoded = avatar_data.split(',', 1)
+                file_ext = header.split('/')[1].split(';')[0]
+                decoded = base64.b64decode(encoded)
+                fname = f"avatar_{user.id}.{file_ext}"
+                user.avatar.save(fname, ContentFile(decoded), save=True)
+                serializer = UserSerializer(user, context={'request': request})
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            except Exception:
+                return Response({'detail': 'Invalid avatar data'}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response({'detail': 'No avatar file provided.'}, status=status.HTTP_400_BAD_REQUEST)
+
+
 # ============================
 # Logout
 # ============================
