@@ -1,6 +1,7 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
+from django.conf import settings
 
 # Crea un serializer basado en modelo (User) para convertir datos JSON <-> objetos Python, y aplicar validaciones automáticas
 
@@ -35,6 +36,7 @@ class RegisterSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     """Serializer para obtener información del usuario (sin contraseña)"""
     avatar = serializers.ImageField(read_only=True)
+    avatar_url = serializers.SerializerMethodField()
     preferences = serializers.SerializerMethodField()
     language = serializers.CharField(read_only=True)
     timezone = serializers.CharField(read_only=True)
@@ -46,10 +48,20 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = [
-            "id", "username", "email", "first_name", "last_name", "avatar", "preferences",
+            "id", "username", "email", "first_name", "last_name", "avatar", "avatar_url", "preferences",
             "language", "timezone", "country", "onboarding_step", "onboarding_completed", "subjects_count"
         ]
         read_only_fields = ["id", "username"]
+
+    def get_avatar_url(self, obj):
+        if not getattr(obj, "avatar", None):
+            return None
+        url = obj.avatar.url
+        request = self.context.get("request")
+        if request is not None:
+            return request.build_absolute_uri(url)
+        site_url = getattr(settings, "SITE_URL", "").rstrip("/")
+        return f"{site_url}{url}" if site_url else url
 
     def get_preferences(self, obj):
         # Return stored notification/preferences JSON under a single key to be compatible with frontend
