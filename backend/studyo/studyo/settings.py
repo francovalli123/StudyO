@@ -18,8 +18,8 @@ import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Leer .env como única fuente de verdad
-env = dotenv_values(BASE_DIR / ".env")
+# Carga las variables del .env a las variables de entorno del sistema (solo si el archivo existe)
+load_dotenv(BASE_DIR / ".env")
 
 # ======================
 # EMAIL CONFIG (SMTP)
@@ -27,13 +27,15 @@ env = dotenv_values(BASE_DIR / ".env")
 
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 
-EMAIL_HOST = env.get("EMAIL_HOST")
-EMAIL_PORT = int(env.get("EMAIL_PORT", 587))
-EMAIL_HOST_USER = env.get("EMAIL_HOST_USER")
-EMAIL_HOST_PASSWORD = env.get("EMAIL_HOST_PASSWORD")
-EMAIL_USE_TLS = env.get("EMAIL_USE_TLS", "True") == "True"
+# Usamos os.getenv() que lee tanto del sistema (Render) como del .env (Local)
+EMAIL_HOST = os.getenv("EMAIL_HOST")
+EMAIL_PORT = int(os.getenv("EMAIL_PORT", 587))
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
+EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "True") == "True"
+DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "StudyO <covexarg@gmail.com>")
 
-DEFAULT_FROM_EMAIL = env.get(
+DEFAULT_FROM_EMAIL = os.getenv(
     "DEFAULT_FROM_EMAIL",
     EMAIL_HOST_USER
 )
