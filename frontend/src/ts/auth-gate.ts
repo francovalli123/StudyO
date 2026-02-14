@@ -45,9 +45,9 @@ const AUTH_RETRY_DELAY_MS = 1200;
 function getAuthCheckingText(): string {
     const lang = localStorage.getItem("appLanguage");
     if (lang === "en") return "Checking session...";
-    if (lang === "pt") return "Verificando sessão...";
+    if (lang === "pt") return "Verificando sessio...";
     if (lang === "zh") return "Checking session...";
-    return "Verificando sesión...";
+    return "Verificando sesiÃ³n...";
 }
 
 function withTimeout<T>(promise: Promise<T>, timeoutMs: number, timeoutMessage: string): Promise<T> {

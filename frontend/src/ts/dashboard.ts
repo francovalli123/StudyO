@@ -2207,8 +2207,8 @@ if (document.readyState === 'loading') {
                 });
             } else {
                 showOnboardingOverlay({
-                    title: 'Paso 4: IniciÃ¡ tu primera sesiÃ³n',
-                    body: 'Â¡Todo listo! PresionÃ¡ "Empezar ahora" para terminar el onboarding y continuar libremente.',
+                    title: 'Paso 4: Iniciá tu primera sesión.',
+                    body: '¡Todo listo! Presioná "Empezar ahora" para terminar el onboarding y continuar libremente.',
                     primaryText: 'Empezar ahora',
                     lockClose: true,
                     onPrimary: async () => {
