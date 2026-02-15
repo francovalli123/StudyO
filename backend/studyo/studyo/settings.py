@@ -22,26 +22,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / ".env")
 
 # ======================
-# EMAIL CONFIG (SMTP)
+# EMAIL CONFIG (SendGrid)
 # ======================
-
-EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-
-# Usamos os.getenv() que lee tanto del sistema (Render) como del .env (Local)
-EMAIL_HOST = os.getenv("EMAIL_HOST")
-EMAIL_PORT = int(os.getenv("EMAIL_PORT", 587))
-EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
-EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
-EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "True") == "True"
-DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "StudyO <covexarg@gmail.com>")
-
-DEFAULT_FROM_EMAIL = os.getenv(
-    "DEFAULT_FROM_EMAIL",
-    EMAIL_HOST_USER
-)
-
-if not EMAIL_HOST or not EMAIL_HOST_USER or not EMAIL_HOST_PASSWORD:
-    raise RuntimeError("SMTP config missing in .env")
+EMAIL_BACKEND = "sendgrid_backend.SendgridBackend"
+SENDGRID_API_KEY = os.environ.get("SENDGRID_API_KEY")
+DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "covexarg@gmail.com")
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
@@ -215,7 +200,6 @@ CSRF_TRUSTED_ORIGINS = [
 ]
 # Site and email defaults
 SITE_NAME = 'StudyO'
-DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 FRONTEND_URL = os.environ.get('FRONTEND_URL', 'https://study-o.vercel.app')
 SITE_URL = os.environ.get('SITE_URL', 'https://studyo.onrender.com')
 

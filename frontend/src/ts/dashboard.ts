@@ -1247,15 +1247,23 @@ async function loadWeeklyStudyRhythm() {
             }
             
             const svg = chartContainer as unknown as SVGElement;
-            const width = 450;
+            const svgElement = chartContainer as unknown as HTMLElement;
+            const viewportWidth = Math.max(
+                220,
+                Math.floor(svgElement.clientWidth || chartParent.clientWidth || 450)
+            );
+            const horizontalPadding = 8; // Matches labels container `px-2`
+            const width = Math.max(1, viewportWidth - horizontalPadding * 2);
             const step = width / 6;
+            svg.setAttribute('viewBox', `0 0 ${viewportWidth} ${maxHeight}`);
+            svg.setAttribute('preserveAspectRatio', 'none');
             
             // Generate smooth curve path for line chart
             let pathD = '';
             const points: { x: number; y: number }[] = [];
             
             dataPoints.forEach((minutes, index) => {
-                const x = index * step;
+                const x = horizontalPadding + index * step;
                 const y = maxHeight - (minutes / maxMinutes) * maxHeight;
                 points.push({ x, y });
             });
@@ -2246,7 +2254,7 @@ if (document.readyState === 'loading') {
     function initPomodoroAudio() {
         if (pomodoroAudio) return;
 
-        pomodoroAudio = new Audio('public/sounds/pomodoroSound.mp3');
+        pomodoroAudio = new Audio('/sounds/pomodoroSound.mp3');
         pomodoroAudio.volume = 0.8;
 
         // Unlock audio via user gesture
