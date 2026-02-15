@@ -114,8 +114,11 @@ def should_perform_rollover(user, reference_dt=None):
     Returns: bool
     """
     week_info = get_week_boundaries_for_user(user, reference_dt)
+    history_week_start_date = week_info["week_start_date"] - timedelta(days=7)
+    history_week_end_date = week_info["week_end_date"] - timedelta(days=7)
     current_iso_year = week_info["iso_year"]
     current_iso_week = week_info["iso_week"]
+    current_week_start_utc = week_info["week_start_utc"]
     
     # Obtener última semana guardada (considerando ISO_YEAR + ISO_WEEK)
     last_iso_year, last_iso_week = get_last_saved_week(user)
@@ -125,13 +128,20 @@ def should_perform_rollover(user, reference_dt=None):
         has_active = WeeklyObjective.objects.filter(
             user=user,
             is_active=True,
-            archived_at__isnull=True
+            archived_at__isnull=True,
+            created_at__lt=current_week_start_utc,
         ).exists()
         return has_active
     
     # Si la semana cambió (comparar ISO_YEAR + ISO_WEEK), ejecutar rollover
     if (current_iso_year, current_iso_week) != (last_iso_year, last_iso_week):
-        return True
+        has_active = WeeklyObjective.objects.filter(
+            user=user,
+            is_active=True,
+            archived_at__isnull=True,
+            created_at__lt=current_week_start_utc,
+        ).exists()
+        return has_active
     
     return False
 
@@ -184,15 +194,16 @@ def perform_weekly_rollover(user, reference_dt=None):
     active_objectives_qs = WeeklyObjective.objects.filter(
         user=user,
         is_active=True,
-        archived_at__isnull=True
+        archived_at__isnull=True,
+        created_at__lt=week_info["week_start_utc"],
     )
     
     # PROTECCIÓN 2: Verificar que no exista historial para esta semana ISO
     # (triple-check para edge cases de fin de año con múltiples timezones)
     existing_history_for_week = WeeklyObjectiveHistory.objects.filter(
         user=user,
-        week_start_date=week_info["week_start_date"],
-        week_end_date=week_info["week_end_date"]
+        week_start_date=history_week_start_date,
+        week_end_date=history_week_end_date
     ).exists()
     
     if existing_history_for_week and not active_objectives_qs.exists():
@@ -224,8 +235,8 @@ def perform_weekly_rollover(user, reference_dt=None):
                     area=objective.area or "General",
                     priority=objective.priority,
                     is_completed=objective.is_completed,
-                    week_start_date=week_info["week_start_date"],
-                    week_end_date=week_info["week_end_date"],
+                    week_start_date=history_week_start_date,
+                    week_end_date=history_week_end_date,
                     created_at=objective.created_at,
                     completed_at=now if objective.is_completed else None,
                 )
@@ -245,8 +256,8 @@ def perform_weekly_rollover(user, reference_dt=None):
         "performed": True,
         "archived_count": archived_count,
         "errors": errors if errors else None,
-        "week_start": week_info["week_start_date"].isoformat(),
-        "week_end": week_info["week_end_date"].isoformat(),
+        "week_start": history_week_start_date.isoformat(),
+        "week_end": history_week_end_date.isoformat(),
     }
 
 
