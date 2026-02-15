@@ -304,6 +304,8 @@ class PasswordResetRequestView(APIView):
         email = (request.data.get("email") or "").strip().lower()
         if email:
             user = User.objects.filter(email__iexact=email).first()
+            if not user:
+                logger.info("Password reset requested for non-existing email=%s", email)
             if user:
                 PasswordResetToken.objects.filter(user=user, used_at__isnull=True).update(used_at=timezone.now())
                 reset_token, raw_token = PasswordResetToken.issue_for_user(user)
@@ -313,7 +315,7 @@ class PasswordResetRequestView(APIView):
                 reset_link = f"{FRONTEND_URL}/reset-password.html?{query}"
 
                 try:
-                    send_mail(
+                    sent_count = send_mail(
                         subject="StudyO - Recuperación de contraseña",
                         message=(
                             f"Hola {user.username},\n\n"
@@ -325,7 +327,7 @@ class PasswordResetRequestView(APIView):
                         recipient_list=[user.email],
                         fail_silently=False,
                     )
-                    logger.info("Password reset email sent to user_id=%s", user.id)
+                    logger.info("Password reset send_mail result=%s user_id=%s", sent_count, user.id)
                 except Exception:
                     logger.exception("Password reset email failed for user_id=%s", user.id)
 

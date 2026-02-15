@@ -1211,7 +1211,6 @@ async function loadWeeklyStudyRhythm() {
         
         // Find maximum value for scaling
         const maxMinutes = Math.max(...dataPoints, 1);
-        const maxHeight = 120; // Maximum chart height in pixels
         
         // Update chart SVG
         const chartContainer = document.getElementById('weekly-rhythm-chart');
@@ -1252,11 +1251,18 @@ async function loadWeeklyStudyRhythm() {
                 220,
                 Math.floor(svgElement.clientWidth || chartParent.clientWidth || 450)
             );
+            const viewportHeight = Math.max(
+                120,
+                Math.floor(svgElement.clientHeight || 160)
+            );
             const horizontalPadding = 8; // Matches labels container `px-2`
+            const topPadding = 8;
+            const bottomPadding = 28; // Keep line above X-axis labels
             const width = Math.max(1, viewportWidth - horizontalPadding * 2);
             const step = width / 6;
-            svg.setAttribute('viewBox', `0 0 ${viewportWidth} ${maxHeight}`);
-            svg.setAttribute('preserveAspectRatio', 'none');
+            const plotHeight = Math.max(40, viewportHeight - topPadding - bottomPadding);
+            svg.setAttribute('viewBox', `0 0 ${viewportWidth} ${viewportHeight}`);
+            svg.removeAttribute('preserveAspectRatio');
             
             // Generate smooth curve path for line chart
             let pathD = '';
@@ -1264,7 +1270,8 @@ async function loadWeeklyStudyRhythm() {
             
             dataPoints.forEach((minutes, index) => {
                 const x = horizontalPadding + index * step;
-                const y = maxHeight - (minutes / maxMinutes) * maxHeight;
+                const normalized = minutes / maxMinutes;
+                const y = topPadding + (1 - normalized) * plotHeight;
                 points.push({ x, y });
             });
             

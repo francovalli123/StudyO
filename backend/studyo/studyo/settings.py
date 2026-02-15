@@ -27,6 +27,7 @@ load_dotenv(BASE_DIR / ".env")
 EMAIL_BACKEND = "sendgrid_backend.SendgridBackend"
 SENDGRID_API_KEY = os.environ.get("SENDGRID_API_KEY")
 DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "covexarg@gmail.com")
+SENDGRID_ECHO_TO_STDOUT = True
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
@@ -35,6 +36,8 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 DEBUG = os.getenv("DEBUG", "False") == "True"
 if os.getenv("RENDER", "").lower() == "true":
     DEBUG = False
+if os.getenv("RENDER", "").lower() == "true" and not SENDGRID_API_KEY:
+    raise RuntimeError("SENDGRID_API_KEY is missing in environment variables.")
 
 ALLOWED_HOSTS = [
     "studyo.onrender.com",
