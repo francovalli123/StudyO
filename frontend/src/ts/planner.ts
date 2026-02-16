@@ -218,15 +218,22 @@ function renderWeeklySchedule() {
     
     // Clear schedule
     weeklySchedule.innerHTML = '';
+    const timeLabelColumnWidth = window.innerWidth < 768 ? 44 : 52;
+    const gridTemplate = `${timeLabelColumnWidth}px repeat(7, minmax(0, 1fr))`;
+    const weeklyScheduleHeader = document.getElementById('weeklyScheduleHeader') as HTMLElement | null;
+    if (weeklyScheduleHeader) {
+        weeklyScheduleHeader.style.gridTemplateColumns = gridTemplate;
+    }
     
     // Create time slots (00:00 to 23:00)
     for (let hour = 0; hour < 24; hour++) {
         const timeRow = document.createElement('div');
-        timeRow.className = 'grid grid-cols-8 gap-2';
+        timeRow.className = 'grid gap-2';
+        timeRow.style.gridTemplateColumns = gridTemplate;
         
         // Time label (first column) - fixed width
         const timeLabel = document.createElement('div');
-        timeLabel.className = 'text-xs text-gray-500 text-right pr-2 flex items-center justify-end h-12';
+        timeLabel.className = 'text-xs text-gray-500 text-right pr-2 flex items-center justify-end h-12 whitespace-nowrap tabular-nums';
         timeLabel.textContent = `${String(hour).padStart(2, '0')}:00`;
         timeRow.appendChild(timeLabel);
         
@@ -474,6 +481,7 @@ function openEventModal(date?: Date, hour?: number) {
     }
     
     modal.style.display = 'flex';
+    document.body.classList.add('has-open-modal');
     if (typeof lucide !== 'undefined') {
         lucide.createIcons();
         // Remove shadows from all icons in modal after they're created
@@ -521,6 +529,7 @@ function closeEventModal() {
     const modal = document.getElementById('eventModal') as HTMLElement;
     if (modal) {
         modal.style.display = 'none';
+        document.body.classList.remove('has-open-modal');
         const form = document.getElementById('eventForm') as HTMLFormElement;
         if (form) form.reset();
         currentEditingEvent = null;
@@ -566,6 +575,7 @@ function editEvent(eventId: number) {
     }
     
     modal.style.display = 'flex';
+    document.body.classList.add('has-open-modal');
     if (typeof lucide !== 'undefined') {
         lucide.createIcons();
         // Remove shadows from all icons in modal after they're created
