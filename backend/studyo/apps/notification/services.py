@@ -70,7 +70,7 @@ def send_notification_email(user, notification_type, subject, template_name, con
         context.update({
             'user': user,
             'site_name': getattr(settings, 'SITE_NAME', 'StudyO'),
-            'site_url': getattr(settings, 'SITE_URL', 'https://studyo.onrender.com'),
+            'site_url': getattr(settings, 'SITE_URL', 'https://study-o.vercel.app'),
         })
         
         # Renderizar template
