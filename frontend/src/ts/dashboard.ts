@@ -2059,6 +2059,7 @@ if (document.readyState === 'loading') {
 
     // Timer state variables
     let timerInterval: number | null = null;
+    let isFinishingTimer = false;
     let remainingSeconds = settings.workMinutes * 60;
     let currentStage: Stage = 'work';
     let isRunning = false;
@@ -2456,7 +2457,7 @@ if (document.readyState === 'loading') {
         }
         
         if (remainingSeconds <= 0) {
-            finishTimer();
+            void finishTimer();
         }
     }
     
@@ -2464,6 +2465,10 @@ if (document.readyState === 'loading') {
      * Handle timer completion
      */
     async function finishTimer() {
+        if (isFinishingTimer) return;
+        isFinishingTimer = true;
+
+        try {
         playBeep();
 
         if (document.visibilityState !== 'visible') {
@@ -2507,12 +2512,12 @@ if (document.readyState === 'loading') {
 
         timerInterval = window.setInterval(() => {
             syncTimer();
-            if (remainingSeconds > 0) remainingSeconds -= 1;
-            if (remainingSeconds <= 0) finishTimer();
-            updateDisplay();
         }, 1000);
 
         updateDisplay();
+        } finally {
+            isFinishingTimer = false;
+        }
     }
 
     /**
@@ -2573,9 +2578,6 @@ if (document.readyState === 'loading') {
         
         timerInterval = window.setInterval(() => {
             syncTimer();
-            if (remainingSeconds > 0) remainingSeconds -= 1;
-            if (remainingSeconds <= 0) finishTimer();
-            updateDisplay();
         }, 1000);
     }
 
