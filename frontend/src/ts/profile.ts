@@ -1,4 +1,5 @@
 import { getCurrentUser, updateCurrentUser, uploadUserAvatar, logout } from "./api.js";
+import { API_URL } from "./config.js";
 import { getCurrentLanguage, setCurrentLanguage, applyTranslations, t, getTranslations, type Language } from "./i18n.js";
 import { showConfirmModal, showAlertModal, initConfirmModal } from "./confirmModal.js";
 
@@ -60,6 +61,20 @@ function refreshLanguageSelectOptions(select: HTMLSelectElement | null) {
     select.blur();
 }
 
+function resolveAvatarUrl(rawUrl?: string | null): string | null {
+    if (!rawUrl) return null;
+    const url = String(rawUrl).trim();
+    if (!url) return null;
+
+    if (url.startsWith("//")) return `${window.location.protocol}${url}`;
+    if (url.startsWith("/")) return `${API_URL}${url}`;
+    if (url.startsWith("http://") && window.location.protocol === "https:") {
+        return url.replace("http://", "https://");
+    }
+    if (!/^https?:\/\//i.test(url)) return `${API_URL}/${url.replace(/^\/+/, "")}`;
+    return url;
+}
+
 async function init() {
     // Initialize confirmation modal
     initConfirmModal();
@@ -117,7 +132,9 @@ async function init() {
         nameInput.value = (user.first_name || user.username || '') as string;
         emailInput.value = user.email || '';
         // Try common avatar fields
-        const possibleAvatar = (user.avatar || user.photo || user.avatar_url || user.profile_image) as string | undefined;
+        const possibleAvatar = resolveAvatarUrl(
+            (user.avatar_url || user.avatar || user.photo || user.profile_image) as string | undefined
+        );
         if (possibleAvatar) avatarImg.src = possibleAvatar;
         // Populate preference toggles if provided by API
         const prefs = (user as any).preferences || {};
@@ -157,7 +174,7 @@ async function init() {
         try {
             const res = await uploadUserAvatar(file);
             // If server returns new avatar url, update image
-            const newUrl = res?.avatar || res?.url || res?.avatar_url || res?.photo || res?.profile_image;
+            const newUrl = resolveAvatarUrl(res?.avatar_url || res?.avatar || res?.url || res?.photo || res?.profile_image);
             if (newUrl && avatarImg) avatarImg.src = newUrl;
             await clearMessage();
             // small non-blocking confirmation
