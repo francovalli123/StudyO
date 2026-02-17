@@ -70,6 +70,25 @@ INSTALLED_APPS = [
     'apps.events.apps.EventsConfig',
 ]
 
+USE_CLOUDINARY_MEDIA = bool(
+    os.getenv("CLOUDINARY_URL")
+    or (
+        os.getenv("CLOUDINARY_CLOUD_NAME")
+        and os.getenv("CLOUDINARY_API_KEY")
+        and os.getenv("CLOUDINARY_API_SECRET")
+    )
+)
+
+if USE_CLOUDINARY_MEDIA:
+    INSTALLED_APPS += [
+        "cloudinary",
+        "cloudinary_storage",
+    ]
+    DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
+    CLOUDINARY_STORAGE = {
+        "SECURE": True,
+    }
+
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
