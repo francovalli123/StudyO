@@ -21,6 +21,13 @@ class RegisterSerializer(serializers.ModelSerializer):
             "last_name",
             "country",
         )
+        extra_kwargs = {
+            "username": {
+                "error_messages": {
+                    "invalid": "El nombre de usuario solo puede tener letras, numeros y @/./+/-/_. No se permiten espacios ni caracteres especiales.",
+                }
+            }
+        }
 
     def validate(self, attrs):
         print("REGISTER VALIDATED DATA:", attrs)
