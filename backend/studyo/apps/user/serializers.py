@@ -1,6 +1,7 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
+from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.conf import settings
 
 # Crea un serializer basado en modelo (User) para convertir datos JSON <-> objetos Python, y aplicar validaciones automáticas
@@ -8,6 +9,7 @@ from django.conf import settings
 User = get_user_model()
 
 class RegisterSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(max_length=150)
     password = serializers.CharField(write_only=True)
     country = serializers.CharField(required=True)
 
@@ -21,13 +23,19 @@ class RegisterSerializer(serializers.ModelSerializer):
             "last_name",
             "country",
         )
-        extra_kwargs = {
-            "username": {
-                "error_messages": {
-                    "invalid": "El nombre de usuario solo puede tener letras, numeros y @/./+/-/_. No se permiten espacios ni caracteres especiales.",
-                }
-            }
-        }
+    def validate_username(self, value):
+        validator = UnicodeUsernameValidator(
+            message=(
+                "El nombre de usuario solo puede tener letras, numeros y @/./+/-/_. "
+                "No se permiten espacios ni caracteres especiales."
+            )
+        )
+        validator(value)
+
+        if User.objects.filter(username=value).exists():
+            raise serializers.ValidationError("Este nombre de usuario ya existe.")
+
+        return value
 
     def validate(self, attrs):
         print("REGISTER VALIDATED DATA:", attrs)

@@ -84,9 +84,17 @@ if USE_CLOUDINARY_MEDIA:
         "cloudinary",
         "cloudinary_storage",
     ]
-    DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
     CLOUDINARY_STORAGE = {
         "SECURE": True,
+    }
+    # Django 5+ uses STORAGES (DEFAULT_FILE_STORAGE is deprecated/removed).
+    STORAGES = {
+        "default": {
+            "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
+        },
+        "staticfiles": {
+            "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        },
     }
 
 MIDDLEWARE = [
