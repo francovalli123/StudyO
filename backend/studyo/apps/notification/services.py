@@ -11,6 +11,7 @@ Este módulo contiene la lógica centralizada para:
 
 import logging
 from datetime import datetime, timedelta
+from urllib.parse import urlparse
 import pytz
 from django.template.loader import render_to_string
 from django.core.mail import EmailMultiAlternatives
@@ -28,6 +29,33 @@ from apps.subject.models import Subject
 from utils.datetime import get_user_tz, to_user_local_dt, get_user_local_date
 
 logger = logging.getLogger(__name__)
+
+
+def _resolve_frontend_url():
+    """
+    Obtiene una URL segura para links de emails.
+
+    En producción, evita usar localhost aunque FRONTEND_URL esté mal configurado.
+    """
+    default_frontend_url = 'https://study-o.vercel.app'
+    configured_url = (getattr(settings, 'FRONTEND_URL', '') or '').strip()
+    candidate = configured_url or default_frontend_url
+
+    # Soporta FRONTEND_URL sin esquema (p.ej. "localhost:3000") para validar host correctamente.
+    parse_target = candidate if '://' in candidate else f'//{candidate}'
+    parsed = urlparse(parse_target)
+    host = (parsed.hostname or '').lower()
+    is_local_host = host in {'localhost', '127.0.0.1'} or host.endswith('.localhost')
+
+    if is_local_host and not getattr(settings, 'DEBUG', False):
+        logger.warning(
+            "[Notification] FRONTEND_URL points to localhost in production (%s). Falling back to %s",
+            candidate,
+            default_frontend_url,
+        )
+        candidate = default_frontend_url
+
+    return candidate.rstrip('/')
 
 
 def _normalize_hour(raw_hour, default=20):
@@ -70,7 +98,7 @@ def send_notification_email(user, notification_type, subject, template_name, con
         context.update({
             'user': user,
             'site_name': getattr(settings, 'SITE_NAME', 'StudyO'),
-            'site_url': getattr(settings, 'FRONTEND_URL', 'https://study-o.vercel.app'),
+            'site_url': _resolve_frontend_url(),
         })
         
         # Renderizar template

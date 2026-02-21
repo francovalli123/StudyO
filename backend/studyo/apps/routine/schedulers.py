@@ -49,7 +49,7 @@ def start():
     Se ejecuta automáticamente al iniciar la aplicación (via AppConfig.ready()).
     
     Tareas programadas (todas respetan el timezone del usuario):
-    1. Rollover semanal: cada lunes a las 00:00 UTC (sin conversión necesaria)
+    1. Rollover semanal: cada 5 minutos (evalúa lunes 00:00 por timezone del usuario)
     2. Recordatorios de hábitos clave: cada hora (verifica 20:00 en timezone local del usuario)
     3. Recordatorio de desafío semanal: cada hora (verifica domingo 12:00 en timezone local)
     4. Recordatorio de objetivos semanales: cada hora (verifica sábado 12:00 en timezone local)
@@ -83,18 +83,18 @@ def start():
     else:
         scheduler.add_jobstore(DjangoJobStore(), "default")
 
-    # ROLLOVER SEMANAL: Cada lunes a las 00:00 UTC
-    # Este job usa UTC porque el rollover es universal para todos los usuarios
+    # ROLLOVER SEMANAL: Cada 5 minutos
+    # El comando evalúa internamente cada usuario con su timezone e idempotencia.
     scheduler.add_job(
         clean_weekly_objectives,
-        trigger=CronTrigger(day_of_week="0", hour="0", minute="0"),  # Monday 00:00 UTC
+        trigger=CronTrigger(minute="*/5"),
         id="clean_weekly_objectives",
         max_instances=1,
         coalesce=True,
         replace_existing=True,
     )
     
-    logger.info("Added job 'clean_weekly_objectives' - Weekly rollover every Monday at 00:00 UTC")
+    logger.info("Added job 'clean_weekly_objectives' - Every 5 minutes (checks user-local week rollover)")
 
     # RECORDATORIOS DE HÁBITOS CLAVE: Cada hora
     # Dentro del job se verifica si es hora 20:00 en el timezone local de cada usuario

@@ -185,6 +185,8 @@ def perform_weekly_rollover(user, reference_dt=None):
         }
     
     week_info = get_week_boundaries_for_user(user, reference_dt)
+    history_week_start_date = week_info["week_start_date"] - timedelta(days=7)
+    history_week_end_date = week_info["week_end_date"] - timedelta(days=7)
     now = timezone.now()
     errors = []
     archived_count = 0

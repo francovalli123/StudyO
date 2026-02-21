@@ -9,7 +9,7 @@ Verifica:
 - Lógica de filtrado
 """
 
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from datetime import datetime, timedelta
@@ -23,6 +23,7 @@ from apps.notification.services import (
     send_weekly_summary,
     _normalize_hour,
     _is_in_minute_window,
+    _resolve_frontend_url,
 )
 from apps.habits.models import Habit
 from apps.habitRecord.models import HabitRecord
@@ -393,3 +394,15 @@ class NotificationTimeHelpersTests(TestCase):
 
         dt_out = datetime(2025, 1, 1, 20, 5, tzinfo=pytz.UTC)
         self.assertFalse(_is_in_minute_window(dt_out, 20, 0, 5))
+
+    @override_settings(DEBUG=False, FRONTEND_URL='http://localhost:3000')
+    def test_resolve_frontend_url_uses_public_url_in_production(self):
+        self.assertEqual(_resolve_frontend_url(), 'https://study-o.vercel.app')
+
+    @override_settings(DEBUG=False, FRONTEND_URL='localhost:3000')
+    def test_resolve_frontend_url_uses_public_url_in_production_without_scheme(self):
+        self.assertEqual(_resolve_frontend_url(), 'https://study-o.vercel.app')
+
+    @override_settings(DEBUG=True, FRONTEND_URL='http://localhost:3000/')
+    def test_resolve_frontend_url_keeps_localhost_in_debug(self):
+        self.assertEqual(_resolve_frontend_url(), 'http://localhost:3000')

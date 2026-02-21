@@ -856,6 +856,8 @@ async function loadWeeklyObjectivesStats() {
 
         // Update weekly history
         const historyEl = document.getElementById('weekly-objectives-history');
+        const paginationEl = document.getElementById('weekly-objectives-pagination');
+
         if (historyEl) {
             if (stats.weekly_stats.length === 0) {
                 historyEl.innerHTML = `
@@ -863,25 +865,25 @@ async function loadWeeklyObjectivesStats() {
                         ${trans.progress.emptyWeeklyObjectiveStats}
                     </div>
                 `;
+                if (paginationEl) paginationEl.innerHTML = '';
             } else {
-                historyEl.innerHTML = stats.weekly_stats.map(week => {
-                    // Formatear fechas según idioma del usuario (Lógica idéntica a Monthly Rhythm)
+                const pageSize = 5;
+                const totalPages = Math.ceil(stats.weekly_stats.length / pageSize);
+
+                const renderWeekCard = (week: WeeklyObjectivesStats['weekly_stats'][number]) => {
                     const dateStart = new Date(week.week_start);
                     const dateEnd = new Date(week.week_end);
-                    
                     const startLocal = dateStart.toLocaleDateString(currentLang, { day: 'numeric', month: 'short' });
                     const endLocal = dateEnd.toLocaleDateString(currentLang, { day: 'numeric', month: 'short' });
-
-                    // Capitalizar primera letra de cada fecha
                     const startLabel = startLocal.charAt(0).toUpperCase() + startLocal.slice(1);
                     const endLabel = endLocal.charAt(0).toUpperCase() + endLocal.slice(1);
 
                     return `
-                    <div class="flex justify-between items-center bg-dark-input rounded-lg p-3">
+                    <div class="flex justify-between items-center gap-3 bg-dark-input rounded-lg p-3">
                         <div class="text-sm text-gray-300">
                             ${startLabel} - ${endLabel}
                         </div>
-                        <div class="flex items-center gap-2">
+                        <div class="flex items-center gap-2 shrink-0">
                             <span class="text-xs text-gray-400">${week.completed}/${week.total}</span>
                             <div class="w-16 bg-gray-700 rounded-full h-2">
                                 <div class="bg-purple-500 h-2 rounded-full transition-all duration-300"
@@ -890,21 +892,74 @@ async function loadWeeklyObjectivesStats() {
                             <span class="text-xs font-medium text-purple-400">${week.completion_rate.toFixed(0)}%</span>
                         </div>
                     </div>
-                `}).join('');
+                `;
+                };
+
+                const renderPagination = (currentPage: number) => {
+                    if (!paginationEl) return;
+                    if (totalPages <= 1) {
+                        paginationEl.innerHTML = '';
+                        return;
+                    }
+
+                    const windowSize = 5;
+                    let startPage = Math.max(1, currentPage - 2);
+                    let endPage = Math.min(totalPages, startPage + windowSize - 1);
+                    startPage = Math.max(1, endPage - windowSize + 1);
+
+                    const pageNumbers: number[] = [];
+                    for (let p = startPage; p <= endPage; p++) pageNumbers.push(p);
+
+                    paginationEl.innerHTML = `
+                        <button type="button" data-page="${currentPage - 1}" ${currentPage === 1 ? 'disabled' : ''}
+                            class="w-9 h-9 sm:w-10 sm:h-10 rounded-full border border-gray-700 bg-dark-input text-gray-300 text-sm font-semibold disabled:opacity-40 disabled:cursor-not-allowed hover:border-purple-500/60 transition-colors">�</button>
+                        ${pageNumbers.map((p) => `
+                            <button type="button" data-page="${p}"
+                                class="w-9 h-9 sm:w-10 sm:h-10 rounded-full border text-sm font-semibold transition-all ${
+                                    p === currentPage
+                                        ? 'border-purple-400 bg-purple-600 text-white shadow-[0_0_12px_rgba(168,85,247,0.35)]'
+                                        : 'border-gray-700 bg-dark-input text-gray-300 hover:border-purple-500/60'
+                                }">${p}</button>
+                        `).join('')}
+                        <button type="button" data-page="${currentPage + 1}" ${currentPage === totalPages ? 'disabled' : ''}
+                            class="w-9 h-9 sm:w-10 sm:h-10 rounded-full border border-gray-700 bg-dark-input text-gray-300 text-sm font-semibold disabled:opacity-40 disabled:cursor-not-allowed hover:border-purple-500/60 transition-colors">�</button>
+                    `;
+
+                    paginationEl.querySelectorAll<HTMLButtonElement>('button[data-page]').forEach((btn) => {
+                        btn.addEventListener('click', () => {
+                            const nextPage = Number(btn.dataset.page || '1');
+                            if (Number.isNaN(nextPage) || nextPage < 1 || nextPage > totalPages || nextPage === currentPage) {
+                                return;
+                            }
+                            renderHistoryPage(nextPage);
+                        });
+                    });
+                };
+
+                const renderHistoryPage = (page: number) => {
+                    const currentPage = Math.min(Math.max(page, 1), totalPages);
+                    const startIndex = (currentPage - 1) * pageSize;
+                    const pageData = stats.weekly_stats.slice(startIndex, startIndex + pageSize);
+                    historyEl.innerHTML = pageData.map(renderWeekCard).join('');
+                    renderPagination(currentPage);
+                };
+
+                renderHistoryPage(1);
             }
         }
     } catch (error) {
         console.error("Error loading weekly objectives stats:", error);
         const historyEl = document.getElementById('weekly-objectives-history');
+        const paginationEl = document.getElementById('weekly-objectives-pagination');
         if (historyEl) {
-            // Error traducido dinámicamente
-            const errorMsg = 'Error al cargar estadísticas';
+            const errorMsg = 'Error al cargar estadisticas';
             historyEl.innerHTML = `
                 <div class="text-center text-gray-500 text-sm py-4">
                     ${errorMsg}: ${error}
                 </div>
             `;
         }
+        if (paginationEl) paginationEl.innerHTML = '';
     }
 }
 
@@ -979,4 +1034,5 @@ if (document.readyState === 'loading') {
 } else {
     loadProgress();
 }
+
 
