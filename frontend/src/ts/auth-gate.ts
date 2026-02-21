@@ -311,8 +311,9 @@ export async function initAuthGate(options?: { loginPath?: string }) {
     }
 }
 
-window.addEventListener("auth:expired", () => {
+window.addEventListener("auth:expired", (event: Event) => {
     const currentPath = window.location.pathname;
+    const authExpiredEvent = event as CustomEvent<{ suppressRedirect?: boolean }>;
 
     resolveState("unauthenticated", {
         isAuthenticated: false,
@@ -320,7 +321,10 @@ window.addEventListener("auth:expired", () => {
         user: null,
     });
 
-    redirectToLogin("/login", currentPath);
+    window.setTimeout(() => {
+        if (authExpiredEvent.detail?.suppressRedirect) return;
+        redirectToLogin("/login", currentPath);
+    }, 0);
 });
 
 

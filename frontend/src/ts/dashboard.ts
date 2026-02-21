@@ -1,5 +1,5 @@
 // Import API functions for making HTTP requests and token management
-import { apiGet, apiPost, apiDelete, apiPut, apiPatch, getToken, getEvents, getCurrentUser, BASE_URL } from "./api.js";
+import { ApiError, apiGet, apiPost, apiDelete, apiPut, apiPatch, getToken, getEvents, getCurrentUser, BASE_URL } from "./api.js";
 import type { Event } from "./api.js";
 import { initConfirmModal, showConfirmModal, showAlertModal } from "./confirmModal.js";
 import { t, getCurrentLanguage, setCurrentLanguage, applyTranslations } from "./i18n.js";
@@ -2072,6 +2072,10 @@ if (document.readyState === 'loading') {
     let sessionStart: Date | null = null; // When current work session started
     let defaultSubjectId: number | null = null; // Default subject for sessions
     let beforeUnloadHandler: ((e: BeforeUnloadEvent) => void) | null = null;
+    let isPostingPomodoroSession = false;
+    let authExpiredDuringPomodoroSave = false;
+    let authExpiryNoticeVisible = false;
+    const PENDING_POMODORO_SESSIONS_KEY = 'studyo_pending_pomodoro_sessions_v1';
     
     // Variables for handling timer when tab is in background
     let timerStartTime: number | null = null; // Timestamp when timer started
@@ -2097,6 +2101,130 @@ if (document.readyState === 'loading') {
             return null;
         }
     };
+
+    function clearBeforeUnloadPrompt() {
+        if (beforeUnloadHandler) {
+            window.removeEventListener('beforeunload', beforeUnloadHandler);
+            beforeUnloadHandler = null;
+        }
+    }
+
+    function isAuthSessionExpiredError(error: unknown): boolean {
+        if (error instanceof ApiError) {
+            return error.status === 401 || error.status === 403;
+        }
+        const status = (error as any)?.status ?? (error as any)?.response?.status;
+        if (status === 401 || status === 403) return true;
+        const msg = String((error as any)?.message || '').toLowerCase();
+        return msg.includes('not authenticated') || msg.includes('session expired');
+    }
+
+    function getPendingPomodoroSessionsStorageKey(authScope?: string | null): string {
+        const scope = authScope ?? getToken();
+        if (!scope) return `${PENDING_POMODORO_SESSIONS_KEY}:anonymous`;
+        return `${PENDING_POMODORO_SESSIONS_KEY}:${scope}`;
+    }
+
+    function readPendingPomodoroSessions(authScope?: string | null): any[] {
+        try {
+            const raw = localStorage.getItem(getPendingPomodoroSessionsStorageKey(authScope));
+            if (!raw) return [];
+            const parsed = JSON.parse(raw);
+            return Array.isArray(parsed) ? parsed : [];
+        } catch (e) {
+            return [];
+        }
+    }
+
+    function writePendingPomodoroSessions(items: any[], authScope?: string | null) {
+        const storageKey = getPendingPomodoroSessionsStorageKey(authScope);
+        if (!items.length) {
+            localStorage.removeItem(storageKey);
+            return;
+        }
+        localStorage.setItem(storageKey, JSON.stringify(items));
+    }
+
+    function enqueuePendingPomodoroSession(payload: any, authScope?: string | null) {
+        const pending = readPendingPomodoroSessions(authScope);
+        const alreadyQueued = pending.some((item: any) =>
+            item?.start_time === payload.start_time &&
+            item?.end_time === payload.end_time &&
+            Number(item?.duration) === Number(payload.duration) &&
+            Number(item?.subject ?? -1) === Number(payload.subject ?? -1)
+        );
+        if (!alreadyQueued) {
+            pending.push(payload);
+            writePendingPomodoroSessions(pending, authScope);
+        }
+    }
+
+    async function flushPendingPomodoroSessions() {
+        const pending = readPendingPomodoroSessions();
+        if (!pending.length) return;
+
+        const remaining: any[] = [];
+        let syncedAny = false;
+
+        for (let i = 0; i < pending.length; i++) {
+            const payload = pending[i];
+            try {
+                await apiPost('/pomodoro/', payload, true);
+                syncedAny = true;
+            } catch (e) {
+                if (isAuthSessionExpiredError(e)) {
+                    remaining.push(payload, ...pending.slice(i + 1));
+                    break;
+                }
+                remaining.push(payload);
+            }
+        }
+
+        writePendingPomodoroSessions(remaining);
+
+        if (syncedAny) {
+            try {
+                document.dispatchEvent(new CustomEvent('pomodoro:completed'));
+            } catch (e) { /* ignore */ }
+            try { document.dispatchEvent(new CustomEvent('weeklyChallenge:update')); } catch (e) {}
+            try { await loadPomodoroStats(); } catch (e) {}
+            try { await loadFocusDistribution(); } catch (e) {}
+            try { updateDisplay(); } catch (e) {}
+        }
+    }
+
+    async function showAuthExpiredPomodoroNoticeAndRedirect() {
+        if (authExpiryNoticeVisible) return;
+        authExpiryNoticeVisible = true;
+
+        clearBeforeUnloadPrompt();
+        isRunning = false;
+        timerStartTime = null;
+        updatePlayButtonState();
+
+        try {
+            await showAlertModal(
+                'Tu sesión expiró mientras guardábamos tu Pomodoro. La sesión de estudio quedó guardada y se sincronizará cuando vuelvas a iniciar sesión.',
+                'Sesión expirada'
+            );
+        } catch (e) {
+            // noop
+        } finally {
+            authExpiryNoticeVisible = false;
+        }
+
+        const next = encodeURIComponent(window.location.href);
+        window.location.href = `/login?next=${next}`;
+    }
+
+    window.addEventListener('auth:expired', (event: Event) => {
+        if (!isPostingPomodoroSession) return;
+        const customEvent = event as CustomEvent<{ suppressRedirect?: boolean }>;
+        if (customEvent.detail) {
+            customEvent.detail.suppressRedirect = true;
+        }
+        authExpiredDuringPomodoroSave = true;
+    });
 
     // =====================
     // 🔊 Audio & Notifications
@@ -2590,10 +2718,7 @@ if (document.readyState === 'loading') {
         timerStartTime = null;
         updatePlayButtonState();
         
-        if (beforeUnloadHandler) {
-            window.removeEventListener('beforeunload', beforeUnloadHandler);
-            beforeUnloadHandler = null;
-        }
+        clearBeforeUnloadPrompt();
     }
 
     function resetTimer(toStage: Stage | null = null) {
@@ -2656,17 +2781,20 @@ if (document.readyState === 'loading') {
     }
 
     async function saveWorkSession(start: Date, end: Date, durationMin: number, subjectId: number | null) {
+        const payload: any = {
+            start_time: start.toISOString(),
+            end_time: end.toISOString(),
+            duration: durationMin,
+        };
+        const authScopeForPendingQueue = getToken();
+        if (subjectId !== null && !isNaN(subjectId)) {
+            payload.subject = Number(subjectId);
+        }
+
         try {
-            const payload: any = {
-                start_time: start.toISOString(),
-                end_time: end.toISOString(),
-                duration: durationMin,
-            };
-            if (subjectId !== null && !isNaN(subjectId)) {
-                payload.subject = Number(subjectId);
-            }
             console.log('[saveWorkSession] Saving pomodoro:', payload);
-            // @ts-ignore
+            isPostingPomodoroSession = true;
+            authExpiredDuringPomodoroSave = false;
             const result = await apiPost('/pomodoro/', payload, true);
             console.log('[saveWorkSession] Pomodoro saved successfully', result);
             console.log('[saveWorkSession] Pomodoro POST sent');
@@ -2692,8 +2820,17 @@ if (document.readyState === 'loading') {
 
             return result;
         } catch (e) {
+            if (authExpiredDuringPomodoroSave || isAuthSessionExpiredError(e)) {
+                if (authScopeForPendingQueue) {
+                    enqueuePendingPomodoroSession(payload, authScopeForPendingQueue);
+                }
+                await showAuthExpiredPomodoroNoticeAndRedirect();
+                return null;
+            }
             console.error('Failed to save pomodoro session', e);
             throw e;
+        } finally {
+            isPostingPomodoroSession = false;
         }
     }
 
@@ -2729,6 +2866,11 @@ if (document.readyState === 'loading') {
             const user = await getCurrentUser();
             pomodoroUserTimezone = user.timezone || pomodoroUserTimezone;
         } catch (e) { /* keep browser timezone fallback */ }
+        try {
+            await flushPendingPomodoroSessions();
+        } catch (e) {
+            console.warn('Could not sync pending pomodoro sessions', e);
+        }
         lastPomodoroDayKey = getDateKeyInTimezone(new Date(), pomodoroUserTimezone);
         if (!pomodoroDayRolloverInterval) {
             pomodoroDayRolloverInterval = window.setInterval(async () => {

@@ -79,7 +79,14 @@ function emitAuthExpired(): void {
         // noop
     }
     try {
-        window.dispatchEvent(new CustomEvent('auth:expired'));
+        window.dispatchEvent(
+            new CustomEvent('auth:expired', {
+                detail: {
+                    reason: 'unauthorized',
+                    suppressRedirect: false,
+                },
+            })
+        );
     } catch (e) {
         // noop
     }
