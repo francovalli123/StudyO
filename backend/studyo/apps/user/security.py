@@ -158,6 +158,11 @@ def validate_registration_email_or_raise(email: str) -> None:
 
     api_result = _verify_email_with_abstract_api(email)
     if api_result is None:
+        allow_smtp_fallback = bool(getattr(settings, "SIGNUP_EMAIL_ALLOW_SMTP_FALLBACK", False))
+        if not allow_smtp_fallback:
+            raise ValueError(
+                "No se pudo verificar el correo en este momento. Intenta más tarde."
+            )
         is_valid, message = _verify_email_with_smtp(email)
     else:
         is_valid, message = api_result
