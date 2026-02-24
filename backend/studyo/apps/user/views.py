@@ -20,6 +20,12 @@ from django.conf import settings
 from django.utils import timezone
 from django.utils.http import urlencode
 import logging
+from .security import (
+    create_signup_captcha,
+    get_client_ip,
+    is_signup_rate_limited,
+    register_signup_for_ip,
+)
 
 User = get_user_model()
 logger = logging.getLogger("apps.user.password_reset")
@@ -34,8 +40,24 @@ class RegisterView(CreateAPIView):
     parser_classes = [JSONParser]
 
     def post(self, request, *args, **kwargs):
-
+        client_ip = get_client_ip(request)
+        if is_signup_rate_limited(client_ip):
+            return Response(
+                {"detail": "Demasiados registros desde tu IP. Máximo 3 cuentas por hora."},
+                status=status.HTTP_429_TOO_MANY_REQUESTS,
+            )
         return super().post(request, *args, **kwargs)
+
+    def perform_create(self, serializer):
+        serializer.save()
+        register_signup_for_ip(get_client_ip(self.request))
+
+
+class SignupCaptchaView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        return Response(create_signup_captcha(), status=status.HTTP_200_OK)
 
 
 # ============================

@@ -3,6 +3,7 @@ from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.conf import settings
+from .security import validate_registration_email_or_raise, verify_signup_captcha
 
 # Crea un serializer basado en modelo (User) para convertir datos JSON <-> objetos Python, y aplicar validaciones automáticas
 
@@ -12,6 +13,8 @@ class RegisterSerializer(serializers.ModelSerializer):
     username = serializers.CharField(max_length=150)
     password = serializers.CharField(write_only=True)
     country = serializers.CharField(required=True)
+    captcha_id = serializers.CharField(write_only=True)
+    captcha_answer = serializers.CharField(write_only=True)
 
     class Meta:
         model = User
@@ -22,6 +25,8 @@ class RegisterSerializer(serializers.ModelSerializer):
             "first_name",
             "last_name",
             "country",
+            "captcha_id",
+            "captcha_answer",
         )
     def validate_username(self, value):
         validator = UnicodeUsernameValidator(
@@ -37,11 +42,31 @@ class RegisterSerializer(serializers.ModelSerializer):
 
         return value
 
+    def validate_email(self, value):
+        normalized = (value or "").strip().lower()
+        if User.objects.filter(email__iexact=normalized).exists():
+            raise serializers.ValidationError("Este correo electrónico ya está en uso.")
+
+        try:
+            validate_registration_email_or_raise(normalized)
+        except ValueError as exc:
+            raise serializers.ValidationError(str(exc)) from exc
+
+        return normalized
+
     def validate(self, attrs):
-        print("REGISTER VALIDATED DATA:", attrs)
+        captcha_ok = verify_signup_captcha(
+            attrs.get("captcha_id", ""),
+            attrs.get("captcha_answer", ""),
+        )
+        if not captcha_ok:
+            raise serializers.ValidationError({"captcha": "Captcha inválido o expirado."})
+
         return attrs
 
     def create(self, validated_data):
+        validated_data.pop("captcha_id", None)
+        validated_data.pop("captcha_answer", None)
         password = validated_data.pop("password")
         user = User(**validated_data)
         user.set_password(password)

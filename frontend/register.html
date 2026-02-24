@@ -13,7 +13,7 @@
 <body class="auth-body">
     <div class="auth-container">
         <h1>Crear Cuenta</h1>
-        <p class="auth-subtitle">Unite y empezá a dominar tu estudio 🚀</p>
+        <p class="auth-subtitle">Unite y empeza a dominar tu estudio</p>
 
         <form class="auth-form" id="registerForm">
             <input type="text" id="username" placeholder="Nombre de usuario" required>
@@ -21,49 +21,54 @@
             <input type="text" id="lastName" placeholder="Apellido" required>
             <input type="email" id="email" placeholder="Email" required>
 
-            <input type="password" id="password" placeholder="Contraseña" required>
-            <input type="password" id="passwordConfirm" placeholder="Confirmar contraseña" required>
+            <input type="password" id="password" placeholder="Contrasena" required>
+            <input type="password" id="passwordConfirm" placeholder="Confirmar contrasena" required>
 
-            <!-- Password rules -->
             <ul id="passwordRules" style="font-size: 13px; margin-bottom: 15px;">
-                <li id="rule-length">❌ Mínimo 8 caracteres</li>
-                <li id="rule-uppercase">❌ Al menos una mayúscula</li>
-                <li id="rule-number">❌ Al menos un número</li>
-                <li id="rule-match">❌ Las contraseñas coinciden</li>
+                <li id="rule-length">X Minimo 8 caracteres</li>
+                <li id="rule-uppercase">X Al menos una mayuscula</li>
+                <li id="rule-number">X Al menos un numero</li>
+                <li id="rule-match">X Las contrasenas coinciden</li>
             </ul>
 
             <select id="country" required style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; margin-bottom: 15px;">
-                <option value="">Selecciona tu país</option> 
-                <option value="AR">🇦🇷 Argentina</option> 
-                <option value="BO">🇧🇴 Bolivia</option> 
-                <option value="BR">🇧🇷 Brasil</option> 
-                <option value="CL">🇨🇱 Chile</option> 
-                <option value="CO">🇨🇴 Colombia</option> 
-                <option value="CR">🇨🇷 Costa Rica</option> 
-                <option value="CU">🇨🇺 Cuba</option> 
-                <option value="DO">🇩🇴 República Dominicana</option> 
-                <option value="EC">🇪🇨 Ecuador</option> 
-                <option value="SV">🇸🇻 El Salvador</option> 
-                <option value="GT">🇬🇹 Guatemala</option> 
-                <option value="HN">🇭🇳 Honduras</option> 
-                <option value="MX">🇲🇽 México</option> 
-                <option value="NI">🇳🇮 Nicaragua</option> 
-                <option value="PA">🇵🇦 Panamá</option> 
-                <option value="PY">🇵🇾 Paraguay</option> 
-                <option value="PE">🇵🇪 Perú</option> 
-                <option value="PR">🇵🇷 Puerto Rico</option> 
-                <option value="UY">🇺🇾 Uruguay</option> 
-                <option value="VE">🇻🇪 Venezuela</option> 
-                <option value="US">🇺🇸 Estados Unidos</option> 
-                <option value="CA">🇨🇦 Canadá</option> 
-                <option value="ES">🇪🇸 España</option> 
-                <option value="FR">🇫🇷 Francia</option> 
-                <option value="IT">🇮🇹 Italia</option> 
-                <option value="DE">🇩🇪 Alemania</option> 
-                <option value="GB">🇬🇧 Reino Unido</option>
-                <option value="PT">🇵🇹 Portugal</option> 
-                <option value="OTHER">🌍 Otro</option>
+                <option value="">Selecciona tu pais</option>
+                <option value="AR">Argentina</option>
+                <option value="BO">Bolivia</option>
+                <option value="BR">Brasil</option>
+                <option value="CL">Chile</option>
+                <option value="CO">Colombia</option>
+                <option value="CR">Costa Rica</option>
+                <option value="CU">Cuba</option>
+                <option value="DO">Republica Dominicana</option>
+                <option value="EC">Ecuador</option>
+                <option value="SV">El Salvador</option>
+                <option value="GT">Guatemala</option>
+                <option value="HN">Honduras</option>
+                <option value="MX">Mexico</option>
+                <option value="NI">Nicaragua</option>
+                <option value="PA">Panama</option>
+                <option value="PY">Paraguay</option>
+                <option value="PE">Peru</option>
+                <option value="PR">Puerto Rico</option>
+                <option value="UY">Uruguay</option>
+                <option value="VE">Venezuela</option>
+                <option value="US">Estados Unidos</option>
+                <option value="CA">Canada</option>
+                <option value="ES">Espana</option>
+                <option value="FR">Francia</option>
+                <option value="IT">Italia</option>
+                <option value="DE">Alemania</option>
+                <option value="GB">Reino Unido</option>
+                <option value="PT">Portugal</option>
+                <option value="OTHER">Otro</option>
             </select>
+
+            <div style="display:flex; gap:8px; align-items:center; margin-bottom:8px;">
+                <label for="captchaAnswer" id="captchaQuestion" style="font-size:14px; color:#333;">Cargando captcha...</label>
+                <button type="button" id="reloadCaptchaBtn" class="btn-secondary" style="padding:8px 10px;">Recargar</button>
+            </div>
+            <input type="text" id="captchaAnswer" placeholder="Respuesta captcha" required>
 
             <div id="errorMessage" style="color: red; display: none; margin-bottom: 10px;"></div>
             <div id="successMessage" style="color: green; display: none; margin-bottom: 10px;"></div>
@@ -74,8 +79,8 @@
         </form>
 
         <p class="auth-footer">
-            ¿Ya tenés cuenta?
-            <a href="/login">Iniciar Sesión</a>
+            Ya tenes cuenta?
+            <a href="/login">Iniciar Sesion</a>
         </p>
     </div>
 
@@ -85,11 +90,14 @@
     </script>
 
     <script type="module">
-        import { register } from './src/ts/api.ts';
+        import { getSignupCaptcha, register } from './src/ts/api.ts';
 
         const form = document.getElementById('registerForm');
         const passwordInput = document.getElementById('password');
         const confirmInput = document.getElementById('passwordConfirm');
+        const captchaQuestion = document.getElementById('captchaQuestion');
+        const captchaAnswerInput = document.getElementById('captchaAnswer');
+        const reloadCaptchaBtn = document.getElementById('reloadCaptchaBtn');
 
         const ruleLength = document.getElementById('rule-length');
         const ruleUppercase = document.getElementById('rule-uppercase');
@@ -98,6 +106,19 @@
 
         const errorMessage = document.getElementById('errorMessage');
         const successMessage = document.getElementById('successMessage');
+        let captchaId = '';
+
+        async function loadCaptcha() {
+            try {
+                const captcha = await getSignupCaptcha();
+                captchaId = captcha.captcha_id;
+                captchaQuestion.textContent = captcha.captcha_question;
+                captchaAnswerInput.value = '';
+            } catch (err) {
+                captchaId = '';
+                captchaQuestion.textContent = 'No se pudo cargar captcha. Reintenta.';
+            }
+        }
 
         function validatePassword() {
             const password = passwordInput.value;
@@ -117,12 +138,14 @@
         }
 
         function updateRule(element, valid) {
-            element.textContent = element.textContent.replace(/^✔️|❌/, valid ? '✔️' : '❌');
+            element.textContent = element.textContent.replace(/^OK|X/, valid ? 'OK' : 'X');
             element.style.color = valid ? 'green' : 'red';
         }
 
         passwordInput.addEventListener('input', validatePassword);
         confirmInput.addEventListener('input', validatePassword);
+        reloadCaptchaBtn.addEventListener('click', loadCaptcha);
+        loadCaptcha();
 
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -131,7 +154,7 @@
             successMessage.style.display = 'none';
 
             if (!validatePassword()) {
-                errorMessage.textContent = 'La contraseña no cumple los requisitos.';
+                errorMessage.textContent = 'La contrasena no cumple los requisitos.';
                 errorMessage.style.display = 'block';
                 return;
             }
@@ -142,11 +165,19 @@
             const email = document.getElementById('email').value;
             const password = passwordInput.value;
             const country = document.getElementById('country').value;
+            const captchaAnswer = captchaAnswerInput.value.trim();
+
+            if (!captchaId || !captchaAnswer) {
+                errorMessage.textContent = 'Debes completar el captcha.';
+                errorMessage.style.display = 'block';
+                await loadCaptcha();
+                return;
+            }
 
             try {
-                await register(username, email, password, firstName, lastName, country);
+                await register(username, email, password, firstName, lastName, country, captchaId, captchaAnswer);
 
-                successMessage.textContent = '¡Cuenta creada exitosamente! Redirigiendo...';
+                successMessage.textContent = 'Cuenta creada exitosamente. Redirigiendo...';
                 successMessage.style.display = 'block';
 
                 setTimeout(() => {
@@ -155,11 +186,10 @@
             } catch (error) {
                 errorMessage.textContent = error.message || 'Error al crear la cuenta.';
                 errorMessage.style.display = 'block';
+                await loadCaptcha();
             }
         });
     </script>
     <script type="module" src="./src/ts/responsive.ts?v=20260212"></script>
 </body>
 </html>
-
-

@@ -233,11 +233,44 @@ export async function login(username: string, password: string): Promise<{ token
     }
 }
 
-export async function register(username: string, email: string, password: string, firstName: string, lastName: string, country: string): Promise<any> {
+export interface SignupCaptcha {
+    captcha_id: string;
+    captcha_question: string;
+    expires_in: number;
+}
+
+export async function getSignupCaptcha(): Promise<SignupCaptcha> {
+    const response = await fetch(`${BASE_URL}/signup/captcha/`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include"
+    });
+    return handleRequest<SignupCaptcha>(response);
+}
+
+export async function register(
+    username: string,
+    email: string,
+    password: string,
+    firstName: string,
+    lastName: string,
+    country: string,
+    captchaId: string,
+    captchaAnswer: string
+): Promise<any> {
     const response = await fetch(`${BASE_URL}/signup/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, email, password, first_name: firstName, last_name: lastName, country }),
+        body: JSON.stringify({
+            username,
+            email,
+            password,
+            first_name: firstName,
+            last_name: lastName,
+            country,
+            captcha_id: captchaId,
+            captcha_answer: captchaAnswer
+        }),
         credentials: "include"
     });
     return handleRequest(response);

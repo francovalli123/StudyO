@@ -32,6 +32,7 @@ from django.http import HttpResponse
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('api/signup/captcha/', SignupCaptchaView.as_view(), name="api_signup_captcha"),
     path('api/signup/', RegisterView.as_view(), name="api_signup"),
     path('api/login/', LoginView.as_view(), name='api_login'),
     path('api/user/me/', CurrentUserView.as_view(), name='current_user'),
