@@ -2076,6 +2076,7 @@ if (document.readyState === 'loading') {
     let authExpiredDuringPomodoroSave = false;
     let authExpiryNoticeVisible = false;
     const PENDING_POMODORO_SESSIONS_KEY = 'studyo_pending_pomodoro_sessions_v1';
+    const PENDING_POMODORO_LAST_SCOPE_KEY = 'studyo_pending_pomodoro_last_scope_v1';
     
     // Variables for handling timer when tab is in background
     let timerStartTime: number | null = null; // Timestamp when timer started
@@ -2120,9 +2121,19 @@ if (document.readyState === 'loading') {
     }
 
     function getPendingPomodoroSessionsStorageKey(authScope?: string | null): string {
-        const scope = authScope ?? getToken();
+        const scope = authScope === undefined ? getToken() : authScope;
         if (!scope) return `${PENDING_POMODORO_SESSIONS_KEY}:anonymous`;
         return `${PENDING_POMODORO_SESSIONS_KEY}:${scope}`;
+    }
+
+    function getPendingPomodoroCandidateScopes(currentScope?: string | null): string[] {
+        const scopes: string[] = [];
+        const current = currentScope ?? getToken();
+        const lastScope = localStorage.getItem(PENDING_POMODORO_LAST_SCOPE_KEY);
+        if (current) scopes.push(current);
+        if (lastScope && lastScope !== current) scopes.push(lastScope);
+        scopes.push('anonymous');
+        return scopes;
     }
 
     function readPendingPomodoroSessions(authScope?: string | null): any[] {
@@ -2146,6 +2157,10 @@ if (document.readyState === 'loading') {
     }
 
     function enqueuePendingPomodoroSession(payload: any, authScope?: string | null) {
+        const scope = authScope ?? getToken();
+        if (scope) {
+            localStorage.setItem(PENDING_POMODORO_LAST_SCOPE_KEY, scope);
+        }
         const pending = readPendingPomodoroSessions(authScope);
         const alreadyQueued = pending.some((item: any) =>
             item?.start_time === payload.start_time &&
@@ -2159,10 +2174,36 @@ if (document.readyState === 'loading') {
         }
     }
 
+    function readAllPendingPomodoroSessionsForRetry(): any[] {
+        const merged: any[] = [];
+        const seen = new Set<string>();
+        const scopes = getPendingPomodoroCandidateScopes();
+
+        for (const scope of scopes) {
+            const items = readPendingPomodoroSessions(scope === 'anonymous' ? null : scope);
+            for (const item of items) {
+                const dedupeKey = `${item?.start_time}|${item?.end_time}|${item?.duration}|${item?.subject ?? ''}`;
+                if (seen.has(dedupeKey)) continue;
+                seen.add(dedupeKey);
+                merged.push(item);
+            }
+        }
+
+        return merged;
+    }
+
+    function clearPendingPomodoroQueuesForKnownScopes() {
+        const scopes = getPendingPomodoroCandidateScopes();
+        for (const scope of scopes) {
+            localStorage.removeItem(getPendingPomodoroSessionsStorageKey(scope === 'anonymous' ? null : scope));
+        }
+    }
+
     async function flushPendingPomodoroSessions() {
-        const pending = readPendingPomodoroSessions();
+        const pending = readAllPendingPomodoroSessionsForRetry();
         if (!pending.length) return;
 
+        clearPendingPomodoroQueuesForKnownScopes();
         const remaining: any[] = [];
         let syncedAny = false;
 

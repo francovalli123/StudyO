@@ -67,11 +67,10 @@ function canUncheckCompletedToday(event: Event): boolean {
 }
 
 function syncLocalMissedStatuses() {
-    const now = new Date();
+    const today = formatDateForInput(new Date());
     events = events.map((event) => {
         if (getEventStatus(event) !== 'pending') return event;
-        const endDateTime = new Date(`${event.date}T${event.end_time.substring(0, 5)}:00`);
-        if (endDateTime.getTime() < now.getTime()) {
+        if (event.date < today) {
             return { ...event, status: 'missed' };
         }
         return event;
@@ -859,7 +858,6 @@ function setupEventListeners() {
     // Week navigation
     const prevWeekBtn = document.getElementById('prevWeekBtn');
     const nextWeekBtn = document.getElementById('nextWeekBtn');
-    const todayBtn = document.getElementById('todayBtn');
     
     if (prevWeekBtn) {
         prevWeekBtn.addEventListener('click', () => {
@@ -875,13 +873,6 @@ function setupEventListeners() {
         });
     }
     
-    if (todayBtn) {
-        todayBtn.addEventListener('click', () => {
-            currentDate = new Date();
-            renderAll();
-        });
-    }
-
     const viewCalendarBtn = document.getElementById('viewCalendarBtn');
     const viewTodayBtn = document.getElementById('viewTodayBtn');
     if (viewCalendarBtn) {

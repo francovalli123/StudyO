@@ -1,8 +1,5 @@
-from datetime import datetime
-
 from django.conf import settings
 from django.db import models
-from django.db.models import Q
 from django.utils import timezone
 
 from apps.subject.models import Subject
@@ -66,21 +63,16 @@ class Event(models.Model):
     def __str__(self):
         return f"{self.title} - {self.date} ({self.get_type_display()})"
 
-    def get_end_datetime(self):
-        """Build an aware datetime for this event's end time in current timezone."""
-        naive_end = datetime.combine(self.date, self.end_time)
-        return timezone.make_aware(naive_end, timezone.get_current_timezone())
-
-    def sync_status_with_time(self, now=None, save=True):
+    def sync_status_with_time(self, current_date=None, save=True):
         """
-        Promote pending events to missed when they are already in the past.
+        Promote pending events to missed only after the event day is over.
         Returns True when a transition was applied.
         """
         if self.status != self.Status.PENDING:
             return False
 
-        current_time = now or timezone.localtime()
-        if self.get_end_datetime() >= current_time:
+        today = current_date or timezone.localdate()
+        if self.date >= today:
             return False
 
         self.status = self.Status.MISSED
@@ -89,14 +81,13 @@ class Event(models.Model):
         return True
 
     @classmethod
-    def mark_pending_as_missed(cls, queryset):
+    def mark_pending_as_missed(cls, queryset, current_date=None):
         """
         Bulk transition only the current queryset slice.
         Keeps update cost bounded to events currently being accessed.
         """
-        now_local = timezone.localtime()
-        current_time = now_local.time().replace(microsecond=0, tzinfo=None)
-        return queryset.filter(status=cls.Status.PENDING).filter(
-            Q(date__lt=now_local.date())
-            | Q(date=now_local.date(), end_time__lt=current_time)
-        ).update(status=cls.Status.MISSED, updated_at=timezone.now())
+        today = current_date or timezone.localdate()
+        return queryset.filter(status=cls.Status.PENDING, date__lt=today).update(
+            status=cls.Status.MISSED,
+            updated_at=timezone.now(),
+        )

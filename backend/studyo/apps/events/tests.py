@@ -66,11 +66,10 @@ class EventStatusFlowTests(APITestCase):
 
     def test_complete_action_rejects_missed_event(self):
         now = timezone.localtime()
-        past_end = (now - timedelta(hours=2)).time().replace(microsecond=0)
         event = self._create_event(
-            date=now.date(),
-            start_time=(now - timedelta(hours=3)).time().replace(microsecond=0),
-            end_time=past_end,
+            date=now.date() - timedelta(days=1),
+            start_time=(now - timedelta(hours=5)).time().replace(microsecond=0),
+            end_time=(now - timedelta(hours=4)).time().replace(microsecond=0),
             status=Event.Status.PENDING,
         )
 
@@ -79,6 +78,21 @@ class EventStatusFlowTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         event.refresh_from_db()
         self.assertEqual(event.status, Event.Status.MISSED)
+
+    def test_complete_action_allows_past_hour_when_event_is_today(self):
+        now = timezone.localtime()
+        event = self._create_event(
+            date=now.date(),
+            start_time=(now - timedelta(hours=3)).time().replace(microsecond=0),
+            end_time=(now - timedelta(hours=2)).time().replace(microsecond=0),
+            status=Event.Status.PENDING,
+        )
+
+        response = self.client.patch(reverse("event-complete", args=[event.id]), data={})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        event.refresh_from_db()
+        self.assertEqual(event.status, Event.Status.COMPLETED)
 
     def test_list_endpoint_auto_marks_expired_pending_events(self):
         now = timezone.localtime()
