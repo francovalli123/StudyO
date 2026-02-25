@@ -2,6 +2,7 @@ from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from django.utils import timezone
 
 from .models import Event
 from .serializers import EventSerializer
@@ -48,6 +49,7 @@ class EventViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=["patch"], url_path="complete")
     def complete(self, request, pk=None):
         event = self.get_object()
+        today = timezone.localdate()
 
         # Sync first so stale pending items cannot be completed once they are already expired.
         event.sync_status_with_time()
@@ -57,7 +59,16 @@ class EventViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        if event.status != Event.Status.COMPLETED:
+        # Toggle off is allowed only while still on the event's day.
+        if event.status == Event.Status.COMPLETED:
+            if event.date != today:
+                return Response(
+                    {"detail": "Completed events can only be unchecked on the same day."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            event.status = Event.Status.PENDING
+            event.save(update_fields=["status", "updated_at"])
+        else:
             event.status = Event.Status.COMPLETED
             event.save(update_fields=["status", "updated_at"])
 

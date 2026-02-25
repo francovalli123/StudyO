@@ -62,6 +62,10 @@ function getEventStatus(event: Event): 'pending' | 'completed' | 'missed' {
     return 'pending';
 }
 
+function canUncheckCompletedToday(event: Event): boolean {
+    return getEventStatus(event) === 'completed' && event.date === formatDateForInput(new Date());
+}
+
 function syncLocalMissedStatuses() {
     const now = new Date();
     events = events.map((event) => {
@@ -404,8 +408,9 @@ function renderWeeklySchedule() {
                     const checkbox = document.createElement('button');
                     checkbox.type = 'button';
                     checkbox.className = `event-status-checkbox ${window.innerWidth < 768 ? 'always-visible' : 'show-on-hover'}`;
-                    checkbox.setAttribute('aria-label', `Completar ${event.title}`);
-                    checkbox.disabled = !isPending || isMissed || isCompleting || !event.id;
+                    const canToggle = isPending || canUncheckCompletedToday(event);
+                    checkbox.setAttribute('aria-label', `${isCompleted ? 'Desmarcar' : 'Completar'} ${event.title}`);
+                    checkbox.disabled = !canToggle || isMissed || isCompleting || !event.id;
                     checkbox.innerHTML = isCompleted
                         ? '<i data-lucide="check" class="w-3 h-3 text-emerald-200"></i>'
                         : '<span class="event-checkbox-dot"></span>';
@@ -498,8 +503,9 @@ function renderTodayList() {
         const checkbox = document.createElement('button');
         checkbox.type = 'button';
         checkbox.className = 'event-status-checkbox always-visible list-mode';
-        checkbox.disabled = !isPending || isMissed || isCompleting || !event.id;
-        checkbox.setAttribute('aria-label', `Completar ${event.title}`);
+        const canToggle = isPending || canUncheckCompletedToday(event);
+        checkbox.disabled = !canToggle || isMissed || isCompleting || !event.id;
+        checkbox.setAttribute('aria-label', `${isCompleted ? 'Desmarcar' : 'Completar'} ${event.title}`);
         checkbox.innerHTML = isCompleted
             ? '<i data-lucide="check" class="w-3 h-3 text-emerald-200"></i>'
             : '<span class="event-checkbox-dot"></span>';
@@ -535,10 +541,12 @@ async function markEventAsCompletedOptimistic(eventId: number) {
     const currentEvent = events.find((event) => event.id === eventId);
     if (!currentEvent) return;
     const statusBefore = getEventStatus(currentEvent);
-    if (statusBefore !== 'pending' || completingEventIds.has(eventId)) return;
+    const canToggleToPending = statusBefore === 'completed' && canUncheckCompletedToday(currentEvent);
+    if (!(statusBefore === 'pending' || canToggleToPending) || completingEventIds.has(eventId)) return;
+    const nextStatus: 'pending' | 'completed' = statusBefore === 'pending' ? 'completed' : 'pending';
 
     completingEventIds.add(eventId);
-    events = events.map((event) => (event.id === eventId ? { ...event, status: 'completed' } : event));
+    events = events.map((event) => (event.id === eventId ? { ...event, status: nextStatus } : event));
     renderAll();
 
     try {
@@ -549,7 +557,7 @@ async function markEventAsCompletedOptimistic(eventId: number) {
         await loadEvents();
         const trans = translations[getCurrentLanguage()];
         await showAlertModal(
-            'No se pudo marcar el evento como completado.',
+            'No se pudo actualizar el estado del evento.',
             trans.common.error
         );
     } finally {

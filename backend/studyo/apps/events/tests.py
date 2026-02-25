@@ -42,6 +42,28 @@ class EventStatusFlowTests(APITestCase):
         self.assertEqual(event.status, Event.Status.COMPLETED)
         self.assertEqual(response.data["status"], Event.Status.COMPLETED)
 
+    def test_complete_action_unchecks_completed_event_same_day(self):
+        event = self._create_event(status=Event.Status.COMPLETED)
+
+        response = self.client.patch(reverse("event-complete", args=[event.id]), data={})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        event.refresh_from_db()
+        self.assertEqual(event.status, Event.Status.PENDING)
+        self.assertEqual(response.data["status"], Event.Status.PENDING)
+
+    def test_complete_action_rejects_uncheck_for_previous_day(self):
+        event = self._create_event(
+            date=timezone.localdate() - timedelta(days=1),
+            status=Event.Status.COMPLETED,
+        )
+
+        response = self.client.patch(reverse("event-complete", args=[event.id]), data={})
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        event.refresh_from_db()
+        self.assertEqual(event.status, Event.Status.COMPLETED)
+
     def test_complete_action_rejects_missed_event(self):
         now = timezone.localtime()
         past_end = (now - timedelta(hours=2)).time().replace(microsecond=0)
