@@ -914,13 +914,20 @@ function setupEventListeners() {
     if (deleteEventBtn) {
         deleteEventBtn.addEventListener('click', async () => {
             if (currentEditingEvent && currentEditingEvent.id) {
-                    const trans = translations[getCurrentLanguage()];
+                const eventId = currentEditingEvent.id;
+                const trans = translations[getCurrentLanguage()];
+
+                // Close the event modal first so confirmation is never hidden behind it.
+                closeEventModal();
                 const confirmed = await showConfirmModal(
-                        trans.confirmations.deleteEventMessage,
-                        trans.confirmations.deleteEventTitle
-                    );
+                    trans.confirmations.deleteEventMessage,
+                    trans.confirmations.deleteEventTitle
+                );
                 if (confirmed) {
-                    await deleteEventById(currentEditingEvent.id);
+                    await deleteEventById(eventId);
+                } else {
+                    // Restore editing context when user cancels deletion.
+                    editEvent(eventId);
                 }
             }
         });
