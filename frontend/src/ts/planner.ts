@@ -1,5 +1,5 @@
 // Import API functions and types
-import { getEvents, createEvent, updateEvent, deleteEvent, Event, apiGet } from "./api.js";
+import { getEvents, createEvent, updateEvent, deleteEvent, completeEvent, Event, apiGet } from "./api.js";
 import { Subject } from "./api.js";
 import { initConfirmModal, showConfirmModal, showAlertModal } from "./confirmModal.js";
 import { translations, getCurrentLanguage } from "./i18n.js";
@@ -14,15 +14,8 @@ let subjects: Subject[] = [];
 let currentDate = new Date();
 let currentEditingEvent: Event | null = null;
 let selectedDate: Date | null = null;
-
-// Spanish month names
-const monthNames = [
-    'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
-    'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'
-];
-
-const dayNames = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
-const dayNamesShort = ['do', 'lu', 'ma', 'mi', 'ju', 'vi', 'sá'];
+let currentView: 'calendar' | 'today' = 'calendar';
+const completingEventIds = new Set<number>();
 
 /**
  * Initialize the planner page
@@ -31,9 +24,8 @@ async function initPlanner() {
     initConfirmModal();
     await loadEvents();
     await loadSubjects();
-    renderCalendar();
-    renderWeeklySchedule();
     setupEventListeners();
+    renderAll();
     if (typeof lucide !== 'undefined') lucide.createIcons();
 }
 
@@ -42,12 +34,95 @@ async function initPlanner() {
  */
 async function loadEvents() {
     try {
-        events = await getEvents();
-        renderCalendar();
-        renderWeeklySchedule();
+        events = (await getEvents()).map((event) => normalizeEventStatus(event));
+        syncLocalMissedStatuses();
     } catch (error) {
         console.error('Error loading events:', error);
     }
+}
+
+function renderAll() {
+    syncLocalMissedStatuses();
+    renderCalendar();
+    renderDailyProgress();
+    renderCurrentView();
+}
+
+function normalizeEventStatus(event: Event): Event {
+    if (event.status === 'pending' || event.status === 'completed' || event.status === 'missed') {
+        return event;
+    }
+    return { ...event, status: 'pending' };
+}
+
+function getEventStatus(event: Event): 'pending' | 'completed' | 'missed' {
+    if (event.status === 'pending' || event.status === 'completed' || event.status === 'missed') {
+        return event.status;
+    }
+    return 'pending';
+}
+
+function syncLocalMissedStatuses() {
+    const now = new Date();
+    events = events.map((event) => {
+        if (getEventStatus(event) !== 'pending') return event;
+        const endDateTime = new Date(`${event.date}T${event.end_time.substring(0, 5)}:00`);
+        if (endDateTime.getTime() < now.getTime()) {
+            return { ...event, status: 'missed' };
+        }
+        return event;
+    });
+}
+
+function renderCurrentView() {
+    const calendarView = document.getElementById('calendarView');
+    const todayView = document.getElementById('todayView');
+    if (!calendarView || !todayView) return;
+
+    const isCalendar = currentView === 'calendar';
+    calendarView.classList.toggle('hidden', !isCalendar);
+    todayView.classList.toggle('hidden', isCalendar);
+    updateViewToggleState();
+
+    if (isCalendar) {
+        renderWeeklySchedule();
+    } else {
+        renderTodayList();
+    }
+}
+
+function updateViewToggleState() {
+    const calendarBtn = document.getElementById('viewCalendarBtn');
+    const todayBtn = document.getElementById('viewTodayBtn');
+    if (!calendarBtn || !todayBtn) return;
+
+    calendarBtn.className = `planner-view-btn px-3 py-2 text-sm rounded-lg transition-all ${
+        currentView === 'calendar'
+            ? 'bg-purple-600 text-white shadow-[0_0_18px_rgba(168,85,247,0.35)]'
+            : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+    }`;
+    todayBtn.className = `planner-view-btn px-3 py-2 text-sm rounded-lg transition-all ${
+        currentView === 'today'
+            ? 'bg-purple-600 text-white shadow-[0_0_18px_rgba(168,85,247,0.35)]'
+            : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+    }`;
+}
+
+function renderDailyProgress() {
+    const progressBar = document.getElementById('dailyProgressBar') as HTMLElement | null;
+    const progressPercent = document.getElementById('dailyProgressPercent');
+    const progressLabel = document.getElementById('dailyProgressLabel');
+    if (!progressBar || !progressPercent || !progressLabel) return;
+
+    const today = formatDateForInput(new Date());
+    const todayEvents = events.filter((event) => event.date === today);
+    const total = todayEvents.length;
+    const completed = todayEvents.filter((event) => getEventStatus(event) === 'completed').length;
+    const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+    progressBar.style.width = `${percent}%`;
+    progressPercent.textContent = `${percent}%`;
+    progressLabel.textContent = total > 0 ? `${completed}/${total} completados hoy` : 'Sin eventos para hoy';
 }
 
 /**
@@ -123,6 +198,8 @@ function renderCalendar() {
         const isInCurrentWeek = isDateInWeek(dayDate, monday);
         const dayEvents = getEventsForDate(dayDate);
         const hasEvents = dayEvents.length > 0;
+        const hasCompleted = dayEvents.some((event) => getEventStatus(event) === 'completed');
+        const hasMissed = dayEvents.some((event) => getEventStatus(event) === 'missed');
         
         dayCell.className = `calendar-day h-8 border border-gray-800 rounded flex items-center justify-center cursor-pointer transition-all relative ${
             isToday(dayDate) ? 'bg-purple-500/20 border-purple-500/50' : ''
@@ -133,13 +210,15 @@ function renderCalendar() {
         dayCell.innerHTML = `
             <span class="text-xs font-medium ${isToday(dayDate) ? 'text-purple-400' : isInCurrentWeek ? 'text-white font-bold' : 'text-gray-300'}">${day}</span>
             ${hasEvents ? '<span class="absolute bottom-0.5 left-1/2 transform -translate-x-1/2 w-1 h-1 rounded-full bg-purple-400"></span>' : ''}
+            ${hasCompleted ? '<span class="absolute top-0.5 right-0.5 w-1.5 h-1.5 rounded-full bg-emerald-400"></span>' : ''}
+            ${hasMissed ? '<span class="absolute top-0.5 left-0.5 w-1.5 h-1.5 rounded-full bg-red-400/80"></span>' : ''}
         `;
         
         // Click handler to navigate to that week
         dayCell.addEventListener('click', () => {
             currentDate = new Date(dayDate);
-            renderCalendar();
-            renderWeeklySchedule();
+            currentView = 'calendar';
+            renderAll();
         });
         
         calendarGrid.appendChild(dayCell);
@@ -244,7 +323,7 @@ function renderWeeklySchedule() {
             dayDate.setHours(hour, 0, 0, 0);
             
             const cell = document.createElement('div');
-            cell.className = 'h-12 border border-gray-800 rounded relative hover:border-purple-500/50 cursor-pointer group bg-dark-card';
+            cell.className = 'h-12 border border-gray-800 rounded relative hover:border-purple-500/50 cursor-pointer group bg-dark-card overflow-visible';
             cell.dataset.date = formatDateForInput(dayDate);
             cell.dataset.hour = hour.toString();
             
@@ -308,14 +387,52 @@ function renderWeeklySchedule() {
                     // Ensure minimum height
                     height = Math.max(height, 24);
                     
+                    const status = getEventStatus(event);
+                    const isCompleted = status === 'completed';
+                    const isMissed = status === 'missed';
+                    const isPending = status === 'pending';
+                    const isCompleting = Boolean(event.id && completingEventIds.has(event.id));
+
                     const eventDiv = document.createElement('div');
-                    eventDiv.className = `event-item ${getEventTypeClass(event.type)} text-xs p-1.5 rounded absolute left-0 right-0 z-10 cursor-pointer overflow-hidden flex items-center`;
+                    eventDiv.className = `event-item ${getEventTypeClass(event.type)} ${status} text-xs rounded absolute left-0 right-0 z-10 cursor-pointer overflow-hidden`;
                     eventDiv.style.height = `${height}px`;
                     eventDiv.style.top = `${topOffset}px`;
                     eventDiv.style.minHeight = `${height}px`;
-                    eventDiv.textContent = event.title;
                     eventDiv.title = `${event.title} - ${event.start_time.substring(0, 5)} - ${event.end_time.substring(0, 5)}`;
                     eventDiv.dataset.eventId = event.id?.toString() || '';
+
+                    const checkbox = document.createElement('button');
+                    checkbox.type = 'button';
+                    checkbox.className = `event-status-checkbox ${window.innerWidth < 768 ? 'always-visible' : 'show-on-hover'}`;
+                    checkbox.setAttribute('aria-label', `Completar ${event.title}`);
+                    checkbox.disabled = !isPending || isMissed || isCompleting || !event.id;
+                    checkbox.innerHTML = isCompleted
+                        ? '<i data-lucide="check" class="w-3 h-3 text-emerald-200"></i>'
+                        : '<span class="event-checkbox-dot"></span>';
+                    if (isCompleted) checkbox.classList.add('is-completed');
+                    if (checkbox.disabled) checkbox.classList.add('is-disabled');
+                    checkbox.addEventListener('click', async (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        if (!event.id || checkbox.disabled) return;
+                        await markEventAsCompletedOptimistic(event.id);
+                    });
+
+                    const content = document.createElement('div');
+                    content.className = 'event-content h-full w-full flex items-center gap-1 px-1.5';
+                    const titleSpan = document.createElement('span');
+                    titleSpan.className = `event-title-text block truncate ${isCompleted ? 'line-through text-gray-300/80' : 'text-gray-100'}`;
+                    titleSpan.textContent = event.title;
+                    content.appendChild(titleSpan);
+                    if (isCompleted) {
+                        const completedIcon = document.createElement('i');
+                        completedIcon.setAttribute('data-lucide', 'check-check');
+                        completedIcon.className = 'w-3 h-3 text-emerald-300 flex-shrink-0';
+                        content.appendChild(completedIcon);
+                    }
+
+                    eventDiv.appendChild(checkbox);
+                    eventDiv.appendChild(content);
                     
                     eventDiv.addEventListener('click', (e) => {
                         e.stopPropagation();
@@ -346,6 +463,99 @@ function renderWeeklySchedule() {
     }
     
     if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+
+function renderTodayList() {
+    const todayList = document.getElementById('todayList');
+    if (!todayList) return;
+
+    const todayDate = formatDateForInput(new Date());
+    const todayEvents = events
+        .filter((event) => event.date === todayDate)
+        .sort((a, b) => a.start_time.localeCompare(b.start_time));
+
+    todayList.innerHTML = '';
+
+    if (todayEvents.length === 0) {
+        todayList.innerHTML = `
+            <div class="today-empty text-center text-sm text-gray-400 py-10 border border-dashed border-gray-700 rounded-xl">
+                No hay eventos para hoy.
+            </div>
+        `;
+        return;
+    }
+
+    todayEvents.forEach((event) => {
+        const status = getEventStatus(event);
+        const isCompleted = status === 'completed';
+        const isMissed = status === 'missed';
+        const isPending = status === 'pending';
+        const isCompleting = Boolean(event.id && completingEventIds.has(event.id));
+
+        const item = document.createElement('article');
+        item.className = `today-item ${status} ${getEventTypeClass(event.type)} flex items-start gap-3 rounded-xl px-3 py-3 border border-gray-800 bg-[#141821] transition-all`;
+
+        const checkbox = document.createElement('button');
+        checkbox.type = 'button';
+        checkbox.className = 'event-status-checkbox always-visible list-mode';
+        checkbox.disabled = !isPending || isMissed || isCompleting || !event.id;
+        checkbox.setAttribute('aria-label', `Completar ${event.title}`);
+        checkbox.innerHTML = isCompleted
+            ? '<i data-lucide="check" class="w-3 h-3 text-emerald-200"></i>'
+            : '<span class="event-checkbox-dot"></span>';
+        if (isCompleted) checkbox.classList.add('is-completed');
+        if (checkbox.disabled) checkbox.classList.add('is-disabled');
+        checkbox.addEventListener('click', async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (!event.id || checkbox.disabled) return;
+            await markEventAsCompletedOptimistic(event.id);
+        });
+
+        const content = document.createElement('div');
+        content.className = 'min-w-0 flex-1';
+        content.innerHTML = `
+            <div class="flex items-center gap-2 min-w-0">
+                <h3 class="today-title text-sm font-medium truncate ${isCompleted ? 'line-through text-gray-400' : 'text-white'}">${event.title}</h3>
+                ${isCompleted ? '<i data-lucide="check-check" class="w-3.5 h-3.5 text-emerald-400 inline-block ml-1"></i>' : ''}
+                ${isMissed ? '<span class="text-xs text-red-300">Vencido</span>' : ''}
+            </div>
+            <p class="text-xs text-gray-400 mt-1 truncate">${event.start_time.substring(0, 5)} - ${event.end_time.substring(0, 5)}</p>
+        `;
+
+        item.appendChild(checkbox);
+        item.appendChild(content);
+        todayList.appendChild(item);
+    });
+
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+
+async function markEventAsCompletedOptimistic(eventId: number) {
+    const currentEvent = events.find((event) => event.id === eventId);
+    if (!currentEvent) return;
+    const statusBefore = getEventStatus(currentEvent);
+    if (statusBefore !== 'pending' || completingEventIds.has(eventId)) return;
+
+    completingEventIds.add(eventId);
+    events = events.map((event) => (event.id === eventId ? { ...event, status: 'completed' } : event));
+    renderAll();
+
+    try {
+        const updated = normalizeEventStatus(await completeEvent(eventId));
+        events = events.map((event) => (event.id === eventId ? updated : event));
+    } catch (error) {
+        events = events.map((event) => (event.id === eventId ? { ...event, status: statusBefore } : event));
+        await loadEvents();
+        const trans = translations[getCurrentLanguage()];
+        await showAlertModal(
+            'No se pudo marcar el evento como completado.',
+            trans.common.error
+        );
+    } finally {
+        completingEventIds.delete(eventId);
+        renderAll();
+    }
 }
 
 /**
@@ -646,24 +856,36 @@ function setupEventListeners() {
     if (prevWeekBtn) {
         prevWeekBtn.addEventListener('click', () => {
             currentDate.setDate(currentDate.getDate() - 7);
-            renderCalendar();
-            renderWeeklySchedule();
+            renderAll();
         });
     }
     
     if (nextWeekBtn) {
         nextWeekBtn.addEventListener('click', () => {
             currentDate.setDate(currentDate.getDate() + 7);
-            renderCalendar();
-            renderWeeklySchedule();
+            renderAll();
         });
     }
     
     if (todayBtn) {
         todayBtn.addEventListener('click', () => {
             currentDate = new Date();
-            renderCalendar();
-            renderWeeklySchedule();
+            renderAll();
+        });
+    }
+
+    const viewCalendarBtn = document.getElementById('viewCalendarBtn');
+    const viewTodayBtn = document.getElementById('viewTodayBtn');
+    if (viewCalendarBtn) {
+        viewCalendarBtn.addEventListener('click', () => {
+            currentView = 'calendar';
+            renderAll();
+        });
+    }
+    if (viewTodayBtn) {
+        viewTodayBtn.addEventListener('click', () => {
+            currentView = 'today';
+            renderAll();
         });
     }
     
@@ -723,6 +945,10 @@ function setupEventListeners() {
             }
         });
     }
+
+    window.addEventListener('resize', () => {
+        renderAll();
+    });
 }
 
 /**
@@ -733,6 +959,7 @@ async function deleteEventById(eventId: number) {
         await deleteEvent(eventId);
         closeEventModal();
         await loadEvents();
+        renderAll();
     } catch (error) {
         console.error('Error deleting event:', error);
         const trans = translations[getCurrentLanguage()];
@@ -781,6 +1008,7 @@ async function saveEvent() {
         
         closeEventModal();
         await loadEvents();
+        renderAll();
     } catch (error) {
         console.error('Error saving event:', error);
         await showAlertModal(

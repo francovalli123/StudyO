@@ -20,6 +20,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.views.static import serve
 from django.urls import re_path
+from rest_framework.routers import DefaultRouter
 from apps.user.views import *
 from apps.weekly_challenges.views import ActiveWeeklyChallengeView
 from apps.habits.views import *
@@ -27,8 +28,11 @@ from apps.habitRecord.views import *
 from apps.subject.views import *
 from apps.routine.views import *
 from apps.pomodoroSession.views import *
-from apps.events.views import *
+from apps.events.views import EventViewSet
 from django.http import HttpResponse
+
+router = DefaultRouter()
+router.register(r'events', EventViewSet, basename='event')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -56,8 +60,7 @@ urlpatterns = [
     path('api/weekly-objectives/stats/', weekly_objectives_stats, name='weekly_objectives_stats'),
     path('api/pomodoro/', PomodoroSessionCreateView.as_view(), name='pomodoro_list_create'),
     path('api/pomodoro/<int:pk>/', PomodoroSessionDetailView.as_view(), name='pomodoro_detail'),
-    path('api/events/', EventListCreateView.as_view(), name='event_list_create'),
-    path('api/events/<int:pk>/', EventDetailView.as_view(), name='event_detail'),
+    path('api/', include(router.urls)),
     path('api/weekly-challenge/active/', ActiveWeeklyChallengeView.as_view(), name='active_weekly_challenge'),
     path('health/', lambda r: HttpResponse("OK")),
 ]

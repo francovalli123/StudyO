@@ -489,6 +489,8 @@ export interface Event {
     date: string;
     type: number;
     type_display?: string;
+    status?: 'pending' | 'completed' | 'missed';
+    status_display?: string;
     start_time: string;
     end_time: string;
     subject: number | null;
@@ -510,11 +512,15 @@ export async function getEvent(id: number): Promise<Event> {
 }
 
 export async function updateEvent(id: number, event: Partial<Event>): Promise<Event> {
-    return apiPut<Event>(`/events/${id}/`, event);
+    return apiPatch<Event>(`/events/${id}/`, event);
 }
 
 export async function deleteEvent(id: number): Promise<void> {
     await apiDelete(`/events/${id}/`);
+}
+
+export async function completeEvent(id: number): Promise<Event> {
+    return apiPatch<Event>(`/events/${id}/complete/`, {});
 }
 
 
