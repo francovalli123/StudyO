@@ -5,8 +5,10 @@ from django.contrib.auth.models import User
 from .models import Habit
 from apps.habitRecord.models import HabitRecord
 from django.urls import reverse
-from datetime import date
+from datetime import date, timedelta
 from django.contrib.auth import get_user_model
+from django.utils import timezone
+from utils.datetime import get_user_local_date
 
 # Grupo de pruebas para el habito
 
@@ -60,4 +62,20 @@ class HabitTests(APITestCase):
         self.habit.refresh_from_db()
         self.assertEqual(response.data['streak'], self.habit.streak)
         self.assertTrue(self.habit.streak >= 1)
+
+    def test_list_auto_resets_streak_when_chain_is_broken(self):
+        today = get_user_local_date(self.user, timezone.now())
+        HabitRecord.objects.create(
+            habit=self.habit,
+            date=today - timedelta(days=2),
+            completed=True,
+        )
+        self.habit.streak = 7
+        self.habit.save(update_fields=["streak", "updated_at"])
+
+        response = self.client.get('/api/habits/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.habit.refresh_from_db()
+        self.assertEqual(self.habit.streak, 0)
+        self.assertEqual(response.data[0]['streak'], 0)
     
