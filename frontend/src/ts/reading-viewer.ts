@@ -53,7 +53,7 @@ async function loadBook() {
     if (bookTitleEl) bookTitleEl.textContent = loaded.title;
     if (bookMetaEl) {
         const subjectName = loaded.subject ? loaded.subject.name : "Sin materia";
-        bookMetaEl.textContent = `${loaded.author} ? ${subjectName}`;
+        bookMetaEl.textContent = `${loaded.author} · ${subjectName}`;
     }
     if (completionBadge) {
         completionBadge.classList.toggle("hidden", !loaded.completed);
@@ -106,10 +106,21 @@ async function renderPage(pageNumber: number) {
 }
 
 async function loadPdf() {
-    const fileUrl = resolveFileUrl(book?.file_url || book?.file);
+    const resolved = resolveFileUrl(book?.file_url || book?.file);
+    const token = getToken();
+    const protectedUrl = bookId ? `${BASE_URL}/books/${bookId}/file/` : null;
+    const useProtected = !!token && !!protectedUrl;
+    const fileUrl = useProtected ? protectedUrl : resolved;
     if (!fileUrl) return;
     pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
-    pdfDoc = await pdfjsLib.getDocument(fileUrl).promise;
+    if (useProtected) {
+        pdfDoc = await pdfjsLib.getDocument({
+            url: fileUrl,
+            httpHeaders: { Authorization: `Token ${token}` },
+        }).promise;
+    } else {
+        pdfDoc = await pdfjsLib.getDocument(fileUrl).promise;
+    }
     if (totalPagesEl) totalPagesEl.textContent = String(pdfDoc.numPages);
     await renderPage(currentPage);
 }

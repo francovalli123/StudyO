@@ -29,7 +29,7 @@ from apps.subject.views import *
 from apps.routine.views import *
 from apps.pomodoroSession.views import *
 from apps.events.views import EventViewSet
-from apps.reading.views import BookListCreateView, BookDetailView, BookProgressUpdateView
+from apps.reading.views import BookListCreateView, BookDetailView, BookProgressUpdateView, BookFileView
 from django.http import HttpResponse
 
 router = DefaultRouter()
@@ -64,6 +64,7 @@ urlpatterns = [
     path('api/books/', BookListCreateView.as_view(), name='book_list_create'),
     path('api/books/<int:pk>/', BookDetailView.as_view(), name='book_detail'),
     path('api/books/<int:pk>/progress/', BookProgressUpdateView.as_view(), name='book_progress_update'),
+    path('api/books/<int:pk>/file/', BookFileView.as_view(), name='book_file'),
     path('api/', include(router.urls)),
     path('api/weekly-challenge/active/', ActiveWeeklyChallengeView.as_view(), name='active_weekly_challenge'),
     path('health/', lambda r: HttpResponse("OK")),
