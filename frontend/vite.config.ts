@@ -14,7 +14,6 @@ export default defineConfig({
         planner: resolve(__dirname, "planner.html"),
         progress: resolve(__dirname, "progress.html"),
         reading: resolve(__dirname, "reading.html"),
-        readingViewer: resolve(__dirname, "reading-viewer.html"),
         profile: resolve(__dirname, "profile.html"),
         forgotPassword: resolve(__dirname, "forgot-password.html"),
         resetPassword: resolve(__dirname, "reset-password.html"),

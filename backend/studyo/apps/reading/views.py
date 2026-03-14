@@ -1,10 +1,6 @@
-import os
 from django.shortcuts import get_object_or_404
-from django.http import FileResponse, Http404
 from rest_framework.generics import ListCreateAPIView, RetrieveDestroyAPIView, UpdateAPIView
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.parsers import MultiPartParser, FormParser
-from rest_framework.views import APIView
 
 from .models import Book, ReadingProgress
 from .serializers import BookListSerializer, BookCreateSerializer, ReadingProgressSerializer
@@ -12,7 +8,6 @@ from .serializers import BookListSerializer, BookCreateSerializer, ReadingProgre
 
 class BookListCreateView(ListCreateAPIView):
     permission_classes = [IsAuthenticated]
-    parser_classes = [MultiPartParser, FormParser]
 
     def get_queryset(self):
         return (
@@ -44,20 +39,3 @@ class BookProgressUpdateView(UpdateAPIView):
 
     def get_object(self):
         return get_object_or_404(self.get_queryset(), book_id=self.kwargs["pk"])
-
-
-class BookFileView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request, pk):
-        book = get_object_or_404(Book, pk=pk, user=request.user)
-        if not book.file:
-            raise Http404("File not found.")
-        try:
-            file_handle = book.file.open("rb")
-        except FileNotFoundError as exc:
-            raise Http404("File not found.") from exc
-        response = FileResponse(file_handle, content_type="application/pdf")
-        filename = os.path.basename(book.file.name or "book.pdf")
-        response["Content-Disposition"] = f'inline; filename="{filename}"'
-        return response

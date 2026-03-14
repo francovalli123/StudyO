@@ -1,8 +1,7 @@
-from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework import serializers
 from apps.subject.models import Subject
 from .models import Book, ReadingProgress
-from .services import get_pdf_page_count, validate_pdf_file
+
 
 
 class SubjectSummarySerializer(serializers.ModelSerializer):
@@ -12,8 +11,6 @@ class SubjectSummarySerializer(serializers.ModelSerializer):
 
 
 class BookListSerializer(serializers.ModelSerializer):
-    file = serializers.FileField(read_only=True)
-    file_url = serializers.SerializerMethodField()
     subject = SubjectSummarySerializer(read_only=True)
     last_page_read = serializers.SerializerMethodField()
     note = serializers.SerializerMethodField()
@@ -27,8 +24,6 @@ class BookListSerializer(serializers.ModelSerializer):
             "title",
             "author",
             "subject",
-            "file",
-            "file_url",
             "total_pages",
             "last_page_read",
             "progress",
@@ -66,18 +61,6 @@ class BookListSerializer(serializers.ModelSerializer):
         clamped = min(last_page_read, obj.total_pages)
         return clamped / obj.total_pages
 
-    def get_file_url(self, obj):
-        if not obj.file:
-            return None
-        try:
-            url = obj.file.url
-        except Exception:
-            return None
-        request = self.context.get("request")
-        if request is not None:
-            return request.build_absolute_uri(url)
-        return url
-
 
 class BookCreateSerializer(serializers.ModelSerializer):
     subject = serializers.PrimaryKeyRelatedField(
@@ -88,7 +71,7 @@ class BookCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Book
-        fields = ["id", "title", "author", "subject", "file"]
+        fields = ["id", "title", "author", "subject", "total_pages"]
 
     def validate_subject(self, value):
         if value is None:
@@ -98,26 +81,14 @@ class BookCreateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Subject does not belong to the user.")
         return value
 
-    def validate_file(self, value):
-        try:
-            validate_pdf_file(value)
-        except DjangoValidationError as exc:
-            raise serializers.ValidationError(exc.messages[0])
+    def validate_total_pages(self, value):
+        if value <= 0:
+            raise serializers.ValidationError("total_pages must be greater than 0.")
         return value
 
     def create(self, validated_data):
         request = self.context.get("request")
-        file = validated_data.get("file")
-        try:
-            total_pages = get_pdf_page_count(file)
-        except DjangoValidationError as exc:
-            raise serializers.ValidationError(exc.messages[0])
-
-        book = Book.objects.create(
-            user=request.user,
-            total_pages=total_pages,
-            **validated_data,
-        )
+        book = Book.objects.create(user=request.user, **validated_data)
         ReadingProgress.objects.get_or_create(
             book=book,
             defaults={"last_page_read": 0, "completed": False},

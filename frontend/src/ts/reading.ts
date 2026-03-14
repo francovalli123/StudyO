@@ -1,4 +1,4 @@
-import { apiDelete, apiGet, BASE_URL, getToken } from "./api.js";
+import { apiDelete, apiGet, apiPost, apiPatch } from "./api.js";
 import { initConfirmModal, showConfirmModal, showAlertModal } from "./confirmModal.js";
 import { t } from "./i18n.js";
 
@@ -23,8 +23,6 @@ interface Book {
     completed: boolean;
 }
 
-const MAX_FILE_SIZE = 50 * 1024 * 1024;
-
 let subjects: Subject[] = [];
 let books: Book[] = [];
 
@@ -37,7 +35,18 @@ const bookForm = document.getElementById("bookForm") as HTMLFormElement | null;
 const booksGrid = document.getElementById("booksGrid");
 const emptyState = document.getElementById("emptyState");
 const bookSubject = document.getElementById("bookSubject") as HTMLSelectElement | null;
-const bookFileInput = document.getElementById("bookFile") as HTMLInputElement | null;
+const progressModal = document.getElementById("progressModal");
+const closeProgressModalBtn = document.getElementById("closeProgressModalBtn");
+const cancelProgressBtn = document.getElementById("cancelProgressBtn");
+const progressForm = document.getElementById("progressForm") as HTMLFormElement | null;
+const progressLastPage = document.getElementById("progressLastPage") as HTMLInputElement | null;
+const progressNote = document.getElementById("progressNote") as HTMLTextAreaElement | null;
+const progressTotalPagesHint = document.getElementById("progressTotalPagesHint");
+const saveProgressBtnText = document.getElementById("saveProgressBtnText");
+const progressNoteCount = document.getElementById("progressNoteCount");
+
+let selectedBookId: number | null = null;
+const NOTE_MAX_LENGTH = 200;
 
 function openBookModal(): void {
     if (!bookModal || !bookForm) return;
@@ -48,20 +57,6 @@ function openBookModal(): void {
 function closeBookModal(): void {
     if (!bookModal) return;
     bookModal.classList.remove("active");
-}
-
-function validatePdfFile(file: File): string | null {
-    const name = file.name.toLowerCase();
-    if (!name.endsWith(".pdf")) {
-        return "Solo se permiten archivos PDF.";
-    }
-    if (file.type !== "application/pdf") {
-        return "El archivo debe ser un PDF válido.";
-    }
-    if (file.size > MAX_FILE_SIZE) {
-        return "El archivo supera el límite de 50MB.";
-    }
-    return null;
 }
 
 async function loadSubjects() {
@@ -145,10 +140,10 @@ function renderBooks() {
                     </div>
 
                     <div class="flex gap-3 pt-4 border-t border-gray-700/50">
-                        <a href="/reading/viewer/${book.id}" class="flex-1 px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 border border-gray-700 text-gray-300 hover:text-white text-sm font-medium transition-all duration-300 flex items-center justify-center gap-2">
-                            <i data-lucide="book-open" class="w-4 h-4"></i>
-                            <span>${reading.openBook || "Abrir libro"}</span>
-                        </a>
+                        <button class="update-progress-btn flex-1 px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 border border-gray-700 text-gray-300 hover:text-white text-sm font-medium transition-all duration-300 flex items-center justify-center gap-2" data-book-id="${book.id}">
+                            <i data-lucide="edit-3" class="w-4 h-4"></i>
+                            <span>${reading.updateProgress || "Actualizar progreso"}</span>
+                        </button>
                         <button class="delete-book-btn flex-1 px-4 py-2 rounded-lg bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 hover:text-red-300 text-sm font-medium transition-all duration-300 flex items-center justify-center gap-2" data-book-id="${book.id}">
                             <i data-lucide="trash-2" class="w-4 h-4"></i>
                             <span>${reading.deleteBook || "Eliminar"}</span>
@@ -168,15 +163,23 @@ function attachBookEventListeners() {
     booksGrid.addEventListener("click", async (event) => {
         const target = event.target as HTMLElement;
         const deleteBtn = target.closest(".delete-book-btn") as HTMLButtonElement | null;
-        if (!deleteBtn) return;
-        const id = deleteBtn.dataset.bookId;
-        if (!id) return;
-        const confirmed = await showConfirmModal(
-            "¿Eliminar este libro y su PDF?",
-            "Eliminar libro"
-        );
-        if (!confirmed) return;
-        await deleteBook(Number(id));
+        const updateBtn = target.closest(".update-progress-btn") as HTMLButtonElement | null;
+        if (deleteBtn) {
+            const id = deleteBtn.dataset.bookId;
+            if (!id) return;
+            const confirmed = await showConfirmModal(
+                "¿Eliminar este libro?",
+                "Eliminar libro"
+            );
+            if (!confirmed) return;
+            await deleteBook(Number(id));
+            return;
+        }
+        if (updateBtn) {
+            const id = updateBtn.dataset.bookId;
+            if (!id) return;
+            openProgressModal(Number(id));
+        }
     });
 }
 
@@ -205,54 +208,105 @@ async function handleBookSubmit(event: Event) {
     if (submitText) submitText.textContent = reading.uploading || "Subiendo...";
 
     try {
-        const token = getToken();
-        if (!token) throw new Error("User not authenticated");
-
-        const formData = new FormData(bookForm);
-        const subjectValue = formData.get("subject");
-        if (subjectValue === "" || subjectValue === null) {
-            formData.delete("subject");
+        const payload = new FormData(bookForm);
+        const subjectValue = payload.get("subject");
+        const totalPagesValue = payload.get("total_pages");
+        if (!totalPagesValue) {
+            await showAlertModal(reading.totalPagesRequired || "Debes indicar el total de páginas.");
+            return;
         }
-        const file = formData.get("file") as File | null;
-        if (!file) {
-            throw new Error(reading.selectPdfError || "Debes seleccionar un PDF.");
-        }
-        const validationError = validatePdfFile(file);
-        if (validationError) {
-            await showAlertModal(validationError);
+        const totalPages = Number(totalPagesValue);
+        if (!Number.isFinite(totalPages) || totalPages <= 0) {
+            await showAlertModal(reading.totalPagesInvalid || "El total de páginas debe ser mayor a 0.");
             return;
         }
 
-        const response = await fetch(`${BASE_URL}/books/`, {
-            method: "POST",
-            headers: {
-                Authorization: `Token ${token}`,
-            },
-            body: formData,
-            credentials: "include",
-        });
+        const data: any = {
+            title: payload.get("title"),
+            author: payload.get("author"),
+            total_pages: totalPages,
+        };
+        if (subjectValue) data.subject = Number(subjectValue);
 
-        if (!response.ok) {
-            let message = reading.uploadError || "Error al subir el libro.";
-            try {
-                const payload = await response.json();
-                if (payload && payload.file) message = payload.file;
-                if (payload && payload.detail) message = payload.detail;
-            } catch {
-                // noop
-            }
-            await showAlertModal(message);
-            return;
-        }
+        await apiPost("/books/", data, true);
 
         closeBookModal();
         await loadBooks();
     } catch (error) {
         console.error("Error uploading book:", error);
-        await showAlertModal(reading.uploadError || "No se pudo subir el libro.");
+        await showAlertModal(reading.uploadError || "No se pudo crear el libro.");
     } finally {
         if (submitBtn) submitBtn.disabled = false;
         if (submitText) submitText.textContent = originalText || (reading.uploadBook || "Subir libro");
+    }
+}
+
+function openProgressModal(bookId: number) {
+    if (!progressModal) return;
+    const book = books.find((b) => b.id === bookId);
+    if (!book) return;
+    selectedBookId = bookId;
+    if (progressLastPage) progressLastPage.value = String(book.last_page_read || 0);
+    if (progressNote) progressNote.value = book.note || "";
+    if (progressTotalPagesHint) {
+        progressTotalPagesHint.textContent = `${book.total_pages} páginas totales`;
+    }
+    updateNoteCount();
+    progressModal.classList.add("active");
+}
+
+function closeProgressModal(): void {
+    if (!progressModal) return;
+    progressModal.classList.remove("active");
+    selectedBookId = null;
+}
+
+function updateNoteCount() {
+    if (!progressNote || !progressNoteCount) return;
+    const length = progressNote.value.length;
+    progressNoteCount.textContent = `${length} / ${NOTE_MAX_LENGTH}`;
+    if (length >= NOTE_MAX_LENGTH) {
+        progressNoteCount.classList.add("text-red-400");
+    } else {
+        progressNoteCount.classList.remove("text-red-400");
+    }
+}
+
+async function handleProgressSubmit(event: Event) {
+    event.preventDefault();
+    if (!selectedBookId || !progressLastPage) return;
+    const tr = t();
+    const reading = (tr as any).reading || {};
+    const lastPage = Number(progressLastPage.value);
+    if (!Number.isFinite(lastPage) || lastPage < 0) {
+        await showAlertModal(reading.lastPageInvalid || "La página debe ser 0 o más.");
+        return;
+    }
+    const currentBook = books.find((b) => b.id === selectedBookId);
+    if (!currentBook) return;
+    if (lastPage > currentBook.total_pages) {
+        await showAlertModal(reading.lastPageExceed || "La página no puede superar el total.");
+        return;
+    }
+
+    try {
+        if (saveProgressBtnText) saveProgressBtnText.textContent = "Guardando...";
+        const payload: any = {
+            last_page_read: lastPage,
+            note: progressNote ? progressNote.value.trim() : "",
+        };
+        await apiPatch(`/books/${selectedBookId}/progress/`, payload);
+        currentBook.last_page_read = payload.last_page_read;
+        currentBook.note = payload.note || "";
+        currentBook.completed = lastPage >= currentBook.total_pages;
+        currentBook.progress = Math.min(lastPage, currentBook.total_pages) / currentBook.total_pages;
+        renderBooks();
+        closeProgressModal();
+    } catch (error) {
+        console.error("Error saving progress:", error);
+        await showAlertModal(reading.progressSaveError || "No se pudo guardar el progreso.");
+    } finally {
+        if (saveProgressBtnText) saveProgressBtnText.textContent = "Guardar";
     }
 }
 
@@ -269,17 +323,18 @@ function attachModalHandlers() {
     if (bookForm) {
         bookForm.addEventListener("submit", handleBookSubmit);
     }
-
-    if (bookFileInput) {
-        bookFileInput.addEventListener("change", () => {
-            const file = bookFileInput.files?.[0];
-            if (!file) return;
-            const error = validatePdfFile(file);
-            if (error) {
-                showAlertModal(error);
-                bookFileInput.value = "";
-            }
+    if (closeProgressModalBtn) closeProgressModalBtn.addEventListener("click", closeProgressModal);
+    if (cancelProgressBtn) cancelProgressBtn.addEventListener("click", closeProgressModal);
+    if (progressModal) {
+        progressModal.addEventListener("click", (event) => {
+            if (event.target === progressModal) closeProgressModal();
         });
+    }
+    if (progressForm) {
+        progressForm.addEventListener("submit", handleProgressSubmit);
+    }
+    if (progressNote) {
+        progressNote.addEventListener("input", updateNoteCount);
     }
 }
 

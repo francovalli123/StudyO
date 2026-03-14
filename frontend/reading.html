@@ -236,23 +236,62 @@
                            placeholder="Ej: Stewart">
                 </div>
                 <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2" data-i18n="reading.formTotalPages">Total pages</label>
+                    <input type="number" name="total_pages" min="1" required
+                           class="w-full bg-dark-input border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all"
+                           data-i18n="[placeholder]reading.formTotalPagesPlaceholder"
+                           placeholder="Ej: 320">
+                </div>
+                <div>
                     <label class="block text-sm font-medium text-gray-300 mb-2" data-i18n="reading.formSubject">Subject</label>
                     <select id="bookSubject" name="subject"
                             class="w-full bg-dark-input border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all">
                         <option value="" data-i18n="reading.formSubjectPlaceholder">Selecciona una materia</option>
                     </select>
                 </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-300 mb-2" data-i18n="reading.formFile">PDF File</label>
-                    <input id="bookFile" type="file" name="file" accept="application/pdf,.pdf" required
-                           class="w-full bg-dark-input border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all">
-                    <p class="text-xs text-gray-500 mt-2" data-i18n="reading.formFileHint">Solo PDF. Máximo 50MB.</p>
-                </div>
                 <div class="flex gap-3 pt-4">
                     <button type="submit" class="flex-1 px-4 py-3 rounded-lg bg-gradient-to-r from-purple-600 via-fuchsia-500 to-purple-600 text-white font-medium hover:from-purple-500 hover:via-fuchsia-400 hover:to-purple-500 transition-all duration-300 shadow-[0_0_15px_rgba(168,85,247,0.5)]">
                         <span id="submitBookBtnText" data-i18n="reading.uploadBook">Upload Book</span>
                     </button>
                     <button type="button" id="cancelBookBtn" class="px-4 py-3 rounded-lg bg-dark-input border border-gray-700 text-gray-300 font-medium hover:bg-gray-800 transition-all duration-300" data-i18n="common.cancel">
+                        Cancelar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="progressModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-white" data-i18n="reading.updateProgressTitle">Actualizar progreso</h2>
+                <button id="closeProgressModalBtn" class="text-gray-400 hover:text-white transition-colors">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+            <form id="progressForm" class="space-y-5">
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2" data-i18n="reading.lastPageLabel">Última página leída</label>
+                    <input id="progressLastPage" type="number" min="0" required
+                           class="w-full bg-dark-input border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all">
+                    <p class="text-xs text-gray-500 mt-2" id="progressTotalPagesHint">0 páginas totales</p>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2" data-i18n="reading.noteLabel">Nota (opcional)</label>
+                    <textarea id="progressNote" maxlength="200" rows="3"
+                              class="w-full bg-dark-input border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all"
+                              data-i18n="[placeholder]reading.notePlaceholder"
+                              placeholder="Ej: Lo dejé en la sección 3.2"></textarea>
+                    <div class="flex items-center justify-between text-xs text-gray-500 mt-2">
+                        <span data-i18n="reading.noteHint">Máx. 200 caracteres.</span>
+                        <span id="progressNoteCount">0 / 200</span>
+                    </div>
+                </div>
+                <div class="flex gap-3 pt-4">
+                    <button type="submit" class="flex-1 px-4 py-3 rounded-lg bg-gradient-to-r from-purple-600 via-fuchsia-500 to-purple-600 text-white font-medium hover:from-purple-500 hover:via-fuchsia-400 hover:to-purple-500 transition-all duration-300 shadow-[0_0_15px_rgba(168,85,247,0.5)]">
+                        <span id="saveProgressBtnText" data-i18n="common.save">Guardar</span>
+                    </button>
+                    <button type="button" id="cancelProgressBtn" class="px-4 py-3 rounded-lg bg-dark-input border border-gray-700 text-gray-300 font-medium hover:bg-gray-800 transition-all duration-300" data-i18n="common.cancel">
                         Cancelar
                     </button>
                 </div>

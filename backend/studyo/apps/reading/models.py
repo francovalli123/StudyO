@@ -18,7 +18,7 @@ class Book(models.Model):
         null=True,
         blank=True,
     )
-    file = models.FileField(upload_to="books/")
+    file = models.FileField(upload_to="books/", null=True, blank=True)
     total_pages = models.PositiveIntegerField()
     created_at = models.DateTimeField(auto_now_add=True)
 
