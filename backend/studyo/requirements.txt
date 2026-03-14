@@ -13,3 +13,4 @@ whitenoise==6.11.0
 django-sendgrid-v5
 cloudinary==1.44.1
 django-cloudinary-storage==0.3.0
+pypdf==5.3.0

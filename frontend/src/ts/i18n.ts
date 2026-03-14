@@ -77,6 +77,7 @@ export interface Translations {
         subjects: string;
         habits: string;
         progress: string;
+        reading: string;
         settings: string;
         premium: string;
         logout: string;
@@ -355,6 +356,7 @@ export const translations: Record<Language, Translations> = {
             subjects: 'Mi Sistema Académico',
             habits: 'Hábitos',
             progress: 'Progreso',
+            reading: 'Lecturas',
             settings: 'Ajustes',
             premium: 'Tema Premium',
             logout: 'Cerrar Sesión',
@@ -625,6 +627,7 @@ export const translations: Record<Language, Translations> = {
             subjects: 'My Academic System',
             habits: 'Habits',
             progress: 'Progress',
+            reading: 'Reading',
             settings: 'Settings',
             premium: 'Premium Theme',
             logout: 'Log Out',
@@ -895,6 +898,7 @@ export const translations: Record<Language, Translations> = {
             subjects: '我的学术系统',
             habits: '习惯',
             progress: '进度',
+            reading: '阅读',
             settings: '设置',
             premium: '高级主题',
             logout: '退出登录',
@@ -1166,6 +1170,7 @@ export const translations: Record<Language, Translations> = {
             subjects: 'Meu Sistema Acadêmico',
             habits: 'Hábitos',
             progress: 'Progresso',
+            reading: 'Leitura',
             settings: 'Configurações',
             premium: 'Tema Premium',
             logout: 'Sair',

@@ -59,6 +59,7 @@ INSTALLED_APPS = [
     'apps.subject',
     'apps.routine',
     'apps.habits',
+    'apps.reading.apps.ReadingConfig',
     'apps.notification',
     'apps.pomodoroSession',
     'apps.routineBlock',

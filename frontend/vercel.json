@@ -1,3 +1,6 @@
 {
-  "cleanUrls": true
+  "cleanUrls": true,
+  "rewrites": [
+    { "source": "/reading/viewer/:id", "destination": "/reading-viewer.html" }
+  ]
 }
