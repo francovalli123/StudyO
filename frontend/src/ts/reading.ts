@@ -250,7 +250,10 @@ function openProgressModal(bookId: number) {
     if (progressLastPage) progressLastPage.value = String(book.last_page_read || 0);
     if (progressNote) progressNote.value = book.note || "";
     if (progressTotalPagesHint) {
-        progressTotalPagesHint.textContent = `${book.total_pages} páginas totales`;
+        const tr = t();
+        const reading = (tr as any).reading || {};
+        const pagesLabel = reading.pagesTotalLabel || "páginas totales";
+        progressTotalPagesHint.textContent = `${book.total_pages} ${pagesLabel}`;
     }
     updateNoteCount();
     progressModal.classList.add("active");
