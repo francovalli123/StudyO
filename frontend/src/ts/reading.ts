@@ -106,7 +106,8 @@ function renderBooks() {
         .map((book) => {
             const percent = Math.round((book.progress || 0) * 100);
             const subjectName = book.subject ? book.subject.name : (reading.noSubject || "Sin materia");
-            const note = book.note ? `<p class="text-xs text-gray-400 mt-3">${book.note}</p>` : "";
+            const noteLabel = reading.lastNoteLabel || "Última nota";
+            const note = book.note ? `<p class="text-xs text-gray-400 mt-3">${noteLabel}: ${book.note}</p>` : "";
             const completedBadge = book.completed
                 ? `<span class="inline-flex items-center gap-1 text-xs font-semibold px-3 py-1 rounded-full bg-green-500/15 text-green-300">${reading.completed || "Completado"}</span>`
                 : "";

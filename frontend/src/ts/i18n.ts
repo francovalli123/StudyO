@@ -321,6 +321,7 @@ export interface Translations {
         noteHint: string;
         notePlaceholder: string;
         progressSaveError: string;
+        lastNoteLabel: string;
         progressLabel: string;
         pagesLabel: string;
         noSubject: string;
@@ -534,6 +535,7 @@ export const translations: Record<Language, Translations> = {
             noteHint: 'M?x. 200 caracteres.',
             notePlaceholder: 'Ej: Lo dej? en la secci?n 3.2',
             progressSaveError: 'No se pudo guardar el progreso.',
+            lastNoteLabel: '?ltima nota',
             progressLabel: 'Progreso',
             pagesLabel: 'p?ginas',
             noSubject: 'Sin materia',
@@ -846,6 +848,7 @@ export const translations: Record<Language, Translations> = {
             noteHint: 'Max 200 characters.',
             notePlaceholder: 'Example: Stopped at section 3.2',
             progressSaveError: 'Could not save progress.',
+            lastNoteLabel: 'Last note',
             progressLabel: 'Progress',
             pagesLabel: 'pages',
             noSubject: 'No subject',
@@ -1158,6 +1161,7 @@ export const translations: Record<Language, Translations> = {
             noteHint: '?? 200 ????',
             notePlaceholder: '?????? 3.2 ?',
             progressSaveError: '???????',
+            lastNoteLabel: '????',
             progressLabel: '??',
             pagesLabel: '?',
             noSubject: '???',
@@ -1471,6 +1475,7 @@ export const translations: Record<Language, Translations> = {
             noteHint: 'M?x. 200 caracteres.',
             notePlaceholder: 'Ex: Parei na se??o 3.2',
             progressSaveError: 'N?o foi poss?vel salvar o progresso.',
+            lastNoteLabel: '?ltima nota',
             progressLabel: 'Progresso',
             pagesLabel: 'p?ginas',
             noSubject: 'Sem mat?ria',
