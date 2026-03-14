@@ -119,9 +119,14 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:3000",
 ]
 
-# Permitir todos los orígenes en desarrollo (solo para desarrollo)
-# En producción, usar solo los orígenes específicos de arriba
-CORS_ALLOW_ALL_ORIGINS = False  # Cambiar a True solo en desarrollo si es necesario
+# Allow main Vercel domain and preview deployments.
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https://.*\.vercel\.app$",
+]
+
+# Permitir todos los or?genes en desarrollo (solo para desarrollo)
+# En producci?n, usar solo los or?genes espec?ficos de arriba
+CORS_ALLOW_ALL_ORIGINS = True
 
 ROOT_URLCONF = 'studyo.urls'
 

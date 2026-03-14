@@ -209,6 +209,10 @@ async function handleBookSubmit(event: Event) {
         if (!token) throw new Error("User not authenticated");
 
         const formData = new FormData(bookForm);
+        const subjectValue = formData.get("subject");
+        if (subjectValue === "" || subjectValue === null) {
+            formData.delete("subject");
+        }
         const file = formData.get("file") as File | null;
         if (!file) {
             throw new Error(reading.selectPdfError || "Debes seleccionar un PDF.");

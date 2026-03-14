@@ -13,8 +13,10 @@ class Book(models.Model):
     author = models.CharField(max_length=200)
     subject = models.ForeignKey(
         Subject,
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
         related_name="books",
+        null=True,
+        blank=True,
     )
     file = models.FileField(upload_to="books/")
     total_pages = models.PositiveIntegerField()

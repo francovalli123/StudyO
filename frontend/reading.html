@@ -7,6 +7,15 @@
     <script>
         document.documentElement.classList.add('auth-pending');
     </script>
+    <script>
+        (function(){
+            const orig = console.warn;
+            console.warn = function(...args){
+                try{ if (args && args[0] && typeof args[0] === 'string' && args[0].includes('cdn.tailwindcss.com should not be used in production')) return; }catch(e){}
+                orig.apply(console,args);
+            }
+        })();
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script>
@@ -228,7 +237,7 @@
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-300 mb-2" data-i18n="reading.formSubject">Subject</label>
-                    <select id="bookSubject" name="subject" required
+                    <select id="bookSubject" name="subject"
                             class="w-full bg-dark-input border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all">
                         <option value="" data-i18n="reading.formSubjectPlaceholder">Selecciona una materia</option>
                     </select>

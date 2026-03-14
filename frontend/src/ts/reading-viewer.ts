@@ -12,6 +12,7 @@ interface BookDetail {
     progress: number;
     completed: boolean;
     file: string;
+    file_url?: string | null;
 }
 
 let bookId: number | null = null;
@@ -47,20 +48,22 @@ function getBookIdFromUrl(): number | null {
 
 async function loadBook() {
     if (!bookId) return;
-    book = await apiGet(`/books/${bookId}/`);
-    if (bookTitleEl) bookTitleEl.textContent = book.title;
+    const loaded = await apiGet<BookDetail>(`/books/${bookId}/`);
+    book = loaded;
+    if (bookTitleEl) bookTitleEl.textContent = loaded.title;
     if (bookMetaEl) {
-        const subjectName = book.subject ? book.subject.name : "Sin materia";
-        bookMetaEl.textContent = `${book.author} · ${subjectName}`;
+        const subjectName = loaded.subject ? loaded.subject.name : "Sin materia";
+        bookMetaEl.textContent = `${loaded.author} ? ${subjectName}`;
     }
     if (completionBadge) {
-        completionBadge.classList.toggle("hidden", !book.completed);
+        completionBadge.classList.toggle("hidden", !loaded.completed);
     }
-    if (totalPagesEl) totalPagesEl.textContent = String(book.total_pages);
-    currentPage = Math.max(1, Math.min(book.last_page_read || 1, book.total_pages));
-    lastSavedPage = book.last_page_read || 0;
+    if (totalPagesEl) totalPagesEl.textContent = String(loaded.total_pages);
+    currentPage = Math.max(1, Math.min(loaded.last_page_read || 1, loaded.total_pages));
+    lastSavedPage = loaded.last_page_read || 0;
     updateProgressUI();
 }
+
 
 function updateProgressUI() {
     if (!book) return;
@@ -95,9 +98,10 @@ async function renderPage(pageNumber: number) {
 }
 
 async function loadPdf() {
-    if (!book || !book.file) return;
+    const fileUrl = book?.file_url || book?.file;
+    if (!fileUrl) return;
     pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
-    pdfDoc = await pdfjsLib.getDocument(book.file).promise;
+    pdfDoc = await pdfjsLib.getDocument(fileUrl).promise;
     if (totalPagesEl) totalPagesEl.textContent = String(pdfDoc.numPages);
     await renderPage(currentPage);
 }

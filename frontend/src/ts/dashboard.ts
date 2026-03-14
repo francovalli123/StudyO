@@ -2258,14 +2258,15 @@ if (document.readyState === 'loading') {
         window.location.href = `/login?next=${next}`;
     }
 
-    window.addEventListener('auth:expired', (event: Event) => {
+    const onAuthExpired = (event: globalThis.Event) => {
         if (!isPostingPomodoroSession) return;
-        const customEvent = event as CustomEvent<{ suppressRedirect?: boolean }>;
+        const customEvent = event as unknown as CustomEvent<{ suppressRedirect?: boolean }>;
         if (customEvent.detail) {
             customEvent.detail.suppressRedirect = true;
         }
         authExpiredDuringPomodoroSave = true;
-    });
+    };
+    window.addEventListener('auth:expired', onAuthExpired as unknown as EventListener);
 
     // =====================
     // 🔊 Audio & Notifications

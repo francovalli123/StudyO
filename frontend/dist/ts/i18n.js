@@ -2,329 +2,7 @@
  * Internationalization (i18n) System
  * Provides translation support for multiple languages
  */
-
-export type Language = 'es' | 'en' | 'zh' | 'pt';
-
-export interface Translations {
-    // Profile page
-    profile: {
-        title: string;
-        subtitle: string;
-        personalProfile: string;
-        updateInfo: string;
-        changePhoto: string;
-        fullName: string;
-        email: string;
-        saveProfile: string;
-        appearance: string;
-        customizeAppearance: string;
-        darkMode: string;
-        darkModeDesc: string;
-        notifications: string;
-        notificationSettings: string;
-        taskReminders: string;
-        taskRemindersDesc: string;
-        habitReminders: string;
-        habitRemindersDesc: string;
-        progressUpdates: string;
-        progressUpdatesDesc: string;
-        language: string;
-        languageSettings: string;
-        selectLanguage: string;
-        languageChanged: string;
-        languageChangeSuccess: string;
-        profileUpdated: string;
-        profileUpdateError: string;
-        avatarUpdated: string;
-        avatarUpdateError: string;
-        loadUserError: string;
-    };
-    // Common
-    common: {
-        cancel: string;
-        confirm: string;
-        save: string;
-        accept: string;
-        loading: string;
-        error: string;
-        success: string;
-        edit: string;
-        delete: string;
-        close: string;
-    };
-    // Language names
-    languages: {
-        es: string;
-        en: string;
-        zh: string;
-        pt: string;
-    };
-    // Confirmation messages
-    confirmations: {
-        changeLanguage: string;
-        changeLanguageMessage: string;
-        deleteHabitTitle: string;
-        deleteHabitMessage: string;
-        deleteSubjectTitle: string;
-        deleteSubjectMessage: string;
-        deleteEventTitle: string;
-        deleteEventMessage: string;
-    };
-    // Navigation and sidebar
-    nav: {
-        home: string;
-        planner: string;
-        subjects: string;
-        habits: string;
-        progress: string;
-        reading: string;
-        settings: string;
-        premium: string;
-        logout: string;
-    };
-    // Dashboard
-    dashboard: {
-        greeting: string;
-        greetingSubtitle: string;
-        weeklyObjectives: string;
-        weeklyObjectivesDesc: string;
-        highPriority: string;
-        keyExploration: string;
-        complementary: string;
-        addObjective: string;
-        pomodoroZone: string;
-        pomodoroSettings: string;
-        pomodoroFocusLength: string;
-        pomodoroShortBreak: string;
-        pomodoroLongBreak: string;
-        cyclesBeforeLongBreak: string;
-        pomodoroOptionalDefaultSubject: string;
-        pomodoroSettingsCancel: string;
-        pomodoroSettingsSave: string;
-        noPomodoroSubject: string;
-        focus: string;
-        weeklyRhythm: string;
-        weeklyRhythmDesc: string;
-        weekDaysAbbrebiation: string[];
-        weekDays: string[];
-        focusDistribution: string;
-        focusDistributionDesc: string;
-        focusDistributionNoSubject: string;
-        nextEvent: string;
-        weeklyChallenge: string;
-        weeklyChallengeStatusActive: string;
-        weeklyChallengeStatusCompleted: string;
-        weeklyChallengeProgress: string;
-        weeklyChallengeRewardLabel: string;
-        weeklyChallengeEmpty: string;
-        weeklyChallengeError: string;
-        weeklyInfo1: string;
-        weeklyInfo2: string;
-        weeklyInfo3: string;
-        weeklyReward1: string;
-        weeklyReward2: string;
-        peakProductivity: string;
-        days: string[];
-        peakProductivityAnalysisDesc: string;
-        weeklyBalance: string;
-        weeklyBalanceDesc: string;
-        keyHabits: string;
-        keyHabitsDesc: string;
-        keyHabitsStreak: string;
-        dailyProgress: string;
-        concentrationEnterTitle: string;
-        concentrationEnterBody: string;
-        concentrationExitTitle: string;
-        concentrationExitBody: string;
-        plannerFull: string;
-        eventTypeStudyBlock: string;
-        eventTypeExam: string;
-        eventTypeImportantTask: string;
-        eventTypePersonal: string;
-        averagePerDay: string;
-        // Empty states
-        emptyObjectivesTitle: string;
-        emptyObjectivesDesc: string;
-        emptyObjectivesAction: string;
-        emptyRhythmTitle: string;
-        emptyRhythmDesc: string;
-        emptyDistributionTitle: string;
-        emptyDistributionDesc: string;
-        emptyBalanceTitle: string;
-        emptyBalanceDesc: string;
-        emptyKeyHabitsTitle: string;
-        emptyKeyHabitsDesc: string;
-        emptyNextEventTitle: string;
-        emptyNextEventDesc: string;
-        emptyNextEventAction: string;
-        emptyPeakProductivityTitle: string;
-        emptyPeakProductivityDesc: string;       
-        emptyCompletedTitle: string;
-        emptyCompletedDesc: string;
-        emptyIncompleteTitle: string;
-        emptyIncompleteDesc: string; 
-        // Modal
-        newObjective: string;
-        objectiveTitle: string;
-        objectiveTitlePlaceholder: string;
-        objectiveArea: string;
-        objectiveAreaPlaceholder: string;
-        objectiveIcon: string;
-        objectiveDetails: string;
-        objectiveDetailsPlaceholder: string;
-        objectivePriority: string;
-        objectivePomodoroGoal: string;
-        objectivePomodoroGoalPlaceholder: string;
-        createObjective: string;
-        updateObjective: string;
-        filterAll: string;
-        filterComplete: string;
-        filterIncomplete: string;
-    };
-    // Habits
-    habits: {
-        title: string;
-        subtitle: string;
-        addHabit: string;
-        dailyProgress: string;
-        progressText: string;
-        emptyTitle: string;
-        emptyDesc: string;
-        createFirst: string;
-        habitName: string;
-        frequency: string;
-        daily: string;
-        weekly: string;
-        subject: string;
-        none: string;
-        markKey: string;
-        keyDesc: string;
-        habitIcon: string;
-        createHabit: string;
-        editHabit: string;
-        streak: string;
-        habitPlaceholder: string;
-    };
-    // Planner
-    planner: {
-        title: string;
-        subtitle: string;
-        addEvent: string;
-        today: string;
-        week: string;
-        weekNumberLabel: string;
-        newEvent: string;
-        editEvent: string;
-        eventTitle: string;
-        eventTitlePlaceholder: string;
-        date: string;
-        type: string;
-        startTime: string;
-        endTime: string;
-        subject: string;
-        notes: string;
-        notesPlaceholder: string;
-        save: string;
-        delete: string;
-        studyBlock: string;
-        exam: string;
-        importantTask: string;
-        personal: string;
-
-    };
-    // Subjects
-    subjects: {
-        title: string;
-        subtitle: string;
-        addSubject: string;
-        emptyTitle: string;
-        emptyDesc: string;
-        createFirst: string;
-        newSubject: string;
-        editSubject: string;
-        subjectName: string;
-        professor: string;
-        professorShort: string;
-        priority: string;
-        notSpecified: string;
-        high: string;
-        medium: string;
-        low: string;
-        nextExam: string;
-        weeklyTarget: string;
-        createSubject: string;
-        updateSubject: string;
-        progressLabel: string;
-        weeklyMinutesLabel: string;
-        editAction: string;
-        deleteAction: string;
-        namePlaceholder: string;
-        timePlaceholder: string;
-    };
-    // Progress
-    progress: {
-        title: string;
-        subtitle: string;
-        monthlyRhythm: string;
-        monthlyRhythmDesc: string;
-        weeklyConsistency: string;
-        consistencyDesc: string;
-        heatmap: string;
-        heatmapDesc: string;
-        less: string;
-        more: string;
-        monthlyFocus: string;
-        monthlyFocusDesc: string;
-        hours: string;
-        noStudy: string;
-        on: string;
-        emptyWeeklyObjectiveStats: string;
-        weeklyObjectiveTitle: string;
-        weeklyObjectiveDesc: string;
-        totalObjectives: string;
-        completed: string;
-        successRate: string;
-        weeklyHistory: string;
-    };
-    // Reading
-    reading: {
-        title: string;
-        subtitle: string;
-        addBook: string;
-        emptyTitle: string;
-        emptyDesc: string;
-        emptyCta: string;
-        formTitle: string;
-        formTitlePlaceholder: string;
-        formAuthor: string;
-        formAuthorPlaceholder: string;
-        formSubject: string;
-        formSubjectPlaceholder: string;
-        formFile: string;
-        formFileHint: string;
-        uploadBook: string;
-        uploading: string;
-        uploadError: string;
-        selectPdfError: string;
-        deleteBook: string;
-        deleteError: string;
-        openBook: string;
-        progressLabel: string;
-        pagesLabel: string;
-        noSubject: string;
-        completed: string;
-        viewerTitle: string;
-        viewerSubtitle: string;
-        backToLibrary: string;
-        prevPage: string;
-        nextPage: string;
-        pageLabel: string;
-        lastSavedLabel: string;
-        lastSavedPending: string;
-    };
-}
-
-export const translations: Record<Language, Translations> = {
+export const translations = {
     es: {
         profile: {
             title: 'Ajustes de Cuenta',
@@ -434,7 +112,7 @@ export const translations: Record<Language, Translations> = {
             weeklyChallengeError: 'Error al cargar el desafío semanal',
             peakProductivity: 'Tu Momento Peak de Productividad',
             days: ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'],
-            peakProductivityAnalysisDesc: "Datos de las últimas 4 semanas indican que esta es tu franja de máxima concentración.",    
+            peakProductivityAnalysisDesc: "Datos de las últimas 4 semanas indican que esta es tu franja de máxima concentración.",
             weeklyBalance: 'Revisión de Balance Semanal',
             weeklyBalanceDesc: 'Analizá tu distribución de tiempo y ajustá tu estrategia.',
             weeklyInfo1: 'Racha de Enfoque Élite',
@@ -495,7 +173,6 @@ export const translations: Record<Language, Translations> = {
             filterComplete: 'Completado',
             filterIncomplete: 'No completado',
         },
-
         reading: {
             title: 'Biblioteca de lectura',
             subtitle: 'Organiza tus lecturas académicas y registrá tu progreso.',
@@ -531,7 +208,6 @@ export const translations: Record<Language, Translations> = {
             lastSavedLabel: 'Última actualización:',
             lastSavedPending: 'Pendiente',
         },
-
         habits: {
             title: 'Seguimiento de Hábitos',
             subtitle: 'Construí una rutina de estudio sólida y productiva.',
@@ -731,7 +407,7 @@ export const translations: Record<Language, Translations> = {
             weekDays: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
             focusDistribution: 'Focus Distribution',
             focusDistributionDesc: 'Time dedicated per study area.',
-            focusDistributionNoSubject: 'No subject', 
+            focusDistributionNoSubject: 'No subject',
             nextEvent: 'Next Event',
             weeklyChallenge: 'Active Weekly Challenge',
             weeklyChallengeStatusActive: 'Active',
@@ -803,7 +479,6 @@ export const translations: Record<Language, Translations> = {
             filterComplete: 'Completed',
             filterIncomplete: 'Not completed',
         },
-
         reading: {
             title: 'Reading Library',
             subtitle: 'Organize your academic readings and track your progress.',
@@ -839,7 +514,6 @@ export const translations: Record<Language, Translations> = {
             lastSavedLabel: 'Last saved:',
             lastSavedPending: 'Pending',
         },
-
         habits: {
             title: 'Habit Tracking',
             subtitle: 'Build a solid and productive study routine.',
@@ -1039,7 +713,7 @@ export const translations: Record<Language, Translations> = {
             weekDays: ['星期一', '星期二', '星期三', '星期四', '星期五', '星期六', '星期日'],
             focusDistribution: '专注分布',
             focusDistributionDesc: '每个学习领域的时间分配。',
-            focusDistributionNoSubject: '無主題', 
+            focusDistributionNoSubject: '無主題',
             nextEvent: '下一个活动',
             weeklyChallenge: '活跃的每周挑战',
             weeklyChallengeStatusActive: '进行中',
@@ -1067,11 +741,11 @@ export const translations: Record<Language, Translations> = {
             concentrationExitTitle: '专注模式已关闭。',
             concentrationExitBody: '欢迎回到你的控制中心。',
             plannerFull: '查看所有事件 →',
-            eventTypeStudyBlock: '学习时段', 
+            eventTypeStudyBlock: '学习时段',
             eventTypeExam: '考试',
             eventTypeImportantTask: '重要任务',
             eventTypePersonal: '个人',
-            averagePerDay:'每天平均值',
+            averagePerDay: '每天平均值',
             // Empty states
             emptyObjectivesTitle: '没有战略目标',
             emptyObjectivesDesc: '如果你没有计划，这一周就会控制你。现在就定义你的第一次胜利。',
@@ -1111,7 +785,6 @@ export const translations: Record<Language, Translations> = {
             filterComplete: '已完成',
             filterIncomplete: '未完成',
         },
-
         reading: {
             title: '阅读库',
             subtitle: '管理你的学术阅读并跟踪进度。',
@@ -1147,7 +820,6 @@ export const translations: Record<Language, Translations> = {
             lastSavedLabel: '上次保存：',
             lastSavedPending: '等待中',
         },
-
         habits: {
             title: '习惯追踪',
             subtitle: '建立稳固且高效的学习常规。',
@@ -1249,7 +921,6 @@ export const translations: Record<Language, Translations> = {
             weeklyHistory: '每周历史',
         },
     },
-
     pt: {
         profile: {
             title: 'Configurações da Conta',
@@ -1397,7 +1068,7 @@ export const translations: Record<Language, Translations> = {
             emptyNextEventDesc: 'Organize seu tempo criando eventos no planejador.',
             emptyNextEventAction: 'Criar meu primeiro evento',
             emptyPeakProductivityTitle: 'Dados insuficientes',
-            emptyPeakProductivityDesc: 'Dados das últimas 4 semanas indicam que este é seu horário de maior concentração.',    
+            emptyPeakProductivityDesc: 'Dados das últimas 4 semanas indicam que este é seu horário de maior concentração.',
             emptyCompletedTitle: 'Nada concluído ainda!',
             emptyCompletedDesc: 'Você ainda não concluiu nenhum objetivo. Vamos lá, você consegue!',
             emptyIncompleteTitle: 'Tudo concluído!',
@@ -1420,7 +1091,6 @@ export const translations: Record<Language, Translations> = {
             filterComplete: 'Concluído',
             filterIncomplete: 'Não concluído',
         },
-
         reading: {
             title: 'Biblioteca de leitura',
             subtitle: 'Organize suas leituras acadêmicas e acompanhe seu progresso.',
@@ -1456,7 +1126,6 @@ export const translations: Record<Language, Translations> = {
             lastSavedLabel: 'Última atualização:',
             lastSavedPending: 'Pendente',
         },
-
         habits: {
             title: 'Rastreamento de Hábitos',
             subtitle: 'Construa uma rotina de estudo sólida e produtiva.',
@@ -1559,127 +1228,113 @@ export const translations: Record<Language, Translations> = {
         },
     },
 };
-
 /**
  * Get current language from localStorage or default to Spanish
  */
-export function getCurrentLanguage(): Language {
-    const saved = localStorage.getItem('appLanguage') as Language | null;
+export function getCurrentLanguage() {
+    const saved = localStorage.getItem('appLanguage');
     if (saved && (saved === 'es' || saved === 'en' || saved === 'zh' || saved === 'pt')) {
         return saved;
     }
     return 'es'; // Default to Spanish
 }
-
 /**
  * Set current language
  */
-export function setCurrentLanguage(lang: Language): void {
+export function setCurrentLanguage(lang) {
     localStorage.setItem('appLanguage', lang);
 }
-
 /**
  * Get translation for current language
  */
-export function t(): Translations {
+export function t() {
     return translations[getCurrentLanguage()];
 }
-
 /**
  * Get translation for specific language
  */
-export function getTranslations(lang: Language): Translations {
+export function getTranslations(lang) {
     return translations[lang];
 }
 /**
  * Apply translations to the current page
  * This function should be called after changing language
  */
-export function applyTranslations(): void {
+export function applyTranslations() {
     const trans = t();
-    
     // Apply translations to elements with data-i18n attribute
     document.querySelectorAll('[data-i18n]').forEach((el) => {
         let key = el.getAttribute('data-i18n');
-        if (!key) return;
-        
+        if (!key)
+            return;
         // Detect and clean the [placeholder] syntax
         const isExplicitPlaceholder = key.startsWith('[placeholder]');
         if (isExplicitPlaceholder) {
             key = key.replace('[placeholder]', '');
         }
-
         const keys = key.split('.');
-        let value: any = trans;
+        let value = trans;
         for (const k of keys) {
-            value = value?.[k];
+            value = value === null || value === void 0 ? void 0 : value[k];
         }
-        
         if (value && typeof value === 'string') {
             if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement) {
                 // If it's a button, change the value
                 if (el.type === 'submit' || el.type === 'button') {
                     el.value = value;
-                } 
+                }
                 // If explicitly requested via [placeholder] OR it's a text input, assign to placeholder
                 else if (isExplicitPlaceholder || el.placeholder !== undefined) {
                     el.placeholder = value;
                 }
-            } else {
+            }
+            else {
                 // Standard elements (h1, span, label, etc.)
                 el.textContent = value;
             }
         }
     });
-    
     // Keep the rest of the code as is; serves as a fallback for data-i18n-placeholder
-    
     // Apply translations to elements with data-i18n-placeholder
     document.querySelectorAll('[data-i18n-placeholder]').forEach((el) => {
         const key = el.getAttribute('data-i18n-placeholder');
-        if (!key) return;
-        
+        if (!key)
+            return;
         const keys = key.split('.');
-        let value: any = trans;
+        let value = trans;
         for (const k of keys) {
-            value = value?.[k];
+            value = value === null || value === void 0 ? void 0 : value[k];
         }
-        
         if (value && typeof value === 'string' && (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement)) {
             el.placeholder = value;
         }
     });
-    
     // Apply translations to elements with data-i18n-title
     document.querySelectorAll('[data-i18n-title]').forEach((el) => {
         const key = el.getAttribute('data-i18n-title');
-        if (!key) return;
-        
+        if (!key)
+            return;
         const keys = key.split('.');
-        let value: any = trans;
+        let value = trans;
         for (const k of keys) {
-            value = value?.[k];
+            value = value === null || value === void 0 ? void 0 : value[k];
         }
-        
         if (value && typeof value === 'string') {
             el.setAttribute('title', value);
         }
     });
-    
     // Apply translations to option elements in selectors
     document.querySelectorAll('option[data-i18n]').forEach((el) => {
         const key = el.getAttribute('data-i18n');
-        if (!key) return;
-        
+        if (!key)
+            return;
         const keys = key.split('.');
-        let value: any = trans;
+        let value = trans;
         for (const k of keys) {
-            value = value?.[k];
+            value = value === null || value === void 0 ? void 0 : value[k];
         }
-        
         if (value && typeof value === 'string') {
             el.textContent = value;
         }
     });
 }
-

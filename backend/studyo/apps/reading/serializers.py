@@ -13,6 +13,7 @@ class SubjectSummarySerializer(serializers.ModelSerializer):
 
 class BookListSerializer(serializers.ModelSerializer):
     file = serializers.FileField(read_only=True)
+    file_url = serializers.SerializerMethodField()
     subject = SubjectSummarySerializer(read_only=True)
     last_page_read = serializers.SerializerMethodField()
     note = serializers.SerializerMethodField()
@@ -27,6 +28,7 @@ class BookListSerializer(serializers.ModelSerializer):
             "author",
             "subject",
             "file",
+            "file_url",
             "total_pages",
             "last_page_read",
             "progress",
@@ -64,13 +66,33 @@ class BookListSerializer(serializers.ModelSerializer):
         clamped = min(last_page_read, obj.total_pages)
         return clamped / obj.total_pages
 
+    def get_file_url(self, obj):
+        if not obj.file:
+            return None
+        try:
+            url = obj.file.url
+        except Exception:
+            return None
+        request = self.context.get("request")
+        if request is not None:
+            return request.build_absolute_uri(url)
+        return url
+
 
 class BookCreateSerializer(serializers.ModelSerializer):
+    subject = serializers.PrimaryKeyRelatedField(
+        queryset=Subject.objects.all(),
+        required=False,
+        allow_null=True,
+    )
+
     class Meta:
         model = Book
         fields = ["id", "title", "author", "subject", "file"]
 
     def validate_subject(self, value):
+        if value is None:
+            return value
         request = self.context.get("request")
         if request and value.user_id != request.user.id:
             raise serializers.ValidationError("Subject does not belong to the user.")
