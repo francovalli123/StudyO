@@ -1,0 +1,7 @@
+{
+  "cleanUrls": true,
+  "rewrites": [
+    { "source": "/reading", "destination": "/reading.html" },
+    { "source": "/reading/viewer/:id", "destination": "/reading-viewer.html" }
+  ]
+}
