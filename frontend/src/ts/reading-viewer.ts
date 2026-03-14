@@ -76,6 +76,14 @@ function updateProgressUI() {
     }
 }
 
+function resolveFileUrl(raw?: string | null): string | null {
+    if (!raw) return null;
+    if (raw.startsWith("http://") || raw.startsWith("https://")) return raw;
+    const apiRoot = BASE_URL.replace(/\/api$/, "");
+    if (raw.startsWith("/")) return `${apiRoot}${raw}`;
+    return `${apiRoot}/${raw}`;
+}
+
 async function renderPage(pageNumber: number) {
     if (!pdfDoc || !pdfCanvas || renderInProgress) return;
     renderInProgress = true;
@@ -98,7 +106,7 @@ async function renderPage(pageNumber: number) {
 }
 
 async function loadPdf() {
-    const fileUrl = book?.file_url || book?.file;
+    const fileUrl = resolveFileUrl(book?.file_url || book?.file);
     if (!fileUrl) return;
     pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
     pdfDoc = await pdfjsLib.getDocument(fileUrl).promise;
