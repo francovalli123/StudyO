@@ -286,6 +286,42 @@ export interface Translations {
         successRate: string;
         weeklyHistory: string;
     };
+    // Reading
+    reading: {
+        title: string;
+        subtitle: string;
+        addBook: string;
+        emptyTitle: string;
+        emptyDesc: string;
+        emptyCta: string;
+        formTitle: string;
+        formTitlePlaceholder: string;
+        formAuthor: string;
+        formAuthorPlaceholder: string;
+        formSubject: string;
+        formSubjectPlaceholder: string;
+        formFile: string;
+        formFileHint: string;
+        uploadBook: string;
+        uploading: string;
+        uploadError: string;
+        selectPdfError: string;
+        deleteBook: string;
+        deleteError: string;
+        openBook: string;
+        progressLabel: string;
+        pagesLabel: string;
+        noSubject: string;
+        completed: string;
+        viewerTitle: string;
+        viewerSubtitle: string;
+        backToLibrary: string;
+        prevPage: string;
+        nextPage: string;
+        pageLabel: string;
+        lastSavedLabel: string;
+        lastSavedPending: string;
+    };
 }
 
 export const translations: Record<Language, Translations> = {
@@ -459,6 +495,42 @@ export const translations: Record<Language, Translations> = {
             filterComplete: 'Completado',
             filterIncomplete: 'No completado',
         },
+        reading: {
+            title: 'Biblioteca de lectura',
+            subtitle: 'Organiza tus lecturas acad?micas y registr? tu progreso.',
+            addBook: 'A?adir libro',
+            emptyTitle: 'Tu biblioteca est? vac?a',
+            emptyDesc: 'Sub? tus PDFs acad?micos y segu? tu avance con precisi?n.',
+            emptyCta: 'Sub? tu primer libro',
+            formTitle: 'T?tulo',
+            formTitlePlaceholder: 'Ej: C?lculo Diferencial',
+            formAuthor: 'Autor',
+            formAuthorPlaceholder: 'Ej: Stewart',
+            formSubject: 'Materia',
+            formSubjectPlaceholder: 'Selecciona una materia',
+            formFile: 'Archivo PDF',
+            formFileHint: 'Solo PDF. M?ximo 50MB.',
+            uploadBook: 'Subir libro',
+            uploading: 'Subiendo...',
+            uploadError: 'Error al subir el libro.',
+            selectPdfError: 'Debes seleccionar un PDF.',
+            deleteBook: 'Eliminar',
+            deleteError: 'No se pudo eliminar el libro.',
+            openBook: 'Abrir libro',
+            progressLabel: 'Progreso',
+            pagesLabel: 'p?ginas',
+            noSubject: 'Sin materia',
+            completed: 'Completado',
+            viewerTitle: 'Lector',
+            viewerSubtitle: 'Cargando informaci?n del libro...',
+            backToLibrary: 'Volver',
+            prevPage: 'Anterior',
+            nextPage: 'Siguiente',
+            pageLabel: 'P?gina',
+            lastSavedLabel: '?ltima actualizaci?n:',
+            lastSavedPending: 'Pendiente',
+        },
+
         habits: {
             title: 'Seguimiento de Hábitos',
             subtitle: 'Construí una rutina de estudio sólida y productiva.',
@@ -730,6 +802,42 @@ export const translations: Record<Language, Translations> = {
             filterComplete: 'Completed',
             filterIncomplete: 'Not completed',
         },
+        reading: {
+            title: 'Reading Library',
+            subtitle: 'Organize your academic readings and track your progress.',
+            addBook: 'Add Book',
+            emptyTitle: 'Your library is empty',
+            emptyDesc: 'Upload academic PDFs and track your progress.',
+            emptyCta: 'Add your first book',
+            formTitle: 'Title',
+            formTitlePlaceholder: 'e.g. Calculus',
+            formAuthor: 'Author',
+            formAuthorPlaceholder: 'e.g. Stewart',
+            formSubject: 'Subject',
+            formSubjectPlaceholder: 'Select a subject',
+            formFile: 'PDF File',
+            formFileHint: 'PDF only. Max 50MB.',
+            uploadBook: 'Upload Book',
+            uploading: 'Uploading...',
+            uploadError: 'Error uploading the book.',
+            selectPdfError: 'Please select a PDF.',
+            deleteBook: 'Delete',
+            deleteError: 'Could not delete the book.',
+            openBook: 'Open Book',
+            progressLabel: 'Progress',
+            pagesLabel: 'pages',
+            noSubject: 'No subject',
+            completed: 'Completed',
+            viewerTitle: 'Reader',
+            viewerSubtitle: 'Loading book information...',
+            backToLibrary: 'Back',
+            prevPage: 'Previous',
+            nextPage: 'Next',
+            pageLabel: 'Page',
+            lastSavedLabel: 'Last saved:',
+            lastSavedPending: 'Pending',
+        },
+
         habits: {
             title: 'Habit Tracking',
             subtitle: 'Build a solid and productive study routine.',
@@ -1001,6 +1109,42 @@ export const translations: Record<Language, Translations> = {
             filterComplete: '已完成',
             filterIncomplete: '未完成',
         },
+        reading: {
+            title: '???',
+            subtitle: '??????????????',
+            addBook: '????',
+            emptyTitle: '??????',
+            emptyDesc: '???? PDF ????????',
+            emptyCta: '??????',
+            formTitle: '??',
+            formTitlePlaceholder: '??????',
+            formAuthor: '??',
+            formAuthorPlaceholder: '???Stewart',
+            formSubject: '??',
+            formSubjectPlaceholder: '????',
+            formFile: 'PDF ??',
+            formFileHint: '??? PDF??? 50MB?',
+            uploadBook: '????',
+            uploading: '???...',
+            uploadError: '????????',
+            selectPdfError: '??? PDF ???',
+            deleteBook: '??',
+            deleteError: '???????',
+            openBook: '????',
+            progressLabel: '??',
+            pagesLabel: '?',
+            noSubject: '???',
+            completed: '???',
+            viewerTitle: '???',
+            viewerSubtitle: '????????...',
+            backToLibrary: '??',
+            prevPage: '???',
+            nextPage: '???',
+            pageLabel: '?',
+            lastSavedLabel: '?????',
+            lastSavedPending: '???',
+        },
+
         habits: {
             title: '习惯追踪',
             subtitle: '建立稳固且高效的学习常规。',
@@ -1273,6 +1417,42 @@ export const translations: Record<Language, Translations> = {
             filterComplete: 'Concluído',
             filterIncomplete: 'Não concluído',
         },
+        reading: {
+            title: 'Biblioteca de leitura',
+            subtitle: 'Organize suas leituras acad?micas e acompanhe seu progresso.',
+            addBook: 'Adicionar livro',
+            emptyTitle: 'Sua biblioteca est? vazia',
+            emptyDesc: 'Envie PDFs acad?micos e acompanhe seu progresso.',
+            emptyCta: 'Adicione seu primeiro livro',
+            formTitle: 'T?tulo',
+            formTitlePlaceholder: 'Ex: C?lculo Diferencial',
+            formAuthor: 'Autor',
+            formAuthorPlaceholder: 'Ex: Stewart',
+            formSubject: 'Mat?ria',
+            formSubjectPlaceholder: 'Selecione uma mat?ria',
+            formFile: 'Arquivo PDF',
+            formFileHint: 'Apenas PDF. M?ximo 50MB.',
+            uploadBook: 'Enviar livro',
+            uploading: 'Enviando...',
+            uploadError: 'Erro ao enviar o livro.',
+            selectPdfError: 'Selecione um PDF.',
+            deleteBook: 'Excluir',
+            deleteError: 'N?o foi poss?vel excluir o livro.',
+            openBook: 'Abrir livro',
+            progressLabel: 'Progresso',
+            pagesLabel: 'p?ginas',
+            noSubject: 'Sem mat?ria',
+            completed: 'Conclu?do',
+            viewerTitle: 'Leitor',
+            viewerSubtitle: 'Carregando informa??es do livro...',
+            backToLibrary: 'Voltar',
+            prevPage: 'Anterior',
+            nextPage: 'Pr?ximo',
+            pageLabel: 'P?gina',
+            lastSavedLabel: '?ltima atualiza??o:',
+            lastSavedPending: 'Pendente',
+        },
+
         habits: {
             title: 'Rastreamento de Hábitos',
             subtitle: 'Construa uma rotina de estudo sólida e produtiva.',

@@ -1,5 +1,6 @@
 import { apiDelete, apiGet, BASE_URL, getToken } from "./api.js";
 import { initConfirmModal, showConfirmModal, showAlertModal } from "./confirmModal.js";
+import { t } from "./i18n.js";
 
 declare const lucide: {
     createIcons: () => void;
@@ -93,6 +94,8 @@ async function loadBooks() {
 
 function renderBooks() {
     if (!booksGrid || !emptyState) return;
+    const tr = t();
+    const reading = (tr as any).reading || {};
 
     if (books.length === 0) {
         booksGrid.innerHTML = "";
@@ -107,10 +110,10 @@ function renderBooks() {
     booksGrid.innerHTML = books
         .map((book) => {
             const percent = Math.round((book.progress || 0) * 100);
-            const subjectName = book.subject ? book.subject.name : "Sin materia";
+            const subjectName = book.subject ? book.subject.name : (reading.noSubject || "Sin materia");
             const note = book.note ? `<p class="text-xs text-gray-400 mt-3">${book.note}</p>` : "";
             const completedBadge = book.completed
-                ? `<span class="inline-flex items-center gap-1 text-xs font-semibold px-3 py-1 rounded-full bg-green-500/15 text-green-300">Completed</span>`
+                ? `<span class="inline-flex items-center gap-1 text-xs font-semibold px-3 py-1 rounded-full bg-green-500/15 text-green-300">${reading.completed || "Completado"}</span>`
                 : "";
 
             return `
@@ -131,10 +134,10 @@ function renderBooks() {
 
                     <div class="mb-4">
                         <div class="flex items-center justify-between mb-2">
-                            <span class="text-xs text-gray-400">Progreso</span>
+                            <span class="text-xs text-gray-400">${reading.progressLabel || "Progreso"}</span>
                             <span class="text-sm font-bold text-purple-400">${percent}%</span>
                         </div>
-                        <div class="text-xs text-gray-400 mb-2">${book.last_page_read} / ${book.total_pages} páginas</div>
+                        <div class="text-xs text-gray-400 mb-2">${book.last_page_read} / ${book.total_pages} ${reading.pagesLabel || "páginas"}</div>
                         <div class="w-full h-2 rounded-full bg-gray-700/50" style="box-shadow: inset 0 0 10px rgba(0,0,0,0.3);">
                             <div class="h-full rounded-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all duration-300" style="width: ${percent}%; box-shadow: 0 0 15px rgba(168,85,247,0.6);"></div>
                         </div>
@@ -144,11 +147,11 @@ function renderBooks() {
                     <div class="flex gap-3 pt-4 border-t border-gray-700/50">
                         <a href="/reading/viewer/${book.id}" class="flex-1 px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 border border-gray-700 text-gray-300 hover:text-white text-sm font-medium transition-all duration-300 flex items-center justify-center gap-2">
                             <i data-lucide="book-open" class="w-4 h-4"></i>
-                            <span>Open Book</span>
+                            <span>${reading.openBook || "Abrir libro"}</span>
                         </a>
                         <button class="delete-book-btn flex-1 px-4 py-2 rounded-lg bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 hover:text-red-300 text-sm font-medium transition-all duration-300 flex items-center justify-center gap-2" data-book-id="${book.id}">
                             <i data-lucide="trash-2" class="w-4 h-4"></i>
-                            <span>Delete</span>
+                            <span>${reading.deleteBook || "Eliminar"}</span>
                         </button>
                     </div>
                 </div>
@@ -183,7 +186,9 @@ async function deleteBook(bookId: number) {
         await loadBooks();
     } catch (error) {
         console.error("Error deleting book:", error);
-        await showAlertModal("No se pudo eliminar el libro.");
+        const tr = t();
+        const reading = (tr as any).reading || {};
+        await showAlertModal(reading.deleteError || "No se pudo eliminar el libro.");
     }
 }
 
@@ -193,9 +198,11 @@ async function handleBookSubmit(event: Event) {
 
     const submitBtn = bookForm.querySelector("button[type='submit']") as HTMLButtonElement | null;
     const submitText = document.getElementById("submitBookBtnText");
+    const tr = t();
+    const reading = (tr as any).reading || {};
     const originalText = submitText ? submitText.textContent : "";
     if (submitBtn) submitBtn.disabled = true;
-    if (submitText) submitText.textContent = "Subiendo...";
+    if (submitText) submitText.textContent = reading.uploading || "Subiendo...";
 
     try {
         const token = getToken();
@@ -204,7 +211,7 @@ async function handleBookSubmit(event: Event) {
         const formData = new FormData(bookForm);
         const file = formData.get("file") as File | null;
         if (!file) {
-            throw new Error("Debes seleccionar un PDF.");
+            throw new Error(reading.selectPdfError || "Debes seleccionar un PDF.");
         }
         const validationError = validatePdfFile(file);
         if (validationError) {
@@ -222,7 +229,7 @@ async function handleBookSubmit(event: Event) {
         });
 
         if (!response.ok) {
-            let message = "Error al subir el libro.";
+            let message = reading.uploadError || "Error al subir el libro.";
             try {
                 const payload = await response.json();
                 if (payload && payload.file) message = payload.file;
@@ -238,10 +245,10 @@ async function handleBookSubmit(event: Event) {
         await loadBooks();
     } catch (error) {
         console.error("Error uploading book:", error);
-        await showAlertModal("No se pudo subir el libro.");
+        await showAlertModal(reading.uploadError || "No se pudo subir el libro.");
     } finally {
         if (submitBtn) submitBtn.disabled = false;
-        if (submitText) submitText.textContent = originalText || "Upload Book";
+        if (submitText) submitText.textContent = originalText || (reading.uploadBook || "Subir libro");
     }
 }
 

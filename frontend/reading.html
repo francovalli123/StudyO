@@ -177,12 +177,12 @@
             
             <header class="flex justify-between items-start animate-on-load delay-200">
                 <div>
-                    <h1 class="text-4xl font-bold text-white mb-2">Reading Library</h1>
-                    <p class="text-gray-400 text-lg">Organiza tus lecturas académicas y registrá tu progreso.</p>
+                    <h1 class="text-4xl font-bold text-white mb-2" data-i18n="reading.title">Reading Library</h1>
+                    <p class="text-gray-400 text-lg" data-i18n="reading.subtitle">Organiza tus lecturas académicas y registrá tu progreso.</p>
                 </div>
                 <button id="addBookBtn" class="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-purple-600 via-fuchsia-500 to-purple-600 text-white font-medium hover:from-purple-500 hover:via-fuchsia-400 hover:to-purple-500 transition-all duration-300 shadow-[0_0_15px_rgba(168,85,247,0.5)]">
                     <i data-lucide="plus-circle" class="w-5 h-5"></i>
-                    <span>Add Book</span>
+                    <span data-i18n="reading.addBook">Add Book</span>
                 </button>
             </header>
 
@@ -190,11 +190,11 @@
                 <div class="w-24 h-24 rounded-full bg-gradient-to-br from-purple-500/20 via-fuchsia-500/20 to-purple-500/20 flex items-center justify-center mb-6" style="box-shadow: 0 0 0 1px rgba(168,85,247,0.3);">
                     <i data-lucide="book" class="w-12 h-12 text-purple-400"></i>
                 </div>
-                <h3 class="text-2xl font-bold text-white mb-3">Tu biblioteca está vacía</h3>
-                <p class="text-gray-400 mb-6 max-w-md">Subí tus PDFs académicos y seguí tu avance con precisión.</p>
+                <h3 class="text-2xl font-bold text-white mb-3" data-i18n="reading.emptyTitle">Tu biblioteca está vacía</h3>
+                <p class="text-gray-400 mb-6 max-w-md" data-i18n="reading.emptyDesc">Subí tus PDFs académicos y seguí tu avance con precisión.</p>
                 <button id="emptyStateAddBtn" class="px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 via-fuchsia-500 to-purple-600 text-white font-medium hover:from-purple-500 hover:via-fuchsia-400 hover:to-purple-500 transition-all duration-300 shadow-[0_0_15px_rgba(168,85,247,0.5)]">
                     <i data-lucide="plus-circle" class="w-5 h-5 inline mr-2"></i>
-                    <span>Add your first book</span>
+                    <span data-i18n="reading.emptyCta">Add your first book</span>
                 </button>
             </div>
 
@@ -205,7 +205,7 @@
     <div id="bookModal" class="modal-overlay">
         <div class="modal-content">
             <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-bold text-white">Add Book</h2>
+                <h2 class="text-2xl font-bold text-white" data-i18n="reading.addBook">Add Book</h2>
                 <button id="closeBookModalBtn" class="text-gray-400 hover:text-white transition-colors">
                     <i data-lucide="x" class="w-6 h-6"></i>
                 </button>
@@ -213,35 +213,37 @@
 
             <form id="bookForm" class="space-y-5">
                 <div>
-                    <label class="block text-sm font-medium text-gray-300 mb-2">Title</label>
+                    <label class="block text-sm font-medium text-gray-300 mb-2" data-i18n="reading.formTitle">Title</label>
                     <input type="text" name="title" required
                            class="w-full bg-dark-input border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all"
+                           data-i18n="[placeholder]reading.formTitlePlaceholder"
                            placeholder="Ej: Cálculo Diferencial">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-300 mb-2">Author</label>
+                    <label class="block text-sm font-medium text-gray-300 mb-2" data-i18n="reading.formAuthor">Author</label>
                     <input type="text" name="author" required
                            class="w-full bg-dark-input border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all"
+                           data-i18n="[placeholder]reading.formAuthorPlaceholder"
                            placeholder="Ej: Stewart">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-300 mb-2">Subject</label>
+                    <label class="block text-sm font-medium text-gray-300 mb-2" data-i18n="reading.formSubject">Subject</label>
                     <select id="bookSubject" name="subject" required
                             class="w-full bg-dark-input border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all">
-                        <option value="">Selecciona una materia</option>
+                        <option value="" data-i18n="reading.formSubjectPlaceholder">Selecciona una materia</option>
                     </select>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-300 mb-2">PDF File</label>
+                    <label class="block text-sm font-medium text-gray-300 mb-2" data-i18n="reading.formFile">PDF File</label>
                     <input id="bookFile" type="file" name="file" accept="application/pdf,.pdf" required
                            class="w-full bg-dark-input border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all">
-                    <p class="text-xs text-gray-500 mt-2">Solo PDF. Máximo 50MB.</p>
+                    <p class="text-xs text-gray-500 mt-2" data-i18n="reading.formFileHint">Solo PDF. Máximo 50MB.</p>
                 </div>
                 <div class="flex gap-3 pt-4">
                     <button type="submit" class="flex-1 px-4 py-3 rounded-lg bg-gradient-to-r from-purple-600 via-fuchsia-500 to-purple-600 text-white font-medium hover:from-purple-500 hover:via-fuchsia-400 hover:to-purple-500 transition-all duration-300 shadow-[0_0_15px_rgba(168,85,247,0.5)]">
-                        <span id="submitBookBtnText">Upload Book</span>
+                        <span id="submitBookBtnText" data-i18n="reading.uploadBook">Upload Book</span>
                     </button>
-                    <button type="button" id="cancelBookBtn" class="px-4 py-3 rounded-lg bg-dark-input border border-gray-700 text-gray-300 font-medium hover:bg-gray-800 transition-all duration-300">
+                    <button type="button" id="cancelBookBtn" class="px-4 py-3 rounded-lg bg-dark-input border border-gray-700 text-gray-300 font-medium hover:bg-gray-800 transition-all duration-300" data-i18n="common.cancel">
                         Cancelar
                     </button>
                 </div>

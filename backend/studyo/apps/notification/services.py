@@ -55,7 +55,7 @@ def _resolve_frontend_url():
         )
         candidate = default_frontend_url
 
-    return candidate.rstrip('/')
+    return candidate.rstrip('')
 
 
 def _normalize_hour(raw_hour, default=20):

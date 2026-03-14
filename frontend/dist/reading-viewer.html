@@ -75,10 +75,10 @@
         body.is-desktop-sidebar-collapsed [data-sidebar-toggle] { transform: rotate(180deg); }
         body.is-desktop-sidebar-collapsed #sidebarToggleBtn i { width: 20px !important; height: 20px !important; }
     </style>
-  <script type="module" crossorigin src="/assets/readingViewer-D432zlln.js"></script>
+  <script type="module" crossorigin src="/assets/readingViewer-B8Wd9Pa9.js"></script>
   <link rel="modulepreload" crossorigin href="/assets/modulepreload-polyfill-B5Qt9EMX.js">
   <link rel="modulepreload" crossorigin href="/assets/auth-gate-BmIZwCWq.js">
-  <link rel="modulepreload" crossorigin href="/assets/responsive-XJpnnCaS.js">
+  <link rel="modulepreload" crossorigin href="/assets/responsive-Bo8QNGoF.js">
   <link rel="stylesheet" crossorigin href="/assets/auth-gate-Dn5R9NA5.css">
 </head>
 <body class="bg-dark-bg text-gray-300 h-screen flex overflow-hidden selection:bg-purple-500 selection:text-white">
@@ -135,15 +135,15 @@
         <div class="p-8 max-w-6xl mx-auto space-y-6">
             <header class="flex flex-wrap items-center justify-between gap-4 animate-on-load delay-200">
                 <div>
-                    <h1 id="bookTitle" class="text-3xl font-bold text-white mb-2">Reading Viewer</h1>
-                    <p id="bookMeta" class="text-gray-400">Cargando información del libro...</p>
+                    <h1 id="bookTitle" class="text-3xl font-bold text-white mb-2" data-i18n="reading.viewerTitle">Reading Viewer</h1>
+                    <p id="bookMeta" class="text-gray-400" data-i18n="reading.viewerSubtitle">Cargando información del libro...</p>
                 </div>
                 <div class="flex items-center gap-3">
                     <a href="/reading" class="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-gray-700 text-gray-300 hover:text-white text-sm font-medium transition-all duration-300 flex items-center gap-2">
                         <i data-lucide="arrow-left" class="w-4 h-4"></i>
-                        <span>Volver</span>
+                        <span data-i18n="reading.backToLibrary">Volver</span>
                     </a>
-                    <div id="completionBadge" class="hidden px-3 py-2 rounded-full bg-green-500/15 text-green-300 text-xs font-semibold uppercase tracking-wide">Completed</div>
+                    <div id="completionBadge" class="hidden px-3 py-2 rounded-full bg-green-500/15 text-green-300 text-xs font-semibold uppercase tracking-wide" data-i18n="reading.completed">Completed</div>
                 </div>
             </header>
 
@@ -152,15 +152,15 @@
                     <div class="flex items-center gap-3">
                         <button id="prevPageBtn" class="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-gray-700 text-gray-300 hover:text-white text-sm font-medium transition-all duration-300 flex items-center gap-2">
                             <i data-lucide="chevron-left" class="w-4 h-4"></i>
-                            <span>Anterior</span>
+                            <span data-i18n="reading.prevPage">Anterior</span>
                         </button>
                         <button id="nextPageBtn" class="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-gray-700 text-gray-300 hover:text-white text-sm font-medium transition-all duration-300 flex items-center gap-2">
-                            <span>Siguiente</span>
+                            <span data-i18n="reading.nextPage">Siguiente</span>
                             <i data-lucide="chevron-right" class="w-4 h-4"></i>
                         </button>
                     </div>
                     <div class="text-sm text-gray-400">
-                        Página <span id="currentPage">1</span> / <span id="totalPages">1</span>
+                        <span data-i18n="reading.pageLabel">Página</span> <span id="currentPage">1</span> / <span id="totalPages">1</span>
                     </div>
                 </div>
 
@@ -170,7 +170,7 @@
 
                 <div class="flex flex-wrap items-center justify-between gap-4 text-sm text-gray-400">
                     <div>
-                        Última actualización: <span id="lastSavedAt">Pendiente</span>
+                        <span data-i18n="reading.lastSavedLabel">Última actualización:</span> <span id="lastSavedAt" data-i18n="reading.lastSavedPending">Pendiente</span>
                     </div>
                     <div id="progressLabel" class="text-purple-300 font-semibold">0%</div>
                 </div>
