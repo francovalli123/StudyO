@@ -1,16 +1,22 @@
-from django.contrib.auth.models import User
-from rest_framework import serializers
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.validators import UnicodeUsernameValidator
-from django.conf import settings
-from .security import validate_registration_email_or_raise, verify_signup_captcha
+from rest_framework import serializers
 
-# Crea un serializer basado en modelo (User) para convertir datos JSON <-> objetos Python, y aplicar validaciones automáticas
+from .security import verify_signup_captcha
 
 User = get_user_model()
 
+
 class RegisterSerializer(serializers.ModelSerializer):
     username = serializers.CharField(max_length=150)
+    email = serializers.EmailField(
+        error_messages={
+            "invalid": "Email inválido",
+            "blank": "Email inválido",
+            "required": "Email inválido",
+        }
+    )
     password = serializers.CharField(write_only=True)
     country = serializers.CharField(required=True)
     captcha_id = serializers.CharField(write_only=True)
@@ -28,6 +34,7 @@ class RegisterSerializer(serializers.ModelSerializer):
             "captcha_id",
             "captcha_answer",
         )
+
     def validate_username(self, value):
         validator = UnicodeUsernameValidator(
             message=(
@@ -43,14 +50,10 @@ class RegisterSerializer(serializers.ModelSerializer):
         return value
 
     def validate_email(self, value):
-        normalized = (value or "").strip().lower()
-        if User.objects.filter(email__iexact=normalized).exists():
-            raise serializers.ValidationError("Este correo electrónico ya está en uso.")
+        normalized = value.strip().lower()
 
-        try:
-            validate_registration_email_or_raise(normalized)
-        except ValueError as exc:
-            raise serializers.ValidationError(str(exc)) from exc
+        if User.objects.filter(email__iexact=normalized).exists():
+            raise serializers.ValidationError("El usuario con este email ya existe")
 
         return normalized
 
@@ -60,7 +63,7 @@ class RegisterSerializer(serializers.ModelSerializer):
             attrs.get("captcha_answer", ""),
         )
         if not captcha_ok:
-            raise serializers.ValidationError({"captcha": "Captcha inválido o expirado."})
+            raise serializers.ValidationError({"captcha": "Captcha invalido o expirado."})
 
         return attrs
 
@@ -68,13 +71,12 @@ class RegisterSerializer(serializers.ModelSerializer):
         validated_data.pop("captcha_id", None)
         validated_data.pop("captcha_answer", None)
         password = validated_data.pop("password")
-        user = User(**validated_data)
-        user.set_password(password)
-        user.save()
-        return user
-    
+        return User.objects.create_user(password=password, **validated_data)
+
+
 class UserSerializer(serializers.ModelSerializer):
-    """Serializer para obtener información del usuario (sin contraseña)"""
+    """Serializer para obtener informacion del usuario (sin contrasena)"""
+
     avatar = serializers.ImageField(read_only=True)
     avatar_url = serializers.SerializerMethodField()
     preferences = serializers.SerializerMethodField()
@@ -88,8 +90,20 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = [
-            "id", "username", "email", "first_name", "last_name", "avatar", "avatar_url", "preferences",
-            "language", "timezone", "country", "onboarding_step", "onboarding_completed", "subjects_count"
+            "id",
+            "username",
+            "email",
+            "first_name",
+            "last_name",
+            "avatar",
+            "avatar_url",
+            "preferences",
+            "language",
+            "timezone",
+            "country",
+            "onboarding_step",
+            "onboarding_completed",
+            "subjects_count",
         ]
         read_only_fields = ["id", "username"]
 
@@ -104,18 +118,15 @@ class UserSerializer(serializers.ModelSerializer):
         return f"{site_url}{url}" if site_url else url
 
     def get_preferences(self, obj):
-        # Return stored notification/preferences JSON under a single key to be compatible with frontend
         try:
-            prefs = getattr(obj, 'notification_preferences', {}) or {}
-            # Ensure language is present even if not stored in preferences JSON
-            if 'language' not in prefs and getattr(obj, 'language', None):
-                prefs = {**prefs, 'language': obj.language}
+            prefs = getattr(obj, "notification_preferences", {}) or {}
+            if "language" not in prefs and getattr(obj, "language", None):
+                prefs = {**prefs, "language": obj.language}
             return prefs
         except Exception:
             return {}
 
     def get_subjects_count(self, obj):
-        # Used by onboarding trigger (first login or no subjects)
         try:
             return obj.subjects.count()
         except Exception:
